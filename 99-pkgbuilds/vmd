@@ -1,0 +1,57 @@
+# This is an example PKGBUILD file. Use this as a start to creating your own,
+# and remove these comments. For more information, see 'man PKGBUILD'.
+# NOTE: Please fill out the license field for your package! If it is unknown,
+# then please put 'unknown'.
+
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=vmd
+pkgver=1.9.3
+pkgrel=1
+epoch=
+pkgdesc="vmd"
+arch=('x86_64')
+url=""
+license=('custom')
+groups=()
+depends=()
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=(
+	"https://www.ks.uiuc.edu/Research/$pkgname/$pkgname-$pkgver/files/final/$pkgname-$pkgver.bin.LINUXAMD64-CUDA8-OptiX4-OSPRay111p1.opengl.tar.gz"
+)
+noextract=()
+b2sums=('790f0c23671db681e4da6149fbcf29286822302fa9d066b72c509dbf876e877f09c16f70007416fa14e31ae1ed53503c521cabe020cc9878cbb39339ea2f0cbf')
+validpgpkeys=()
+
+
+prepare() {
+	export VMDINSTALLBINDIR="$pkgdir/usr/bin"
+        export VMDINSTALLLIBRARYDIR="$pkgdir/usr/lib/vmd"
+        echo $VMDINSTALLBINDIR
+        echo $VMDINSTALLLIBRARYDIR
+        cd ${pkgname}-${pkgver} || exit
+        ./configure
+}
+
+
+build() {
+	cd ${pkgname}-${pkgver}/src || exit
+	# make
+}
+
+check() {
+	true
+}
+
+package() {
+	cd ${pkgname}-${pkgver}/src || exit
+	make install
+}
