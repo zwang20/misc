@@ -1,0 +1,148 @@
+Charm++: standalone mode (not using charmrun)
+Charm++> Running in Multicore mode: 4 threads (PEs)
+Charm++> Using recursive bisection (scheme 3) for topology aware partitions
+Converse/Charm++ Commit ID: 
+CharmLB> Load balancer assumes all CPUs are same.
+Charm++> Running on 1 hosts (1 sockets x 4 cores x 1 PUs = 4-way SMP)
+Charm++> cpu topology info is gathered in 0.000 seconds.
+CharmLB> Load balancing instrumentation for communication is off.
+Info: NAMD 3.0.1 for Linux-x86_64-multicore
+Info: 
+Info: Please visit http://www.ks.uiuc.edu/Research/namd/
+Info: for updates, documentation, and support information.
+Info: 
+Info: Please cite Phillips et al., J. Chem. Phys. 153:044130 (2020) doi:10.1063/5.0014475
+Info: in all publications reporting results obtained with NAMD.
+Info: 
+Info: Based on Charm++/Converse 80000 for multicore-linux-x86_64-gcc
+Info: Built Mon Oct 14 11:11:06 CDT 2024 by dhardy on athine.ks.uiuc.edu
+Info: 1 NAMD  3.0.1  Linux-x86_64-multicore  4    imac18  michael
+Info: Running on 4 processors, 1 nodes, 1 physical nodes.
+Info: CPU topology information available.
+Info: Charm++/Converse parallel runtime startup completed at 0.013277 s
+CkLoopLib is used in SMP with simple dynamic scheduling (converse-level notification)
+Info: 239.629 MB of memory in use based on /proc/self/stat
+Info: Configuration file is test.namd
+Info: Working in the current directory /data/michael/misc/03-freesolv-namd/01-test
+TCL: Suspending until startup complete.
+Warning: Option "1-4scaling" has been deprecated. Instead use "oneFourScaling".
+Warning: The Langevin gamma parameters differ over the particles,
+Warning: requiring extra work per step to constrain rigid bonds.
+Info: SIMULATION PARAMETERS:
+Info: TIMESTEP               2
+Info: NUMBER OF STEPS        0
+Info: STEPS PER CYCLE        10
+Info: PERIODIC CELL BASIS 1  30 0 0
+Info: PERIODIC CELL BASIS 2  0 30 0
+Info: PERIODIC CELL BASIS 3  0 0 30
+Info: PERIODIC CELL CENTER   0 0 0
+Info: WRAPPING ALL CLUSTERS AROUND PERIODIC BOUNDARIES ON OUTPUT.
+Info: LOAD BALANCER  Centralized
+Info: LOAD BALANCING STRATEGY  New Load Balancers -- DEFAULT
+Info: LDB PERIOD             2000 steps
+Info: FIRST LDB TIMESTEP     50
+Info: LAST LDB TIMESTEP     -1
+Info: LDB BACKGROUND SCALING 1
+Info: HOM BACKGROUND SCALING 1
+Info: MIN ATOMS PER PATCH    40
+Info: EMPTY PATCH LOAD       40 ATOMS
+Info: INITIAL TEMPERATURE    298
+Info: CENTER OF MASS MOVING INITIALLY? NO
+Info: DIELECTRIC             1
+Info: EXCLUDE                SCALED ONE-FOUR
+Info: 1-4 ELECTROSTATICS SCALED BY 1
+Info: MODIFIED 1-4 VDW PARAMETERS WILL BE USED
+Info: DCD FILENAME           output.dcd
+Info: DCD FREQUENCY          50
+Info: DCD FIRST STEP         50
+Info: DCD FILE WILL CONTAIN UNIT CELL DATA
+Info: NO EXTENDED SYSTEM TRAJECTORY OUTPUT
+Info: NO VELOCITY DCD OUTPUT
+Info: NO FORCE DCD OUTPUT
+Info: OUTPUT FILENAME        output
+Info: BINARY OUTPUT FILES WILL BE USED
+Info: NO RESTART FILE
+Info: SWITCHING ACTIVE
+Info: SWITCHING ON           10
+Info: SWITCHING OFF          12
+Info: PAIRLIST DISTANCE      14
+Info: PAIRLIST SHRINK RATE   0.01
+Info: PAIRLIST GROW RATE     0.01
+Info: PAIRLIST TRIGGER       0.3
+Info: PAIRLISTS PER CYCLE    2
+Info: PAIRLISTS ENABLED
+Info: MARGIN                 0
+Info: HYDROGEN GROUP CUTOFF  2.5
+Info: PATCH DIMENSION        16.5
+Info: ENERGY OUTPUT STEPS    10
+Info: ENERGY EVALUATION STEPS    10
+Info: OUTPUT ENERGY PRECISION 4
+Info: CROSSTERM ENERGY INCLUDED IN DIHEDRAL
+Info: TIMING OUTPUT STEPS    100
+Info: LANGEVIN DYNAMICS ACTIVE
+Info: LANGEVIN TEMPERATURE   298
+Info: LANGEVIN USING BBK INTEGRATOR
+Info: LANGEVIN DAMPING COEFFICIENT IS 1 INVERSE PS
+Info: LANGEVIN DYNAMICS NOT APPLIED TO HYDROGENS
+Info: MULTILEVEL SUMMATION METHOD (MSM) FOR ELECTROSTATICS ACTIVE
+Info: MSM WITH C1 CUBIC INTERPOLATION AND C2 TAYLOR SPLITTING
+Info: FULL ELECTROSTATIC EVALUATION FREQUENCY      2
+Info: USING VERLET I (r-RESPA) MTS SCHEME.
+Info: C1 SPLITTING OF LONG RANGE ELECTROSTATICS
+Info: PLACING ATOMS IN PATCHES BY HYDROGEN GROUPS
+Info: RIGID BONDS TO HYDROGEN : ALL
+Info:         ERROR TOLERANCE : 1e-08
+Info:          MAX ITERATIONS : 100
+Info: RIGID WATER USING SETTLE ALGORITHM
+Info: RANDOM NUMBER SEED     1740116492
+Info: USE HYDROGEN BONDS?    NO
+Info: Using GROMACS format force field!
+Info: GROMACS TOPO FILE        mobley_1017962.top
+Info: GROMACS COOR FILE        mobley_1017962.gro
+Info: USING ARITHMETIC MEAN TO COMBINE L-J SIGMA PARAMETERS
+[0] Stack Traceback:
+  [0:0] namd3 0xf84908 CmiAbortHelper(char const*, char const*, char const*, int, int)
+  [0:1] namd3 0xf84a0d 
+  [0:2] namd3 0xf85538 
+  [0:3] libc.so.6 0x7c7d1c44e391 
+  [0:4] libc.so.6 0x7c7d1c44e46e 
+  [0:5] namd3 0xa98679 GromacsTopFile::GromacsTopFile(char*)
+  [0:6] namd3 0xb22f84 NamdState::loadStructure(char const*, char const*, int)
+  [0:7] namd3 0xb259ae NamdState::configListInit(ConfigList*)
+  [0:8] namd3 0xbc8396 
+  [0:9] namd3 0xbcb90d ScriptTcl::Tcl_minimize(void*, Tcl_Interp*, int, char const**)
+  [0:10] namd3 0xfc88db TclInvokeStringCommand
+  [0:11] namd3 0xfcd597 TclNRRunCallbacks
+  [0:12] namd3 0xfcf409 
+  [0:13] namd3 0x1083268 Tcl_FSEvalFileEx
+  [0:14] namd3 0x10833e7 Tcl_EvalFile
+  [0:15] namd3 0xbcebc2 ScriptTcl::load(char*)
+  [0:16] namd3 0x6eb2c7 
+  [0:17] namd3 0x672427 main
+  [0:18] libc.so.6 0x7c7d1c435488 
+  [0:19] libc.so.6 0x7c7d1c43554c __libc_start_main
+  [0:20] namd3 0x67586e _start
+[0] Stack Traceback:
+  [0:0] namd3 0xf837de 
+  [0:1] namd3 0xf8487e LrtsAbort(char const*)
+  [0:2] namd3 0xf84910 CmiAbortHelper(char const*, char const*, char const*, int, int)
+  [0:3] namd3 0xf84a0d 
+  [0:4] namd3 0xf85538 
+  [0:5] libc.so.6 0x7c7d1c44e391 
+  [0:6] libc.so.6 0x7c7d1c44e46e 
+  [0:7] namd3 0xa98679 GromacsTopFile::GromacsTopFile(char*)
+  [0:8] namd3 0xb22f84 NamdState::loadStructure(char const*, char const*, int)
+  [0:9] namd3 0xb259ae NamdState::configListInit(ConfigList*)
+  [0:10] namd3 0xbc8396 
+  [0:11] namd3 0xbcb90d ScriptTcl::Tcl_minimize(void*, Tcl_Interp*, int, char const**)
+  [0:12] namd3 0xfc88db TclInvokeStringCommand
+  [0:13] namd3 0xfcd597 TclNRRunCallbacks
+  [0:14] namd3 0xfcf409 
+  [0:15] namd3 0x1083268 Tcl_FSEvalFileEx
+  [0:16] namd3 0x10833e7 Tcl_EvalFile
+  [0:17] namd3 0xbcebc2 ScriptTcl::load(char*)
+  [0:18] namd3 0x6eb2c7 
+  [0:19] namd3 0x672427 main
+  [0:20] libc.so.6 0x7c7d1c435488 
+  [0:21] libc.so.6 0x7c7d1c43554c __libc_start_main
+  [0:22] namd3 0x67586e _start
