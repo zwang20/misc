@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+folder_prefix = "one"
+
 # ask user for input
 
 time_ns = int(input("Input time (ns): "))
@@ -24,13 +26,13 @@ print()
 
 import os
 print("creating directory")
-os.system(f"mkdir -p 'sodium_{time_ns}'")
+os.system(f"mkdir -p '{folder_prefix}_{time_ns}'")
 
 print("copying files")
 os.system(f"cp ionized.pdb 'sodium_{time_ns}/'")
 os.system(f"cp ionized.psf 'sodium_{time_ns}/'")
 os.system(f"cp par_all27_prot_lipid.inp 'sodium_{time_ns}/'")
-os.system(f"cp run.sh 'sodium_{time_ns}/run_{time_ns}'")
+os.system(f"cp run.sh 'sodium_{time_ns}/one_{time_ns}'")
 
 sodium_namd_template = f"""
 #############################################################
@@ -133,5 +135,5 @@ run {steps};
 """
 
 print("writing sodium.namd")
-with open(f"sodium_{time_ns}/sodium.namd", 'w') as f:
+with open(f"one_{time_ns}/sodium.namd", 'w') as f:
     f.write(sodium_namd_template)
