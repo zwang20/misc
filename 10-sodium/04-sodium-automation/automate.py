@@ -2,8 +2,8 @@
 
 # maximum = 2.0
 step_time = 1.0
-damping = 0.5
-folder_prefix = "less"
+damping = 0.25
+folder_prefix = "el"
 
 # ask user for input
 
