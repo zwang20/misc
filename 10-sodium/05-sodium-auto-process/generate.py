@@ -6,9 +6,6 @@ damping = 1.0
 folder_prefix = "wb"
 temperature = 298
 
-# ask user for input
-
-# time_ns = int(input("Input time (ns): "))
 time_ns_list = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
 
 # calculate relavent stuff
@@ -84,7 +81,7 @@ lscpu | grep "Model name"
 lscpu | grep "Model name" | cut -d : -f 2 | xargs
 """
 
-    # os.system(f"cp run.sh '{folder_prefix}_{time_ns}/{folder_prefix}_{time_ns}'")
+
     with open(f"{folder_prefix}/{folder_prefix}_{time_ns}/{folder_prefix}_{time_ns}", 'w') as f:
         f.write(run_template)
 
