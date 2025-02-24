@@ -1,0 +1,30 @@
+* Topology for ethane-to-ethane transformation
+27 1	! pretend we are CHARMM27_1
+
+RESI ZERO        0.00       !  ethane -> ethane
+GROUP                       !
+ATOM CI   CT3   -0.27       !
+ATOM HI1  HA     0.09       !
+ATOM HI2  HA     0.09       !
+ATOM HI3  HA     0.09       !
+GROUP                       !   HI1       HM1   HF2  HF3
+ATOM CM   CT3   -0.27       !      \       |     |  /
+ATOM HM1  HA     0.09       !       \HF    |     | /
+ATOM HM2  HA     0.09       !        CI----CM----CF
+ATOM HI   HA     0.09       !       / |    |     HI\
+ATOM HF   HA     0.09       !      /  |    |        \
+GROUP                       !   HI2  HI3  HM2        HF1
+ATOM CF   CT3   -0.27       !
+ATOM HF1  HA     0.09       !
+ATOM HF2  HA     0.09       !
+ATOM HF3  HA     0.09       !
+BOND     CI  HI1       CI  HI2       CI   HI3       ! ethane 1
+BOND     CF  HF1       CF  HF2       CF   HF3       ! ethane 2
+BOND     CI  CM        CF  CM                       ! common
+BOND     CM  HM1       CM  HM2                      ! common
+BOND     CM  HI                                     ! ethane 1
+BOND     CM  HF                                     ! ethane 2
+
+! No patching
+PATCHING FIRST NONE LAST NONE
+END

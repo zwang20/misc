@@ -1,0 +1,100 @@
+###################################################
+# EQUILIBRATION
+###################################################
+
+
+# INPUT
+
+set temp                300.0
+
+parameters              ../../common/par_all22_prot.inp
+paraTypeCharmm          on
+
+exclude                 scaled1-4
+1-4scaling              1.0
+
+
+# TOPOLOGY
+
+structure               y2a.psf
+
+# INITIAL CONDITIONS
+
+coordinates             y2a.pdb
+temperature             $temp
+
+# OUTPUT FREQUENCIES
+
+outputenergies          2000
+outputtiming            2000
+outputpressure          2000
+restartfreq             2000
+XSTFreq                 2000
+
+
+# OUTPUT AND RESTART
+
+outputname              vacuo-equil
+restartname             vacuo-equil
+
+binaryoutput            yes
+binaryrestart           yes
+
+# CONSTANT-T
+langevin                on
+langevinTemp            $temp
+langevinDamping         10.0
+
+
+# SPACE PARTITIONING
+
+stepspercycle           20
+
+# CUT-OFFS
+
+switching               on
+switchdist               8.0
+cutoff                   9.0
+pairlistdist            10.0
+
+
+# RESPA PROPAGATOR
+
+timestep                0.5
+fullElectFrequency      2
+nonbondedFreq           1
+
+
+# SHAKE
+
+rigidbonds              all
+rigidtolerance          0.000001
+rigiditerations         400
+
+
+# COM
+
+ComMotion            no
+
+
+# FEP PARAMETERS
+
+source                  ../../tools/fep.tcl
+
+alch                    on
+alchType                FEP
+alchFile                y2a.fep
+alchCol                 B
+alchOutFile             vacuo-equil.fepout
+alchOutFreq             1000
+
+alchVdwLambdaEnd        1.0
+alchElecLambdaStart     0.5
+alchVdWShiftCoeff       4.0
+alchDecouple            off
+
+alchEquilSteps          10000
+set numSteps            50000
+
+runFEP 0.0 0.0 0.0 $numSteps 
+

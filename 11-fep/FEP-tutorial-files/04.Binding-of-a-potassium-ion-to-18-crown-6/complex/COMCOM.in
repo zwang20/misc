@@ -1,0 +1,28 @@
+colvarsTrajFrequency     100
+colvarsRestartFrequency  100
+
+colvar {
+   name COMDistance
+  
+   width 0.1
+
+   distance {
+
+      group1 {
+         atomnumbers { 43 }
+      }
+      group2 {
+         atomnumbers { 1    4    5    8   11   12
+                       15   18   19   22   25   26
+                       29   32   33   36   39   40 }
+      }
+   }
+}
+
+harmonicWalls {
+    colvars           COMDistance
+    lowerWalls        0.0
+    upperWalls        0.5
+    lowerWallConstant 1.0 # scaled by width^2 -> 100.0
+    upperWallConstant 1.0 # scaled by width^2 -> 100.0
+}
