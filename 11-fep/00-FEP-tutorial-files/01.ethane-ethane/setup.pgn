@@ -1,0 +1,12 @@
+package require psfgen
+topology ../common/top_all22_prot.inp
+topology zero.top
+
+segment ZERO { residue 1 ZERO }
+segment WAT { auto none; pdb water.pdb }
+
+coordpdb ethane.pdb ZERO
+coordpdb water.pdb WAT
+
+writepsf setup.psf
+writepdb setup.pdb
