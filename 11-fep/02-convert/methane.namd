@@ -1,12 +1,11 @@
 
 # Minimization and Equilibration
 
-structure          mobley_9055303.psf
-# coordinates        mobley_9055303.crd
-coordinates         pdb_from_crd.pdb
-#gromacs             off
-#grotopfile          methane.top
-#grocoorfile         methane.gro
+structure          output.mol2
+coordinates         output.crd
+#gromacs             on
+#grotopfile          mobley_9055303.top
+#grocoorfile         mobley_9055303.gro
 
 set outputname     output
 
@@ -18,11 +17,8 @@ firsttimestep      0
 
 # Input
 paraTypeCharmm      on
-parameters          par_all27_prot_lipid.inp
-# parameters          methane.prm
-parameters          mobley_9055303.prm
-#parameters          mobley_9055303.rtf
-#parameters          mobley_9055303.inp
+#parameters          par_all27_prot_lipid.inp
+parameters mobley_9055303.prm
 temperature         298
 
 
