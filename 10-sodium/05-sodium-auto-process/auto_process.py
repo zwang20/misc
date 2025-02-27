@@ -21,7 +21,9 @@ def maxwell_boltzmann_energy_fn(x_data: list[float], a0: float) -> list[float]:
     output = []
     for x in x_data:
         assert x > 0
-        output.append((2 / np.sqrt(np.pi * np.pow(a0, 3))) * np.sqrt(x) * np.exp(-x / a0))
+        output.append(
+            (2 / np.sqrt(np.pi * np.pow(a0, 3))) * np.sqrt(x) * np.exp(-x / a0)
+        )
     return output
 
 
@@ -33,13 +35,19 @@ def maxwell_boltzmann_velocity_generator(
         output = []
         for x in x_data:
             assert x > 0
-            output.append(np.sqrt((2 * mass**3) / (np.pi * a0**3)) * x**2 * np.exp(-(mass * x**2) / (2 * a0)))
+            output.append(
+                np.sqrt((2 * mass**3) / (np.pi * a0**3))
+                * x**2
+                * np.exp(-(mass * x**2) / (2 * a0))
+            )
         return output
 
     return maxwell_boltzmann_velocity_fn
 
 
-def histogram_fit(data: list[float], fn: Callable[[list[float], float], list[float]]) -> tuple[float, float, float]:
+def histogram_fit(
+    data: list[float], fn: Callable[[list[float], float], list[float]]
+) -> tuple[float, float, float]:
     histogram = np.histogram(data, bins=1000, density=True)
     heights, x_edges = histogram
     x_centers = (x_edges[:-1] + x_edges[1:]) / 2
@@ -69,7 +77,11 @@ md5sums = []
 for folder in folders:
     print(f"{folder=}")
     subprocess.run(["cp", f"{prefix}/{folder}/output.vel", "."]).check_returncode()
-    md5sum = subprocess.run(["md5sum", "output.vel"], capture_output=True).stdout.decode("utf-8").split()[0]
+    md5sum = (
+        subprocess.run(["md5sum", "output.vel"], capture_output=True)
+        .stdout.decode("utf-8")
+        .split()[0]
+    )
     assert md5sum not in md5sums
     md5sums.append(md5sum)
     output_file = natsort.natsorted(
@@ -93,7 +105,14 @@ for folder in folders:
     )
 
     # TODO: fixme
-    hostname = subprocess.run(["grep", "^k...", f"{prefix}/{folder}/{output_file}"], capture_output=True).stdout.decode("utf-8").split("\n")[0].strip()
+    hostname = (
+        subprocess.run(
+            ["grep", "^k...", f"{prefix}/{folder}/{output_file}"], capture_output=True
+        )
+        .stdout.decode("utf-8")
+        .split("\n")[0]
+        .strip()
+    )
 
     walltime = (
         subprocess.run(
@@ -127,7 +146,10 @@ for folder in folders:
             mass_velocity_squared_list.append((float(mass), float(velocity)))
 
     # calculate temperature from energy
-    energies = [1 / 2 * mass * velocity_squared for mass, velocity_squared in mass_velocity_squared_list]
+    energies = [
+        1 / 2 * mass * velocity_squared
+        for mass, velocity_squared in mass_velocity_squared_list
+    ]
     a0, b, temperature = histogram_fit(energies, maxwell_boltzmann_energy_fn)
     logger.info(f"{a0=}, {b=}, {temperature=}")
 

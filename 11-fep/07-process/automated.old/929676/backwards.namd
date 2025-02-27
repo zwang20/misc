@@ -1,0 +1,111 @@
+
+structure          mobley_929676.psf
+coordinates         mobley_929676.pdb
+
+bincoordinates          mobley_929676_equilibrated.coor
+binvelocities           mobley_929676_equilibrated.vel
+
+extendedSystem          mobley_929676_equilibrated.xsc
+
+paraTypeCharmm      on
+parameters          ../common/par_all27_prot_lipid.inp
+parameters          mobley_929676.prm
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.0
+switching           on
+switchdist          10.0
+pairlistdist        14.0
+
+
+# Integrator Parameters
+timestep            2.0
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  1
+stepspercycle       10
+
+
+# Constant Temperature Control
+langevin            on   ;# do langevin dynamics
+langevinDamping     1.0    ;# damping coefficient (gamma) of 1/ps
+langevinTemp        298
+langevinHydrogen    off  ;# don't couple langevin bath to hydrogens
+
+#tCouple on
+#tCoupleTemp 298
+
+langevinPiston        on
+langevinPistonTarget  1.01325      ;# pressure in bar -> 1 atm
+langevinPistonPeriod  100.         ;# oscillation period around 100 fs
+langevinPistonDecay   50.          ;# oscillation decay time of 50 fs
+langevinPistonTemp    298 ;# coupled to heat bath
+
+
+# Electrostatic Force Evaluation
+#MSM                 on
+#MSMGridSpacing      2.5  ;# very sensitive to performance, use this default
+#MSMxmin            -5.0
+#MSMxmax             60.0
+#MSMymin            -5.0
+#MSMymax             60.0
+#MSMzmin            -15.0
+#MSMzmax             46
+
+#PME (for full-system periodic electrostatics)
+PME                 yes
+PMETolerance            10e-6
+PMEInterpOrder          4
+# let NAMD determine grid
+PMEGridSpacing      1.0
+
+
+#restartfreq         500
+outputEnergies      500
+outputpressure      500
+dcdfreq             500
+outputTiming        500
+
+
+#############################################################
+## EXTRA PARAMETERS                                        ##
+#############################################################
+
+# Repeating unit cells
+
+# Periodic Boundary Conditions
+cellBasisVector1    90.0    0.0   0.0
+cellBasisVector2     0.0  90.0   0.0
+cellBasisVector3     0.0    0.0   90.0
+cellOrigin         38.826 38.826 38.826
+
+wrapAll             on
+useGroupPressure      yes
+margin 8
+
+#############################################################
+## EXECUTION SCRIPT                                        ##
+#############################################################
+
+# FEP
+
+source                  ../common/fep.tcl
+
+alch                    on
+alchType                FEP
+alchFile                mobley_929676.pdb
+alchCol                 B
+alchOutFreq             10
+
+alchVdwLambdaEnd        1.0
+alchElecLambdaStart     0.5
+alchVdWShiftCoeff       6.0
+alchDecouple            no
+
+alchEquilSteps          1000
+set numSteps            5000
+outputName mobley_929676_backwards
+alchOutFile             mobley_929676_backwards.fepout
+runFEP 1.0 0.0 -0.0625 $numSteps
