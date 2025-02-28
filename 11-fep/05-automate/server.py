@@ -6,12 +6,10 @@ import json
 import sys
 import time
 
+from tqdm import tqdm
+
 
 def loop():
-    # WARNING: the following code is dangerous
-    print("Deleting old files")
-    # subprocess.run(['ssh', 'katana', 'find /srv/scratch/z5358697/automated -name *.o* | xargs rm'])
-    # subprocess.run(['ssh', 'katana', 'find /srv/scratch/z5358697/automated -name *.dcd* | xargs rm'])
     qstat_process = subprocess.run(
         [
             "ssh",
@@ -22,9 +20,7 @@ def loop():
     )
     print(qstat_process.stderr.decode("utf-8"))
     too_many_jobs = False
-    if "Not Running: would exceed user z5358697's limit" in qstat_process.stdout.decode(
-        "utf-8"
-    ):
+    if "Not Running: " in qstat_process.stdout.decode("utf-8"):
         too_many_jobs = True
     qstat_process.check_returncode()
     jobs = json.loads(qstat_process.stdout.decode("utf-8"))

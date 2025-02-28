@@ -3,8 +3,30 @@
 import subprocess
 import json
 
-# TODO: implement done list
-requires_processing = set()
+
+ls_process = subprocess.run(["ls", "automated.old"], capture_output=True)
+ls_process.check_returncode()
+prefixes = ls_process.stdout.decode("utf-8").split()[:-1]
+print(len(prefixes))
+
+with open("energies.csv", "a") as f:
+    for prefix in prefixes:
+        print(f"processing {prefix= }")
+
+        vmd_process: subprocess.CompletedProcess = subprocess.run(
+            ["xvfb-run", "vmd", "-e", "process_fep.tcl"],
+            capture_output=True,
+            input=f"parsefep -forward automated.old/{prefix}/mobley_{prefix}_forwards.fepout -backward automated.old/{prefix}/mobley_{prefix}_backwards.fepout -bar".encode(
+                "utf-8"
+            ),
+        )
+        if vmd_process.returncode == 0:
+            for line in vmd_process.stdout.decode("utf-8").split("\n"):
+                if "BAR-estimator: total free energy change is" in line:
+                    f.write(
+                        f"{prefix},{float(line.split()[6])},{float(line.split()[11])}\n"
+                    )
+                    break
 
 # print("Checking folders on server")
 # server_ls_process = subprocess.run(

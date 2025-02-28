@@ -1,15 +1,15 @@
 
-structure          mobley_1036761.psf
-coordinates         mobley_1036761.pdb
+structure          mobley_1592519.psf
+coordinates         mobley_1592519.pdb
 
-bincoordinates          mobley_1036761_equilibrated.coor
-binvelocities           mobley_1036761_equilibrated.vel
+bincoordinates          mobley_1592519_equilibrated.coor
+binvelocities           mobley_1592519_equilibrated.vel
 
-extendedSystem          mobley_1036761_equilibrated.xsc
+extendedSystem          mobley_1592519_equilibrated.xsc
 
 paraTypeCharmm      on
 parameters          ../common/par_all27_prot_lipid.inp
-parameters          mobley_1036761.prm
+parameters          mobley_1592519.prm
 
 # Force-Field Parameters
 exclude             scaled1-4
@@ -79,7 +79,7 @@ outputTiming        500
 cellBasisVector1    90.0    0.0   0.0
 cellBasisVector2     0.0  90.0   0.0
 cellBasisVector3     0.0    0.0   90.0
-cellOrigin         36.019 36.019 36.019
+cellOrigin         41.659 41.659 41.659
 
 wrapAll             on
 useGroupPressure      yes
@@ -95,7 +95,7 @@ source                  ../common/fep.tcl
 
 alch                    on
 alchType                FEP
-alchFile                mobley_1036761.pdb
+alchFile                mobley_1592519.pdb
 alchCol                 B
 alchOutFreq             10
 
@@ -106,6 +106,6 @@ alchDecouple            no
 
 alchEquilSteps          1000
 set numSteps            5000
-outputName mobley_1036761_backwards
-alchOutFile             mobley_1036761_backwards.fepout
+outputName mobley_1592519_backwards
+alchOutFile             mobley_1592519_backwards.fepout
 runFEP 1.0 0.0 -0.0625 $numSteps
