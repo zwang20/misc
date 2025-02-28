@@ -2,21 +2,31 @@
 
 import subprocess
 import json
-
+from tqdm import tqdm
+import os
 
 ls_process = subprocess.run(["ls", "automated.old"], capture_output=True)
 ls_process.check_returncode()
 prefixes = ls_process.stdout.decode("utf-8").split()[:-1]
 print(len(prefixes))
+with open("energies.csv") as f:
+    for line in f:
+        prefixes.remove(line.split(",")[0])
+print(len(prefixes))
 
 with open("energies.csv", "a") as f:
-    for prefix in prefixes:
-        print(f"processing {prefix= }")
+    for prefix in tqdm(prefixes):
+        tqdm.write(f"processing {prefix= }")
+
+        forwards = f"automated.old/{prefix}/mobley_{prefix}_forwards.fepout"
+        backwards = f"automated.old/{prefix}/mobley_{prefix}_backwards.fepout"
+        if not (os.path.isfile(forwards) and os.path.isfile(backwards)):
+            continue
 
         vmd_process: subprocess.CompletedProcess = subprocess.run(
             ["xvfb-run", "vmd", "-e", "process_fep.tcl"],
             capture_output=True,
-            input=f"parsefep -forward automated.old/{prefix}/mobley_{prefix}_forwards.fepout -backward automated.old/{prefix}/mobley_{prefix}_backwards.fepout -bar".encode(
+            input=f"parsefep -forward {forwards} -backward {backwards} -bar".encode(
                 "utf-8"
             ),
         )
