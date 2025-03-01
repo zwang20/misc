@@ -1,0 +1,1352 @@
+
+hostname k162
+nproc 16
+Model name:          Intel(R) Xeon(R) Gold 6448Y
+Charm++: standalone mode (not using charmrun)
+Charm++> Running in Multicore mode: 16 threads (PEs)
+Charm++> Using recursive bisection (scheme 3) for topology aware partitions
+Converse/Charm++ Commit ID: 
+CharmLB> Load balancer assumes all CPUs are same.
+Charm++> Running on 1 hosts (2 sockets x 8 cores x 1 PUs = 16-way SMP)
+Charm++> cpu topology info is gathered in 0.001 seconds.
+CharmLB> Load balancing instrumentation for communication is off.
+Info: NAMD 3.0.1 for Linux-x86_64-multicore
+Info: 
+Info: Please visit http://www.ks.uiuc.edu/Research/namd/
+Info: for updates, documentation, and support information.
+Info: 
+Info: Please cite Phillips et al., J. Chem. Phys. 153:044130 (2020) doi:10.1063/5.0014475
+Info: in all publications reporting results obtained with NAMD.
+Info: 
+Info: Based on Charm++/Converse 80000 for multicore-linux-x86_64-gcc
+Info: Built Mon Oct 14 11:11:06 CDT 2024 by dhardy on athine.ks.uiuc.edu
+Info: 1 NAMD  3.0.1  Linux-x86_64-multicore  16    k162  z5358697
+Info: Running on 16 processors, 1 nodes, 1 physical nodes.
+Info: CPU topology information available.
+Info: Charm++/Converse parallel runtime startup completed at 0.00303709 s
+CkLoopLib is used in SMP with simple dynamic scheduling (converse-level notification)
+Info: 1043.63 MB of memory in use based on /proc/self/stat
+Info: Configuration file is prod_1.namd
+Info: Working in the current directory /srv/scratch/z5358697/production
+TCL: Running FEP window   1: Lambda1 0.05   Lambda2 0.1    [dLambda 0.05  ]
+TCL: Suspending until startup complete.
+Warning: The following variables were set in the
+Warning: configuration file but will be ignored:
+Warning:    switchdist (switching)
+Warning: Option "1-4scaling" has been deprecated. Instead use "oneFourScaling".
+Info: EXTENDED SYSTEM FILE   equil.xsc
+Info: SIMULATION PARAMETERS:
+Info: TIMESTEP               2
+Info: NUMBER OF STEPS        0
+Info: STEPS PER CYCLE        10
+Info: PERIODIC CELL BASIS 1  30.2215 0 0
+Info: PERIODIC CELL BASIS 2  0 30.2215 0
+Info: PERIODIC CELL BASIS 3  0 0 30.2215
+Info: PERIODIC CELL CENTER   0 0 0
+Info: WRAPPING WATERS AROUND PERIODIC BOUNDARIES ON OUTPUT.
+Info: WRAPPING ALL CLUSTERS AROUND PERIODIC BOUNDARIES ON OUTPUT.
+Info: LOAD BALANCER  Centralized
+Info: LOAD BALANCING STRATEGY  New Load Balancers -- DEFAULT
+Info: LDB PERIOD             2000 steps
+Info: FIRST LDB TIMESTEP     50
+Info: LAST LDB TIMESTEP     -1
+Info: LDB BACKGROUND SCALING 1
+Info: HOM BACKGROUND SCALING 1
+Info: PME BACKGROUND SCALING 1
+Info: MIN ATOMS PER PATCH    40
+Info: EMPTY PATCH LOAD       40 ATOMS
+Info: VELOCITY FILE          equil.vel
+Info: CENTER OF MASS MOVING INITIALLY? NO
+Info: DIELECTRIC             1
+Info: EXCLUDE                SCALED ONE-FOUR
+Info: 1-4 ELECTROSTATICS SCALED BY 0.833333
+Info: MODIFIED 1-4 VDW PARAMETERS WILL BE USED
+Info: DCD FILENAME           prod.dcd
+Info: DCD FREQUENCY          5000
+Info: DCD FIRST STEP         5000
+Info: DCD FILE WILL CONTAIN UNIT CELL DATA
+Info: XST FILENAME           prod.xst
+Info: XST FREQUENCY          5000
+Info: NO VELOCITY DCD OUTPUT
+Info: NO FORCE DCD OUTPUT
+Info: OUTPUT FILENAME        prod
+Info: BINARY OUTPUT FILES WILL BE USED
+Info: RESTART FILENAME       prod.restart
+Info: RESTART FREQUENCY      5000
+Info: BINARY RESTART FILES WILL BE USED
+Info: CUTOFF                 9
+Info: PAIRLIST DISTANCE      11
+Info: PAIRLIST SHRINK RATE   0.01
+Info: PAIRLIST GROW RATE     0.01
+Info: PAIRLIST TRIGGER       0.3
+Info: PAIRLISTS PER CYCLE    2
+Info: PAIRLISTS ENABLED
+Info: MARGIN                 1
+Info: HYDROGEN GROUP CUTOFF  2.5
+Info: PATCH DIMENSION        14.5
+Info: ENERGY OUTPUT STEPS    5000
+Warning: The period of outputting energies relating to alchemical transformations (alchOutFreq = 50) is not a multiple of the period of computing energies (computeEnergies = 5000). If alchOutFreq is smaller than outputEnergies and computeEnergies is not defined, a better solution is to set computeEnergies explicitly and keep it the same as alchOutFreq. The simulation will use the greatest common divisor of computeEnergies and alchOutFreq as the period of energy evaluation.
+Info: ENERGY EVALUATION STEPS    5000
+Info: OUTPUT ENERGY PRECISION 4
+Info: CROSSTERM ENERGY INCLUDED IN DIHEDRAL
+Info: TIMING OUTPUT STEPS    50000
+Info: PRESSURE OUTPUT STEPS  5000
+Info: ALCHEMICAL FEP ON
+Info: FEP CURRENT LAMBDA VALUE     0.05
+Info: FEP COMPARISON LAMBDA VALUE  0.1
+Info: FEP INTRA-ALCHEMICAL NON-BONDED INTERACTIONS WILL BE RETAINED
+Info: FEP INTRA-ALCHEMICAL BONDED INTERACTIONS WILL BE RETAINED
+Info: FEP VDW SHIFTING COEFFICIENT 5
+Info: FEP ELEC. ACTIVE FOR ANNIHILATED PARTICLES BETWEEN LAMBDA = 0 AND LAMBDA = 0.5
+Info: FEP ELEC. ACTIVE FOR EXNIHILATED PARTICLES BETWEEN LAMBDA = 0.5 AND LAMBDA = 1
+Info: FEP VDW ACTIVE FOR ANNIHILATED PARTICLES BETWEEN LAMBDA = 0 AND LAMBDA = 1
+Info: FEP VDW ACTIVE FOR EXNIHILATED PARTICLES BETWEEN LAMBDA = 0 AND LAMBDA = 1
+Info: FEP BOND ACTIVE FOR ANNIHILATED PARTICLES BETWEEN LAMBDA = 1 AND LAMBDA = 1
+Info: FEP BOND ACTIVE FOR EXNIHILATED PARTICLES BETWEEN LAMBDA = 0 AND LAMBDA = 0
+Info: LANGEVIN DYNAMICS ACTIVE
+Info: LANGEVIN TEMPERATURE   300
+Info: LANGEVIN USING BBK INTEGRATOR
+Info: LANGEVIN DAMPING COEFFICIENT IS 1 INVERSE PS
+Info: LANGEVIN DYNAMICS APPLIED TO HYDROGENS
+Info: LANGEVIN PISTON PRESSURE CONTROL ACTIVE
+Info:        TARGET PRESSURE IS 1.01325 BAR
+Info:     OSCILLATION PERIOD IS 50 FS
+Info:             DECAY TIME IS 25 FS
+Info:     PISTON TEMPERATURE IS 300 K
+Info:       PRESSURE CONTROL IS GROUP-BASED
+Info:    INITIAL STRAIN RATE IS -0.000279771 -0.000279771 -0.000279771
+Info:       CELL FLUCTUATION IS ISOTROPIC
+Info: PARTICLE MESH EWALD (PME) ACTIVE
+Info: PME TOLERANCE               1e-06
+Info: PME EWALD COEFFICIENT       0.348832
+Info: PME INTERPOLATION ORDER     4
+Info: PME GRID DIMENSIONS         32 32 32
+Info: PME MAXIMUM GRID SPACING    1
+Info: Attempting to read FFTW data from FFTW_NAMD_3.0.1_Linux-x86_64-multicore.txt
+Info: Optimizing 6 FFT steps.  1... 2... 3... 4... 5... 6...   Done.
+Info: Writing FFTW data to FFTW_NAMD_3.0.1_Linux-x86_64-multicore.txt
+Info: FULL ELECTROSTATIC EVALUATION FREQUENCY      2
+Info: USING VERLET I (r-RESPA) MTS SCHEME.
+Info: C1 SPLITTING OF LONG RANGE ELECTROSTATICS
+Info: PLACING ATOMS IN PATCHES BY HYDROGEN GROUPS
+Info: RIGID BONDS TO HYDROGEN : ALL
+Info:         ERROR TOLERANCE : 1e-08
+Info:          MAX ITERATIONS : 100
+Info: RIGID WATER USING SETTLE ALGORITHM
+Info: RANDOM NUMBER SEED     1740824389
+Info: USE HYDROGEN BONDS?    NO
+Info: Using AMBER format force field!
+Info: AMBER PARM FILE        combined_wb.prmtop
+Info: COORDINATE PDB         combined_wb.pdb
+Info: Exclusions will be read from PARM file!
+Info: SCNB (VDW SCALING)     2
+Info: USING ARITHMETIC MEAN TO COMBINE L-J SIGMA PARAMETERS
+Info: BINARY COORDINATES     equil.coor
+Info: === Start reading AMBER parm7 format file combined_wb.prmtop ===
+Info: Complete reading ATOM_NAME with 2679 fields.
+Info: Complete reading CHARGE with 2679 fields.
+Info: Complete reading ATOMIC_NUMBER with 2679 fields.
+Info: Complete reading MASS with 2679 fields.
+Info: Complete reading ATOM_TYPE_INDEX with 2679 fields.
+Info: Complete reading NUMBER_EXCLUDED_ATOMS with 2679 fields.
+Info: Complete reading NONBONDED_PARM_INDEX with 36 fields.
+Info: Complete reading RESIDUE_LABEL with 889 fields.
+Info: Complete reading RESIDUE_POINTER with 889 fields.
+Info: Complete reading BOND_FORCE_CONSTANT with 7 fields.
+Info: Complete reading BOND_EQUIL_VALUE with 7 fields.
+Info: Complete reading ANGLE_FORCE_CONSTANT with 8 fields.
+Info: Complete reading ANGLE_EQUIL_VALUE with 8 fields.
+Info: Complete reading DIHEDRAL_FORCE_CONSTANT with 9 fields.
+Info: Complete reading DIHEDRAL_PERIODICITY with 9 fields.
+Info: Complete reading DIHEDRAL_PHASE with 9 fields.
+Info: Complete reading SCEE_SCALE_FACTOR with 9 fields.
+Info: Complete reading SCNB_SCALE_FACTOR with 9 fields.
+Info: Complete reading LENNARD_JONES_ACOEF with 21 fields.
+Info: Complete reading LENNARD_JONES_BCOEF with 21 fields.
+Info: Complete reading BONDS_INC_HYDROGEN with 8022 fields.
+Info: Complete reading BONDS_WITHOUT_HYDROGEN with 12 fields.
+Info: Complete reading ANGLES_INC_HYDROGEN with 88 fields.
+Info: Complete reading ANGLES_WITHOUT_HYDROGEN with 12 fields.
+Info: Complete reading DIHEDRALS_INC_HYDROGEN with 155 fields.
+Info: Complete reading DIHEDRALS_WITHOUT_HYDROGEN with 20 fields.
+Info: Complete reading EXCLUDED_ATOMS_LIST with 3622 fields.
+Info: Complete reading HBOND_ACOEF with 0 fields.
+Info: Complete reading HBOND_BCOEF with 0 fields.
+Info: Complete reading AMBER_ATOM_TYPE with 2679 fields.
+Info: Complete reading TREE_CHAIN_CLASSIFICATION with 2679 fields.
+Info: Complete reading ATOMS_PER_MOLECULE with 889 fields.
+Info: Complete reading BOX_DIMENSIONS with 4 fields.
+Info: Complete reading RADIUS_SET with 1 fields.
+Info: Complete reading RADII with 2679 fields.
+Info: Complete reading SCREEN with 2679 fields.
+Info: === Finish reading AMBER parm7 format file. ===
+Warning: Found 888 H-H bonds.
+Info: SUMMARY OF PARAMETERS:
+Info: 7 BONDS
+Info: 8 ANGLES
+Info:   8 HARMONIC
+Info:   0 COSINE-BASED
+Info: 9 DIHEDRAL
+Info: 0 IMPROPER
+Info: 0 CROSSTERM
+Info: 0 VDW
+Info: 21 VDW_PAIRS
+Info: 0 NBTHOLE_PAIRS
+Info: Reading pdb file combined_wb.pdb
+Info: TIME FOR READING PDB FILE: 0.00750167
+Info: 
+Info: To read alchdata from file: decouple.fep
+Info: To read alchflag data from column: 5
+Info: ****************************
+Info: STRUCTURE SUMMARY:
+Info: 2679 ATOMS
+Info: 2678 BONDS
+Info: 25 ANGLES
+Info: 35 DIHEDRALS
+Info: 0 IMPROPERS
+Info: 0 CROSSTERMS
+Info: 2733 EXCLUSIONS
+Info: 2674 RIGID BONDS
+Info: ALCH: 15 ATOMS TO DISAPPEAR IN FINAL STATE
+Info: ALCH: 0 ATOMS TO APPEAR IN FINAL STATE
+Info: 5363 DEGREES OF FREEDOM
+Info: 893 HYDROGEN GROUPS
+Info: 4 ATOMS IN LARGEST HYDROGEN GROUP
+Info: 893 MIGRATION GROUPS
+Info: 4 ATOMS IN LARGEST MIGRATION GROUP
+Info: TOTAL MASS = 16072.3 amu
+Info: TOTAL CHARGE = 0.000199992 e
+Info: MASS DENSITY = 0.966917 g/cm^3
+Info: ATOM DENSITY = 0.0970563 atoms/A^3
+Info: *****************************
+Info: Reading from binary file equil.coor
+Info: 
+Info: Entering startup at 0.18155 s, 0.625427 MB of memory in use
+Info: Startup phase 0 took 7.8677e-05 s, 0.625427 MB of memory in use
+Info: ADDED 0 IMPLICIT EXCLUSIONS
+Info: Startup phase 1 took 0.00103539 s, 0.625427 MB of memory in use
+Info: NONBONDED TABLE R-SQUARED SPACING: 0.0625
+Info: NONBONDED TABLE SIZE: 705 POINTS
+Info: INCONSISTENCY IN FAST TABLE ENERGY VS FORCE: 0.000290481 AT 0.251946
+Info: INCONSISTENCY IN SCOR TABLE ENERGY VS FORCE: 0.000238233 AT 8.9687
+Info: ABSOLUTE IMPRECISION IN VDWA TABLE ENERGY: 1.21169e-27 AT 8.99653
+Info: ABSOLUTE IMPRECISION IN VDWA TABLE FORCE: 2.57484e-27 AT 8.99653
+Info: INCONSISTENCY IN VDWA TABLE ENERGY VS FORCE: 0.0040507 AT 0.251946
+Info: INCONSISTENCY IN VDWB TABLE ENERGY VS FORCE: 0.00150189 AT 0.251946
+Info: Startup phase 2 took 0.000276583 s, 0.625427 MB of memory in use
+Info: Startup phase 3 took 7.047e-05 s, 0.625427 MB of memory in use
+Info: Startup phase 4 took 0.000189568 s, 0.625427 MB of memory in use
+Info: Startup phase 5 took 6.7759e-05 s, 0.625427 MB of memory in use
+Info: PATCH GRID IS 4 (PERIODIC) BY 2 (PERIODIC) BY 2 (PERIODIC)
+Info: PATCH GRID IS 2-AWAY BY 1-AWAY BY 1-AWAY
+Info: Reading from binary file equil.vel
+Info: REMOVING COM VELOCITY 0.0731145 -0.0800614 0.128697
+Info: LARGEST PATCH (2) HAS 183 ATOMS
+Info: TORUS A SIZE 1 USING 0
+Info: TORUS B SIZE 1 USING 0
+Info: TORUS C SIZE 1 USING 0
+Info: TORUS MINIMAL MESH SIZE IS 1 BY 1 BY 1
+Info: Placed 100% of base nodes on same physical node as patch
+Info: Startup phase 6 took 0.0245308 s, 0.625427 MB of memory in use
+Info: PME using 16 and 16 processors for FFT and reciprocal sum.
+Info: PME GRID LOCATIONS: 0 1 2 3 4 5 6 7 8 9 ...
+Info: PME TRANS LOCATIONS: 0 1 2 3 4 5 6 7 8 9 ...
+Info: PME USING 1 GRID NODES AND 1 TRANS NODES
+Info: Optimizing 4 FFT steps.  1... 2... 3... 4...   Done.
+Info: Startup phase 7 took 0.000343315 s, 0.625427 MB of memory in use
+Info: Startup phase 8 took 7.4467e-05 s, 0.625427 MB of memory in use
+Info: Startup phase 9 took 8.3071e-05 s, 0.625427 MB of memory in use
+Info: Startup phase 10 took 7.6137e-05 s, 0.625427 MB of memory in use
+Info: Startup phase 11 took 0.000152437 s, 0.625427 MB of memory in use
+LDB: Central LB being created...
+Info: Startup phase 12 took 0.000262412 s, 0.625427 MB of memory in use
+Info: CREATING 544 COMPUTE OBJECTS
+Info: useSync: 0 useProxySync: 0
+Info: Startup phase 13 took 0.00148967 s, 0.625427 MB of memory in use
+Info: Startup phase 14 took 8.5172e-05 s, 0.625427 MB of memory in use
+Info: Startup phase 15 took 2.4565e-05 s, 0.625427 MB of memory in use
+Info: Finished startup at 0.210391 s, 0.625427 MB of memory in use
+
+TCL: Running for 1250000 steps
+FEP: RESETTING FOR NEW FEP WINDOW LAMBDA SET TO 0.05 LAMBDA2 0.1
+FEP: WINDOW TO HAVE 100000 STEPS OF EQUILIBRATION PRIOR TO FEP DATA COLLECTION.
+FEP: USING CONSTANT TEMPERATURE OF 300 K FOR FEP CALCULATION
+PRESSURE: 0 28.6704 -586.158 413.319 -586.158 531.715 588.128 413.319 588.128 386.506
+GPRESSURE: 0 245.525 -809.973 1048.33 -497.043 649.513 652.791 189.905 505.767 298.582
+ETITLE:      TS           BOND          ANGLE          DIHED          IMPRP               ELECT            VDW       BOUNDARY           MISC        KINETIC               TOTAL           TEMP      POTENTIAL         TOTAL3        TEMPAVG            PRESSURE      GPRESSURE         VOLUME       PRESSAVG      GPRESSAVG
+FEPTITLE:    TS          BOND2         ELECT2           VDW2
+
+ENERGY:       0         0.7207         7.4436         2.5805         0.0000          -9775.2881      1339.0112         0.0000         0.0000      1600.9448          -6824.5873       300.4408     -8425.5321     -6821.3114       300.4408            315.6305       397.8732     27602.5251       315.6305       397.8732
+FEP:          0        10.7448     -9773.7229      1338.9462
+
+OPENING FEP ENERGY OUTPUT FILE
+OPENING EXTENDED SYSTEM TRAJECTORY FILE
+LDB: ============= START OF LOAD BALANCING ============== 0.257106
+LDB: ============== END OF LOAD BALANCING =============== 0.257155
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.257239
+LDB: ============= START OF LOAD BALANCING ============== 0.290028
+LDB: Largest compute 23 load 0.005005 is 16.5% of average load 0.030372
+LDB: Average compute 0.000689 is 2.3% of average load 0.030372
+LDB: Partitioning computes with target load 0.003037
+LDB: Increased migratable compute count from 448 to 480
+LDB: Largest unpartitionable compute is 0.000228
+LDB: ============== END OF LOAD BALANCING =============== 0.290254
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.290728
+Info: Initial time: 16 CPUs 0.00149255 s/step 0.00863745 days/ns 0.625427 MB memory
+LDB: ============= START OF LOAD BALANCING ============== 0.299107
+LDB: ============== END OF LOAD BALANCING =============== 0.299146
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.299234
+LDB: ============= START OF LOAD BALANCING ============== 0.330935
+LDB: Largest compute 19 load 0.002790 is 9.6% of average load 0.029130
+LDB: Average compute 0.000626 is 2.1% of average load 0.029130
+LDB: TIME 0.331092 LOAD: AVG 0.0291304 MAX 0.0314249  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 0.331392 LOAD: AVG 0.0291304 MAX 0.0300838  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 TorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 0.331651
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.332135
+Info: Initial time: 16 CPUs 0.00079733 s/step 0.00461418 days/ns 0.625427 MB memory
+LDB: ============= START OF LOAD BALANCING ============== 0.369016
+LDB: Largest compute 76 load 0.003350 is 9.6% of average load 0.034875
+LDB: Average compute 0.000767 is 2.2% of average load 0.034875
+LDB: TIME 0.369178 LOAD: AVG 0.0348746 MAX 0.0364085  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 0.369256 LOAD: AVG 0.0348746 MAX 0.0364085  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 0.369288 LOAD: AVG 0.0348746 MAX 0.0362351  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 0.369346
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.369697
+Info: Initial time: 16 CPUs 0.000735891 s/step 0.00425863 days/ns 0.625427 MB memory
+LDB: ============= START OF LOAD BALANCING ============== 0.406406
+LDB: Largest compute 76 load 0.003096 is 9.0% of average load 0.034483
+LDB: Average compute 0.000754 is 2.2% of average load 0.034483
+LDB: TIME 0.406565 LOAD: AVG 0.0344832 MAX 0.0360066  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 0.406641 LOAD: AVG 0.0344832 MAX 0.0360066  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 0.406675 LOAD: AVG 0.0344832 MAX 0.0358199  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 0.406733
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 0.407066
+Info: Benchmark time: 16 CPUs 0.000733233 s/step 0.00424324 days/ns 0.625427 MB memory
+Info: Benchmark time: 16 CPUs 0.000733517 s/step 0.00424489 days/ns 0.625427 MB memory
+Info: Benchmark time: 16 CPUs 0.000740515 s/step 0.00428539 days/ns 0.625427 MB memory
+Info: Benchmark time: 16 CPUs 0.000744591 s/step 0.00430898 days/ns 0.625427 MB memory
+Info: Benchmark time: 16 CPUs 0.000815248 s/step 0.00471787 days/ns 0.625427 MB memory
+Info: Benchmark time: 16 CPUs 0.000766568 s/step 0.00443616 days/ns 0.625427 MB memory
+LDB: ============= START OF LOAD BALANCING ============== 1.96568
+LDB: ============== END OF LOAD BALANCING =============== 1.96576
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 1.96589
+LDB: ============= START OF LOAD BALANCING ============== 2.00612
+LDB: Largest compute 30 load 0.003271 is 9.0% of average load 0.036337
+LDB: Average compute 0.000790 is 2.2% of average load 0.036337
+LDB: TIME 2.00632 LOAD: AVG 0.036337 MAX 0.0392581  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 2.00641 LOAD: AVG 0.036337 MAX 0.0392581  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 2.00653 LOAD: AVG 0.036337 MAX 0.037845  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 2.00661
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 2.00698
+LDB: ============= START OF LOAD BALANCING ============== 3.53767
+LDB: ============== END OF LOAD BALANCING =============== 3.53776
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 3.53788
+LDB: ============= START OF LOAD BALANCING ============== 3.57705
+LDB: Largest compute 32 load 0.003386 is 9.5% of average load 0.035485
+LDB: Average compute 0.000767 is 2.2% of average load 0.035485
+LDB: TIME 3.57725 LOAD: AVG 0.0354852 MAX 0.0389819  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 3.57735 LOAD: AVG 0.0354852 MAX 0.0389819  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 3.57753 LOAD: AVG 0.0354852 MAX 0.0369819  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 3.57761
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 3.57795
+PRESSURE: 5000 239.408 -71.6394 269.198 -71.6394 -903.347 337.098 269.198 337.098 -373.364
+GPRESSURE: 5000 454.781 -265.554 124.322 -159.976 -971.565 297.974 317.509 447.495 -294.685
+PRESSAVG: 5000 55.8499 36.7976 -9.8409 36.7976 -22.6088 -25.5482 -9.8409 -25.5482 -11.5736
+GPRESSAVG: 5000 57.7275 35.9231 -9.79212 37.1461 -23.4933 -27.2406 -7.59869 -25.7034 -9.86836
+ENERGY:    5000         1.3697         5.1597         1.2795         0.0000          -9663.8331      1284.8985         0.0000         0.0000      1571.9803          -6799.1454       295.0052     -8371.1257     -6793.4939       300.8039           -345.7674      -270.4895     27776.5218         7.2225         8.1219
+FEP:       5000         7.8089     -9663.0887      1285.0922
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 5000
+OPENING COORDINATE DCD FILE
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 5000
+WRITING COORDINATES TO RESTART FILE AT STEP 5000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=5000) takes 0.026 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 5000
+FINISHED WRITING RESTART VELOCITIES
+The last velocity output (seq=5000) takes 0.019 seconds, 0.625 MB of memory in use
+LDB: ============= START OF LOAD BALANCING ============== 5.13204
+LDB: ============== END OF LOAD BALANCING =============== 5.13211
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 5.13219
+LDB: ============= START OF LOAD BALANCING ============== 5.1705
+LDB: Largest compute 76 load 0.003401 is 9.3% of average load 0.036422
+LDB: Average compute 0.000788 is 2.2% of average load 0.036422
+LDB: TIME 5.17067 LOAD: AVG 0.0364215 MAX 0.0376389  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 5.17078 LOAD: AVG 0.0364215 MAX 0.0376389  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 5.17079 LOAD: AVG 0.0364215 MAX 0.0376389  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 5.17085
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 5.17122
+LDB: ============= START OF LOAD BALANCING ============== 6.66863
+LDB: ============== END OF LOAD BALANCING =============== 6.66871
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 6.66882
+LDB: ============= START OF LOAD BALANCING ============== 6.70594
+LDB: Largest compute 32 load 0.003141 is 9.0% of average load 0.035028
+LDB: Average compute 0.000752 is 2.1% of average load 0.035028
+LDB: TIME 6.70612 LOAD: AVG 0.0350277 MAX 0.0363718  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 6.70623 LOAD: AVG 0.0350277 MAX 0.0363718  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 6.70624 LOAD: AVG 0.0350277 MAX 0.0363718  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 6.7063
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 6.70665
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 10000
+WRITING COORDINATES TO RESTART FILE AT STEP 10000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=10000) takes 0.021 seconds, 0.625 MB of memory in use
+PRESSURE: 10000 346.676 201.332 219.761 201.332 -143.48 386.282 219.761 386.282 -492.411
+GPRESSURE: 10000 356.141 -52.4807 757.553 251.639 105.295 376.373 -227.03 -20.4131 -332.9
+PRESSAVG: 10000 31.0222 35.3336 -9.93395 35.3336 28.7127 -22.4231 -9.93395 -22.4231 -39.6951
+GPRESSAVG: 10000 30.219 36.0547 -8.46051 32.2988 28.8006 -21.685 -11.4482 -21.7995 -39.3857
+ENERGY:   10000         0.4231         8.7224         3.8820         0.0000          -9721.8278      1326.3950         0.0000         0.0000      1605.5050          -6776.9003       301.2966     -8382.4053     -6773.2035       299.6493            -96.4053        42.8455     27952.0598         6.6799         6.5446
+FEP:      10000        13.0275     -9720.2311      1326.0234
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 10000
+WRITING VELOCITIES TO RESTART FILE AT STEP 10000
+FINISHED WRITING RESTART VELOCITIES
+The last velocity output (seq=10000) takes 0.022 seconds, 0.625 MB of memory in use
+LDB: ============= START OF LOAD BALANCING ============== 8.21484
+LDB: ============== END OF LOAD BALANCING =============== 8.21492
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 8.21503
+LDB: ============= START OF LOAD BALANCING ============== 8.25136
+LDB: Largest compute 362 load 0.003128 is 9.1% of average load 0.034554
+LDB: Average compute 0.000738 is 2.1% of average load 0.034554
+LDB: TIME 8.25154 LOAD: AVG 0.0345542 MAX 0.0354807  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 8.25165 LOAD: AVG 0.0345542 MAX 0.0354807  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 8.25166 LOAD: AVG 0.0345542 MAX 0.0354807  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 8.25172
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 8.25206
+LDB: ============= START OF LOAD BALANCING ============== 9.69178
+LDB: ============== END OF LOAD BALANCING =============== 9.69186
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 9.69197
+LDB: ============= START OF LOAD BALANCING ============== 9.72903
+LDB: Largest compute 23 load 0.003253 is 9.3% of average load 0.034960
+LDB: Average compute 0.000749 is 2.1% of average load 0.034960
+LDB: TIME 9.72922 LOAD: AVG 0.0349605 MAX 0.0367409  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 9.72933 LOAD: AVG 0.0349605 MAX 0.0367409  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 9.72937 LOAD: AVG 0.0349605 MAX 0.0359637  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 9.72944
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 9.72977
+LDB: ============= START OF LOAD BALANCING ============== 11.188
+LDB: ============== END OF LOAD BALANCING =============== 11.1881
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 11.1882
+LDB: ============= START OF LOAD BALANCING ============== 11.2269
+LDB: Largest compute 21 load 0.003349 is 9.5% of average load 0.035166
+LDB: Average compute 0.000754 is 2.1% of average load 0.035166
+LDB: TIME 11.2271 LOAD: AVG 0.0351661 MAX 0.0385349  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 11.2272 LOAD: AVG 0.0351661 MAX 0.0385349  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 11.2273 LOAD: AVG 0.0351661 MAX 0.0366425  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 11.2274
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 11.2277
+PRESSURE: 15000 -210.166 323.881 -45.917 323.881 -988.342 -354.598 -45.917 -354.598 -374.387
+GPRESSURE: 15000 -294.303 65.436 21.4338 676.718 -767.434 -538.133 -138.064 -121.583 -295.618
+PRESSAVG: 15000 26.5969 11.2281 61.7029 11.2281 29.2438 25.7295 61.7029 25.7295 -48.1252
+GPRESSAVG: 15000 27.7777 10.001 61.9548 9.60932 30.0099 25.9152 62.3851 23.6187 -47.7109
+ENERGY:   15000         0.8972         7.8327         2.0975         0.0000          -9714.2374      1257.5155         0.0000         0.0000      1566.9356          -6878.9588       294.0585     -8445.8944     -6877.2868       297.7326           -524.2982      -452.4516     27624.6660         2.5718         3.3589
+FEP:      15000        10.8275     -9712.7420      1257.2771
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 15000
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 15000
+WRITING COORDINATES TO RESTART FILE AT STEP 15000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=15000) takes 0.023 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 15000
+FINISHED WRITING RESTART VELOCITIES
+The last velocity output (seq=15000) takes 0.023 seconds, 0.625 MB of memory in use
+LDB: ============= START OF LOAD BALANCING ============== 12.7777
+LDB: ============== END OF LOAD BALANCING =============== 12.7777
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 12.7779
+LDB: ============= START OF LOAD BALANCING ============== 12.8151
+LDB: Largest compute 552 load 0.003398 is 9.7% of average load 0.035103
+LDB: Average compute 0.000753 is 2.1% of average load 0.035103
+LDB: TIME 12.8153 LOAD: AVG 0.0351035 MAX 0.0364617  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 12.8154 LOAD: AVG 0.0351035 MAX 0.0364617  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 12.8154 LOAD: AVG 0.0351035 MAX 0.0364617  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 12.8155
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 12.8158
+LDB: ============= START OF LOAD BALANCING ============== 14.2585
+LDB: ============== END OF LOAD BALANCING =============== 14.2586
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 14.2587
+LDB: ============= START OF LOAD BALANCING ============== 14.2969
+LDB: Largest compute 54 load 0.003183 is 9.1% of average load 0.034969
+LDB: Average compute 0.000747 is 2.1% of average load 0.034969
+LDB: TIME 14.297 LOAD: AVG 0.0349694 MAX 0.0380526  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 14.2971 LOAD: AVG 0.0349694 MAX 0.0380526  PROXIES: TOTAL 126 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 14.2973 LOAD: AVG 0.0349694 MAX 0.0359499  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 14.2973
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 14.2977
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 20000
+WRITING COORDINATES TO RESTART FILE AT STEP 20000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=20000) takes 0.025 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 20000
+FINISHED WRITING RESTART VELOCITIES
+The last velocity output (seq=20000) takes 0.023 seconds, 0.625 MB of memory in use
+PRESSURE: 20000 -141.825 -60.6975 31.39 -60.6975 265.534 -382.122 31.39 -382.122 535.049
+GPRESSURE: 20000 90.054 -160.81 -63.7178 255.123 318.839 -280.62 52.4949 -633.79 483.296
+PRESSAVG: 20000 -12.5757 9.3579 -5.58803 9.3579 31.0086 -38.679 -5.58803 -38.679 -13.7527
+GPRESSAVG: 20000 -12.2962 10.9707 -4.48407 9.60056 31.0426 -37.3498 -6.16176 -38.3412 -14.2689
+ENERGY:   20000         3.8558         6.4075         2.7205         0.0000          -9631.8772      1299.5763         0.0000         0.0000      1618.8722          -6700.4449       303.8052     -8319.3171     -6696.2220       300.9259            219.5858       297.3961     27582.0470         1.5601         1.4925
+FEP:      20000        12.9838     -9630.0574      1298.1587
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 20000
+LDB: ============= START OF LOAD BALANCING ============== 15.8133
+LDB: ============== END OF LOAD BALANCING =============== 15.8134
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 15.8134
+LDB: ============= START OF LOAD BALANCING ============== 15.8507
+LDB: Largest compute 544 load 0.003173 is 9.1% of average load 0.034850
+LDB: Average compute 0.000748 is 2.1% of average load 0.034850
+LDB: TIME 15.8509 LOAD: AVG 0.0348495 MAX 0.0366261  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 15.8509 LOAD: AVG 0.0348495 MAX 0.0366261  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 15.851 LOAD: AVG 0.0348495 MAX 0.0362135  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 15.8511
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 15.8514
+LDB: ============= START OF LOAD BALANCING ============== 17.3711
+LDB: ============== END OF LOAD BALANCING =============== 17.3711
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 17.3712
+LDB: ============= START OF LOAD BALANCING ============== 17.409
+LDB: Largest compute 32 load 0.003083 is 8.8% of average load 0.035112
+LDB: Average compute 0.000753 is 2.1% of average load 0.035112
+LDB: TIME 17.4092 LOAD: AVG 0.0351115 MAX 0.0371306  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 17.4093 LOAD: AVG 0.0351115 MAX 0.0371306  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 17.4093 LOAD: AVG 0.0351115 MAX 0.0365717  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 17.4094
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 17.4098
+LDB: ============= START OF LOAD BALANCING ============== 18.8548
+LDB: ============== END OF LOAD BALANCING =============== 18.8548
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 18.855
+LDB: ============= START OF LOAD BALANCING ============== 18.8919
+LDB: Largest compute 362 load 0.003094 is 8.8% of average load 0.034970
+LDB: Average compute 0.000747 is 2.1% of average load 0.034970
+LDB: TIME 18.8921 LOAD: AVG 0.0349698 MAX 0.0360383  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 18.8921 LOAD: AVG 0.0349698 MAX 0.0360383  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 18.8921 LOAD: AVG 0.0349698 MAX 0.0360383  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 18.8922
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 18.8925
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 25000
+WRITING COORDINATES TO RESTART FILE AT STEP 25000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=25000) takes 0.019 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 25000
+FINISHED WRITING RESTART VELOCITIES
+The last velocity output (seq=25000) takes 0.019 seconds, 0.625 MB of memory in use
+PRESSURE: 25000 -257.786 -306.594 234.992 -306.594 -569.351 -268.013 234.992 -268.013 -1015.16
+GPRESSURE: 25000 -94.9005 -235.688 177.812 -7.74054 -659.916 -99.3388 278.998 -424.446 -904.531
+PRESSAVG: 25000 47.0772 -2.59953 -14.9827 -2.59953 17.4964 20.7322 -14.9827 20.7322 -36.9087
+GPRESSAVG: 25000 47.7199 -2.02127 -14.4434 -4.66239 16.9207 18.5939 -15.2011 21.3131 -36.4797
+ENERGY:   25000         3.0604         3.4169         0.9796         0.0000          -9669.0441      1264.5310         0.0000         0.0000      1541.2475          -6855.8086       289.2378     -8397.0561     -6853.3660       302.7530           -614.1002      -553.1157     27821.6914         9.2216         9.3870
+FEP:      25000         7.4570     -9668.2124      1264.0626
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 25000
+LDB: ============= START OF LOAD BALANCING ============== 20.3925
+LDB: ============== END OF LOAD BALANCING =============== 20.3925
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 20.3926
+LDB: ============= START OF LOAD BALANCING ============== 20.4302
+LDB: Largest compute 16 load 0.003309 is 9.4% of average load 0.035019
+LDB: Average compute 0.000752 is 2.1% of average load 0.035019
+LDB: TIME 20.4303 LOAD: AVG 0.0350186 MAX 0.0369036  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 20.4304 LOAD: AVG 0.0350186 MAX 0.0369036  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 20.4304 LOAD: AVG 0.0350186 MAX 0.0365005  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 20.4305
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 20.4308
+LDB: ============= START OF LOAD BALANCING ============== 21.8822
+LDB: ============== END OF LOAD BALANCING =============== 21.8823
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 21.8823
+LDB: ============= START OF LOAD BALANCING ============== 21.9193
+LDB: Largest compute 28 load 0.003098 is 8.8% of average load 0.035108
+LDB: Average compute 0.000753 is 2.1% of average load 0.035108
+LDB: TIME 21.9195 LOAD: AVG 0.0351079 MAX 0.0361612  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 21.9196 LOAD: AVG 0.0351079 MAX 0.0361612  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 21.9196 LOAD: AVG 0.0351079 MAX 0.0361612  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 21.9196
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 21.92
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 30000
+WRITING COORDINATES TO RESTART FILE AT STEP 30000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=30000) takes 0.021 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 30000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 30000 677.461 341.111 84.3976 341.111 104.981 297.285 84.3976 297.285 58.4493
+GPRESSURE: 30000 938.695 -13.3516 184.679 585.02 139.342 342.957 -55.9235 407.147 -45.6582
+PRESSAVG: 30000 -11.9369 -7.56819 -19.0089 -7.56819 8.11947 60.1615 -19.0089 60.1615 17.1267
+GPRESSAVG: 30000 -11.4731 -8.53581 -19.8361 -9.19418 8.72849 60.5541 -17.758 59.302 17.283
+ENERGY:   30000         0.7058         6.1541         1.5402         0.0000          -9714.4196      1336.3637         0.0000         0.0000      1601.0700          -6768.5859       300.4643     -8369.6559     -6768.7513       300.2873            280.2972       344.1260     27579.1175         4.4364         4.8461
+FEP:      30000         8.4000     -9712.3442      1335.3094
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 30000
+LDB: ============= START OF LOAD BALANCING ============== 23.4291
+LDB: ============== END OF LOAD BALANCING =============== 23.4291
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 23.4292
+LDB: ============= START OF LOAD BALANCING ============== 23.4664
+LDB: Largest compute 16 load 0.003112 is 8.9% of average load 0.034877
+LDB: Average compute 0.000746 is 2.1% of average load 0.034877
+LDB: TIME 23.4665 LOAD: AVG 0.0348775 MAX 0.0364617  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 23.4666 LOAD: AVG 0.0348775 MAX 0.0364617  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 23.4666 LOAD: AVG 0.0348775 MAX 0.0362828  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 23.4667
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 23.4671
+LDB: ============= START OF LOAD BALANCING ============== 24.911
+LDB: ============== END OF LOAD BALANCING =============== 24.9111
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 24.9112
+LDB: ============= START OF LOAD BALANCING ============== 24.9483
+LDB: Largest compute 16 load 0.003271 is 9.3% of average load 0.035040
+LDB: Average compute 0.000749 is 2.1% of average load 0.035040
+LDB: TIME 24.9485 LOAD: AVG 0.0350398 MAX 0.0366522  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 24.9485 LOAD: AVG 0.0350398 MAX 0.0366522  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 24.9486 LOAD: AVG 0.0350398 MAX 0.0364616  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 24.9486
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 24.949
+LDB: ============= START OF LOAD BALANCING ============== 26.3895
+LDB: ============== END OF LOAD BALANCING =============== 26.3896
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 26.3897
+LDB: ============= START OF LOAD BALANCING ============== 26.427
+LDB: Largest compute 555 load 0.003258 is 9.3% of average load 0.035029
+LDB: Average compute 0.000748 is 2.1% of average load 0.035029
+LDB: TIME 26.4271 LOAD: AVG 0.0350288 MAX 0.0368929  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 26.4272 LOAD: AVG 0.0350288 MAX 0.0368929  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 26.4272 LOAD: AVG 0.0350288 MAX 0.0362221  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 26.4273
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 26.4276
+PRESSURE: 35000 -144.927 -23.3689 108.278 -23.3689 636.691 -477.7 108.278 -477.7 -571.254
+GPRESSURE: 35000 138.029 33.6535 498.966 -220.369 480.631 -457.714 328.611 -159.308 -325.469
+PRESSAVG: 35000 -44.2772 -46.3786 20.213 -46.3786 -8.6268 -23.0321 20.213 -23.0321 54.5474
+GPRESSAVG: 35000 -44.7971 -45.3122 19.2398 -44.9474 -8.73776 -23.5799 20.0453 -23.7727 55.3612
+ENERGY:   35000         1.1137         9.3541         2.6433         0.0000          -9784.5757      1351.7658         0.0000         0.0000      1556.4716          -6863.2272       292.0948     -8419.6988     -6861.9372       299.8297            -26.4966        97.7308     27624.7793         0.5478         0.6088
+FEP:      35000        13.1111     -9783.7586      1351.4734
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 35000
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 35000
+WRITING COORDINATES TO RESTART FILE AT STEP 35000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=35000) takes 0.024 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 35000
+FINISHED WRITING RESTART VELOCITIES
+LDB: ============= START OF LOAD BALANCING ============== 27.9413
+LDB: ============== END OF LOAD BALANCING =============== 27.9414
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 27.9415
+LDB: ============= START OF LOAD BALANCING ============== 27.9784
+LDB: Largest compute 16 load 0.003190 is 9.1% of average load 0.035012
+LDB: Average compute 0.000749 is 2.1% of average load 0.035012
+LDB: TIME 27.9786 LOAD: AVG 0.0350121 MAX 0.0364959  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 27.9786 LOAD: AVG 0.0350121 MAX 0.0364959  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 27.9786 LOAD: AVG 0.0350121 MAX 0.0364959  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 27.9787
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 27.979
+LDB: ============= START OF LOAD BALANCING ============== 29.4246
+LDB: ============== END OF LOAD BALANCING =============== 29.4247
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 29.4247
+LDB: ============= START OF LOAD BALANCING ============== 29.4623
+LDB: Largest compute 553 load 0.003162 is 9.0% of average load 0.035145
+LDB: Average compute 0.000751 is 2.1% of average load 0.035145
+LDB: TIME 29.4624 LOAD: AVG 0.0351447 MAX 0.0368837  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 29.4625 LOAD: AVG 0.0351447 MAX 0.0368837  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 29.4625 LOAD: AVG 0.0351447 MAX 0.0366484  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 29.4626
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 29.463
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 40000
+WRITING COORDINATES TO RESTART FILE AT STEP 40000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=40000) takes 0.031 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 40000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 40000 -264.941 -815.973 290.576 -815.973 143.401 22.3476 290.576 22.3476 -599.428
+GPRESSURE: 40000 -28.6738 -1069.98 616.273 -782.182 33.2654 137.286 -180.199 -30.3393 -565.702
+PRESSAVG: 40000 22.3587 -28.5072 -42.4132 -28.5072 -2.66231 -6.60552 -42.4132 -6.60552 -4.65783
+GPRESSAVG: 40000 22.2696 -29.919 -42.1478 -29.4145 -3.03384 -6.28449 -41.6395 -7.25101 -5.50944
+ENERGY:   40000         0.4229         4.1051         2.0112         0.0000          -9713.6211      1274.5083         0.0000         0.0000      1584.8257          -6847.7479       297.4158     -8432.5736     -6843.0217       300.2338           -240.3230      -187.0368     27471.0939         5.0129         4.5754
+FEP:      40000         6.5393     -9712.5374      1273.3548
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 40000
+LDB: ============= START OF LOAD BALANCING ============== 30.9811
+LDB: ============== END OF LOAD BALANCING =============== 30.9812
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 30.9813
+LDB: ============= START OF LOAD BALANCING ============== 31.0183
+LDB: Largest compute 560 load 0.003224 is 9.2% of average load 0.034983
+LDB: Average compute 0.000750 is 2.1% of average load 0.034983
+LDB: TIME 31.0185 LOAD: AVG 0.0349831 MAX 0.0365204  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 31.0185 LOAD: AVG 0.0349831 MAX 0.0365204  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 31.0186 LOAD: AVG 0.0349831 MAX 0.0364482  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 31.0186
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 31.019
+LDB: ============= START OF LOAD BALANCING ============== 32.4571
+LDB: ============== END OF LOAD BALANCING =============== 32.4572
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 32.4572
+LDB: ============= START OF LOAD BALANCING ============== 32.4943
+LDB: Largest compute 120 load 0.003077 is 8.8% of average load 0.034933
+LDB: Average compute 0.000745 is 2.1% of average load 0.034933
+LDB: TIME 32.4945 LOAD: AVG 0.0349327 MAX 0.0362984  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 32.4946 LOAD: AVG 0.0349327 MAX 0.0362984  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 32.4946 LOAD: AVG 0.0349327 MAX 0.0362984  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 32.4946
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 32.495
+LDB: ============= START OF LOAD BALANCING ============== 33.9396
+LDB: ============== END OF LOAD BALANCING =============== 33.9397
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 33.9398
+LDB: ============= START OF LOAD BALANCING ============== 33.9768
+LDB: Largest compute 24 load 0.003095 is 8.9% of average load 0.034753
+LDB: Average compute 0.000741 is 2.1% of average load 0.034753
+LDB: TIME 33.9769 LOAD: AVG 0.0347525 MAX 0.0362437  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 33.977 LOAD: AVG 0.0347525 MAX 0.0362437  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 33.977 LOAD: AVG 0.0347525 MAX 0.0362437  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 33.9771
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 33.9774
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 45000
+WRITING COORDINATES TO RESTART FILE AT STEP 45000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=45000) takes 0.030 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 45000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 45000 -152.795 408.287 3.43127 408.287 360.223 211.522 3.43127 211.522 -1035.29
+GPRESSURE: 45000 35.2626 464.918 -157.625 391.87 249.732 181.02 -435.838 363.557 -978.836
+PRESSAVG: 45000 -46.412 42.3002 -55.2712 42.3002 -13.3424 -45.6899 -55.2712 -45.6899 54.0459
+GPRESSAVG: 45000 -46.1112 42.4347 -54.6797 41.5238 -14.5959 -47.2495 -53.4332 -44.537 55.7784
+ENERGY:   45000         0.6357         4.8737         1.4244         0.0000          -9516.7393      1226.2849         0.0000         0.0000      1547.1479          -6736.3726       290.3451     -8283.5205     -6736.4332       302.8839           -275.9533      -231.2806     27726.9427        -1.9028        -1.6429
+FEP:      45000         6.9339     -9515.6825      1225.8506
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 45000
+LDB: ============= START OF LOAD BALANCING ============== 35.5049
+LDB: ============== END OF LOAD BALANCING =============== 35.5049
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 35.505
+LDB: ============= START OF LOAD BALANCING ============== 35.5424
+LDB: Largest compute 24 load 0.003342 is 9.6% of average load 0.034835
+LDB: Average compute 0.000744 is 2.1% of average load 0.034835
+LDB: TIME 35.5426 LOAD: AVG 0.0348349 MAX 0.036501  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 35.5426 LOAD: AVG 0.0348349 MAX 0.036501  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 35.5427 LOAD: AVG 0.0348349 MAX 0.0362436  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 35.5427
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 35.5431
+LDB: ============= START OF LOAD BALANCING ============== 37.034
+LDB: ============== END OF LOAD BALANCING =============== 37.0341
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 37.0341
+LDB: ============= START OF LOAD BALANCING ============== 37.072
+LDB: Largest compute 208 load 0.003474 is 9.9% of average load 0.034999
+LDB: Average compute 0.000751 is 2.1% of average load 0.034999
+LDB: TIME 37.0722 LOAD: AVG 0.0349986 MAX 0.0368695  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 37.0722 LOAD: AVG 0.0349986 MAX 0.0368695  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 37.0724 LOAD: AVG 0.0349986 MAX 0.0364665  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 37.0724
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 37.0728
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 50000
+WRITING COORDINATES TO RESTART FILE AT STEP 50000
+FINISHED WRITING RESTART COORDINATES
+The last position output (seq=50000) takes 0.031 seconds, 0.625 MB of memory in use
+WRITING VELOCITIES TO RESTART FILE AT STEP 50000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 50000 -178.242 -255.234 284.108 -255.234 -492.701 -104.58 284.108 -104.58 -423.891
+GPRESSURE: 50000 -254.833 -69.8463 -157.441 -96.1442 -365.048 33.3325 422.515 -61.779 -295.776
+PRESSAVG: 50000 -6.01514 13.7239 -2.32428 13.7239 70.12 -57.627 -2.32428 -57.627 -62.4314
+GPRESSAVG: 50000 -6.47955 13.5349 -2.25442 14.1437 70.2477 -55.4917 -2.8367 -59.983 -63.1722
+TIMING: 50000  CPU: 37.255, 0.000744955/step  Wall: 38.2616, 0.000765074/step, 0.255025 hours remaining, 0.625427 MB of memory in use.
+PERFORMANCE: 50000  averaging 225.861 ns/day, 0.000765074 sec/step with standard deviation 0
+ETITLE:      TS           BOND          ANGLE          DIHED          IMPRP               ELECT            VDW       BOUNDARY           MISC        KINETIC               TOTAL           TEMP      POTENTIAL         TOTAL3        TEMPAVG            PRESSURE      GPRESSURE         VOLUME       PRESSAVG      GPRESSAVG
+FEPTITLE:    TS          BOND2         ELECT2           VDW2
+
+ENERGY:   50000         0.9106         7.6501         1.6487         0.0000          -9812.4285      1310.1008         0.0000         0.0000      1591.6119          -6900.5065       298.6894     -8492.1183     -6896.6039       298.7454           -364.9450      -305.2191     27396.7337         0.5578         0.1986
+FEP:      50000        10.2093     -9811.6558      1310.1514
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 50000
+LDB: ============= START OF LOAD BALANCING ============== 38.6011
+LDB: ============== END OF LOAD BALANCING =============== 38.6011
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 38.6012
+LDB: ============= START OF LOAD BALANCING ============== 38.6388
+LDB: Largest compute 120 load 0.003046 is 8.7% of average load 0.035106
+LDB: Average compute 0.000752 is 2.1% of average load 0.035106
+LDB: TIME 38.6389 LOAD: AVG 0.0351056 MAX 0.0373575  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 38.639 LOAD: AVG 0.0351056 MAX 0.0373575  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 38.639 LOAD: AVG 0.0351056 MAX 0.0361531  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 38.6391
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 38.6395
+LDB: ============= START OF LOAD BALANCING ============== 40.0863
+LDB: ============== END OF LOAD BALANCING =============== 40.0863
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 40.0864
+LDB: ============= START OF LOAD BALANCING ============== 40.1237
+LDB: Largest compute 17 load 0.003432 is 9.8% of average load 0.035096
+LDB: Average compute 0.000749 is 2.1% of average load 0.035096
+LDB: TIME 40.1239 LOAD: AVG 0.0350961 MAX 0.0367325  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 40.1239 LOAD: AVG 0.0350961 MAX 0.0367325  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 40.1239 LOAD: AVG 0.0350961 MAX 0.0365588  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 40.124
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 40.1243
+LDB: ============= START OF LOAD BALANCING ============== 41.5672
+LDB: ============== END OF LOAD BALANCING =============== 41.5672
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 41.5673
+LDB: ============= START OF LOAD BALANCING ============== 41.604
+LDB: Largest compute 16 load 0.003119 is 8.9% of average load 0.035009
+LDB: Average compute 0.000746 is 2.1% of average load 0.035009
+LDB: TIME 41.6042 LOAD: AVG 0.0350095 MAX 0.0359226  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 41.6043 LOAD: AVG 0.0350095 MAX 0.0359226  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 41.6043 LOAD: AVG 0.0350095 MAX 0.0359226  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 41.6043
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 41.6047
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 55000
+WRITING COORDINATES TO RESTART FILE AT STEP 55000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 55000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 55000 -420.5 375.61 96.998 375.61 535.417 312.591 96.998 312.591 529.976
+GPRESSURE: 55000 -293.52 304.619 406.002 379.406 714.77 574.041 -16.6214 97.2799 624.186
+PRESSAVG: 55000 61.8358 -24.2192 5.0824 -24.2192 -34.3139 2.07814 5.0824 2.07814 -26.3401
+GPRESSAVG: 55000 61.8746 -24.839 3.88121 -26.644 -33.0557 0.510705 5.1528 1.56535 -27.0565
+ENERGY:   55000         0.7525         4.6673         2.0235         0.0000          -9731.3598      1334.1015         0.0000         0.0000      1588.8817          -6800.9333       298.1770     -8389.8150     -6798.8597       301.7340            214.9643       348.4787     27488.1291         0.3939         0.5875
+FEP:      55000         7.4433     -9730.6074      1334.0990
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 55000
+LDB: ============= START OF LOAD BALANCING ============== 43.1162
+LDB: ============== END OF LOAD BALANCING =============== 43.1162
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 43.1163
+LDB: ============= START OF LOAD BALANCING ============== 43.1534
+LDB: Largest compute 30 load 0.003318 is 9.5% of average load 0.034848
+LDB: Average compute 0.000742 is 2.1% of average load 0.034848
+LDB: TIME 43.1535 LOAD: AVG 0.0348483 MAX 0.0362959  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 43.1536 LOAD: AVG 0.0348483 MAX 0.0362959  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 43.1536 LOAD: AVG 0.0348483 MAX 0.0362959  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 43.1536
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 43.154
+LDB: ============= START OF LOAD BALANCING ============== 44.6137
+LDB: ============== END OF LOAD BALANCING =============== 44.6137
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 44.6138
+LDB: ============= START OF LOAD BALANCING ============== 44.6508
+LDB: Largest compute 25 load 0.003314 is 9.4% of average load 0.035122
+LDB: Average compute 0.000750 is 2.1% of average load 0.035122
+LDB: TIME 44.651 LOAD: AVG 0.0351218 MAX 0.036113  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 44.651 LOAD: AVG 0.0351218 MAX 0.036113  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 44.6511 LOAD: AVG 0.0351218 MAX 0.036113  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 44.6511
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 44.6515
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 60000
+WRITING COORDINATES TO RESTART FILE AT STEP 60000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 60000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 60000 -420.314 -234.128 76.065 -234.128 713.394 -624.477 76.065 -624.477 -253.211
+GPRESSURE: 60000 -421.595 62.019 -14.4245 -555.828 858.305 -361.291 148.597 -491.738 -55.6202
+PRESSAVG: 60000 -9.48216 -45.6568 -9.39611 -45.6568 24.8005 -7.89206 -9.39611 -7.89206 -24.4292
+GPRESSAVG: 60000 -8.64498 -44.769 -10.6373 -43.5849 23.3912 -7.56954 -9.58619 -7.12842 -24.2319
+ENERGY:   60000         1.0710         4.7962         2.0897         0.0000          -9723.4581      1303.4105         0.0000         0.0000      1708.1876          -6703.9031       320.5665     -8412.0907     -6703.0881       298.8532             13.2897       127.0298     27739.6532        -3.0369        -3.1619
+FEP:      60000         7.9569     -9722.4882      1303.6966
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 60000
+LDB: ============= START OF LOAD BALANCING ============== 46.2019
+LDB: ============== END OF LOAD BALANCING =============== 46.202
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 46.202
+LDB: ============= START OF LOAD BALANCING ============== 46.2387
+LDB: Largest compute 29 load 0.003177 is 9.2% of average load 0.034692
+LDB: Average compute 0.000740 is 2.1% of average load 0.034692
+LDB: TIME 46.2389 LOAD: AVG 0.0346921 MAX 0.0363829  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 46.239 LOAD: AVG 0.0346921 MAX 0.0363829  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 46.239 LOAD: AVG 0.0346921 MAX 0.0360992  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 46.239
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 46.2394
+LDB: ============= START OF LOAD BALANCING ============== 47.6783
+LDB: ============== END OF LOAD BALANCING =============== 47.6783
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 47.6784
+LDB: ============= START OF LOAD BALANCING ============== 47.7151
+LDB: Largest compute 16 load 0.003193 is 9.1% of average load 0.035046
+LDB: Average compute 0.000747 is 2.1% of average load 0.035046
+LDB: TIME 47.7152 LOAD: AVG 0.0350456 MAX 0.0362321  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 47.7153 LOAD: AVG 0.0350456 MAX 0.0362321  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 47.7153 LOAD: AVG 0.0350456 MAX 0.0362321  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 47.7154
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 47.7157
+LDB: ============= START OF LOAD BALANCING ============== 49.1551
+LDB: ============== END OF LOAD BALANCING =============== 49.1551
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 49.1552
+LDB: ============= START OF LOAD BALANCING ============== 49.1928
+LDB: Largest compute 24 load 0.003212 is 9.1% of average load 0.035231
+LDB: Average compute 0.000755 is 2.1% of average load 0.035231
+LDB: TIME 49.193 LOAD: AVG 0.0352312 MAX 0.037022  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 49.193 LOAD: AVG 0.0352312 MAX 0.037022  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 49.1931 LOAD: AVG 0.0352312 MAX 0.0366567  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 49.1931
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 49.1935
+PRESSURE: 65000 169.646 -75.7889 16.7296 -75.7889 556.145 338.947 16.7296 338.947 -684.231
+GPRESSURE: 65000 320.129 -255.43 -62.7919 152.714 581.675 305.588 92.2475 173.484 -583.096
+PRESSAVG: 65000 29.6854 -8.39458 -24.8688 -8.39458 33.3864 -12.4355 -24.8688 -12.4355 -39.02
+GPRESSAVG: 65000 28.9066 -8.47427 -24.4583 -7.67265 34.1687 -11.6109 -24.6139 -12.1916 -39.0802
+ENERGY:   65000         0.1247         7.4104         1.9847         0.0000          -9727.7658      1311.8261         0.0000         0.0000      1557.1054          -6849.3145       292.2137     -8406.4199     -6847.4901       300.2330             13.8532       106.2360     27670.2156         8.0173         7.9983
+FEP:      65000         9.5198     -9726.8048      1311.6104
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 65000
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 65000
+WRITING COORDINATES TO RESTART FILE AT STEP 65000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 65000
+FINISHED WRITING RESTART VELOCITIES
+LDB: ============= START OF LOAD BALANCING ============== 50.7199
+LDB: ============== END OF LOAD BALANCING =============== 50.7199
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 50.72
+LDB: ============= START OF LOAD BALANCING ============== 50.7573
+LDB: Largest compute 29 load 0.003239 is 9.2% of average load 0.035053
+LDB: Average compute 0.000749 is 2.1% of average load 0.035053
+LDB: TIME 50.7575 LOAD: AVG 0.0350528 MAX 0.0368201  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 50.7576 LOAD: AVG 0.0350528 MAX 0.0368201  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 50.7576 LOAD: AVG 0.0350528 MAX 0.036174  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 50.7577
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 50.758
+LDB: ============= START OF LOAD BALANCING ============== 52.2035
+LDB: ============== END OF LOAD BALANCING =============== 52.2036
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 52.2037
+LDB: ============= START OF LOAD BALANCING ============== 52.2405
+LDB: Largest compute 21 load 0.003363 is 9.6% of average load 0.034983
+LDB: Average compute 0.000744 is 2.1% of average load 0.034983
+LDB: TIME 52.2406 LOAD: AVG 0.0349825 MAX 0.0364558  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 52.2407 LOAD: AVG 0.0349825 MAX 0.0364558  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 52.2407 LOAD: AVG 0.0349825 MAX 0.0364558  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 52.2408
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 52.2411
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 70000
+WRITING COORDINATES TO RESTART FILE AT STEP 70000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 70000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 70000 -754.073 -311.689 -1.42589 -311.689 -723.63 -137.012 -1.42589 -137.012 -106.309
+GPRESSURE: 70000 -660.25 -297.998 474.754 23.9147 -795.679 217.011 -89.2132 -440.949 196.177
+PRESSAVG: 70000 66.8508 -8.52996 -37.6914 -8.52996 -51.7083 -30.8043 -37.6914 -30.8043 9.05245
+GPRESSAVG: 70000 67.431 -6.4625 -38.2451 -8.36556 -52.2381 -29.8491 -38.9494 -32.1655 9.1555
+ENERGY:   70000         1.0592         7.5535         2.1817         0.0000          -9699.0741      1270.5183         0.0000         0.0000      1672.1216          -6745.6397       313.7982     -8417.7613     -6744.8260       299.4122           -528.0040      -419.9173     27577.6272         8.0650         8.1161
+FEP:      70000        10.7945     -9697.9524      1269.7469
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 70000
+LDB: ============= START OF LOAD BALANCING ============== 53.7638
+LDB: ============== END OF LOAD BALANCING =============== 53.7638
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 53.7639
+LDB: ============= START OF LOAD BALANCING ============== 53.8011
+LDB: Largest compute 23 load 0.003174 is 9.0% of average load 0.035123
+LDB: Average compute 0.000753 is 2.1% of average load 0.035123
+LDB: TIME 53.8013 LOAD: AVG 0.0351227 MAX 0.03649  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 53.8013 LOAD: AVG 0.0351227 MAX 0.03649  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 53.8014 LOAD: AVG 0.0351227 MAX 0.03649  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 53.8014
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 53.8018
+LDB: ============= START OF LOAD BALANCING ============== 55.2497
+LDB: ============== END OF LOAD BALANCING =============== 55.2497
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 55.2498
+LDB: ============= START OF LOAD BALANCING ============== 55.2869
+LDB: Largest compute 26 load 0.003075 is 8.7% of average load 0.035154
+LDB: Average compute 0.000750 is 2.1% of average load 0.035154
+LDB: TIME 55.2871 LOAD: AVG 0.035154 MAX 0.0362788  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 55.2871 LOAD: AVG 0.035154 MAX 0.0362788  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 55.2871 LOAD: AVG 0.035154 MAX 0.0362788  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 55.2872
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 55.2875
+LDB: ============= START OF LOAD BALANCING ============== 56.7384
+LDB: ============== END OF LOAD BALANCING =============== 56.7384
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 56.7385
+LDB: ============= START OF LOAD BALANCING ============== 56.7758
+LDB: Largest compute 252 load 0.003197 is 9.1% of average load 0.035030
+LDB: Average compute 0.000745 is 2.1% of average load 0.035030
+LDB: TIME 56.7759 LOAD: AVG 0.0350297 MAX 0.0369375  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 56.776 LOAD: AVG 0.0350297 MAX 0.0369375  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 56.7761 LOAD: AVG 0.0350297 MAX 0.0364771  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 56.7761
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 56.7765
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 75000
+WRITING COORDINATES TO RESTART FILE AT STEP 75000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 75000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 75000 1350.7 -229.627 984.42 -229.627 1280.25 -9.08179 984.42 -9.08179 1458.87
+GPRESSURE: 75000 1531 -59.6162 755.924 -352.274 1147.99 -268.072 765.307 144.401 1568.88
+PRESSAVG: 75000 6.83767 24.7128 -13.5483 24.7128 -29.7462 34.24 -13.5483 34.24 19.8945
+GPRESSAVG: 75000 7.45105 23.0951 -14.1496 24.4335 -29.6053 33.9675 -11.8101 33.9605 21.2435
+ENERGY:   75000         1.5897         7.1236         2.2318         0.0000          -9861.6983      1438.6785         0.0000         0.0000      1607.9209          -6804.1537       301.7500     -8412.0746     -6801.8981       302.2958           1363.2759      1415.9597     27350.7594        -1.0046        -0.3036
+FEP:      75000        10.9452     -9861.1544      1438.9400
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 75000
+LDB: ============= START OF LOAD BALANCING ============== 58.3161
+LDB: ============== END OF LOAD BALANCING =============== 58.3162
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 58.3163
+LDB: ============= START OF LOAD BALANCING ============== 58.3554
+LDB: Largest compute 31 load 0.003287 is 8.9% of average load 0.037102
+LDB: Average compute 0.000797 is 2.1% of average load 0.037102
+LDB: TIME 58.3556 LOAD: AVG 0.0371024 MAX 0.0383648  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 58.3557 LOAD: AVG 0.0371024 MAX 0.0383648  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 58.3557 LOAD: AVG 0.0371024 MAX 0.0383648  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 58.3558
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 58.3561
+LDB: ============= START OF LOAD BALANCING ============== 59.824
+LDB: ============== END OF LOAD BALANCING =============== 59.824
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 59.8241
+LDB: ============= START OF LOAD BALANCING ============== 59.8617
+LDB: Largest compute 21 load 0.003093 is 8.8% of average load 0.034985
+LDB: Average compute 0.000746 is 2.1% of average load 0.034985
+LDB: TIME 59.8618 LOAD: AVG 0.0349854 MAX 0.0372188  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 59.8619 LOAD: AVG 0.0349854 MAX 0.0372188  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 59.862 LOAD: AVG 0.0349854 MAX 0.0363713  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 59.862
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 59.8624
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 80000
+WRITING COORDINATES TO RESTART FILE AT STEP 80000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 80000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 80000 -865.129 -70.6963 -156.614 -70.6963 -1432.6 -8.17413 -156.614 -8.17413 -883.555
+GPRESSURE: 80000 -831.299 199.141 -298.002 -352.62 -1188.88 179.103 -292.795 34.4562 -851.719
+PRESSAVG: 80000 22.5889 -20.8699 -29.8543 -20.8699 28.3172 -14.4419 -29.8543 -14.4419 -41.3254
+GPRESSAVG: 80000 24.4799 -21.4571 -30.3298 -20.2516 27.4738 -14.9286 -29.2953 -14.0401 -42.7675
+ENERGY:   80000         0.1993         8.0086         2.3240         0.0000          -9588.4540      1169.2042         0.0000         0.0000      1630.3110          -6778.4069       305.9518     -8408.7179     -6776.7118       299.4497          -1060.4276      -957.2987     27328.3559         3.1936         3.0620
+FEP:      80000        10.5319     -9587.2324      1169.1212
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 80000
+LDB: ============= START OF LOAD BALANCING ============== 61.3857
+LDB: ============== END OF LOAD BALANCING =============== 61.3857
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 61.3858
+LDB: ============= START OF LOAD BALANCING ============== 61.4234
+LDB: Largest compute 30 load 0.003287 is 9.3% of average load 0.035398
+LDB: Average compute 0.000762 is 2.2% of average load 0.035398
+LDB: TIME 61.4235 LOAD: AVG 0.0353984 MAX 0.0365596  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 61.4236 LOAD: AVG 0.0353984 MAX 0.0365596  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 61.4236 LOAD: AVG 0.0353984 MAX 0.0365596  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 61.4237
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 61.424
+LDB: ============= START OF LOAD BALANCING ============== 62.8805
+LDB: ============== END OF LOAD BALANCING =============== 62.8805
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 62.8806
+LDB: ============= START OF LOAD BALANCING ============== 62.9188
+LDB: Largest compute 558 load 0.003225 is 9.2% of average load 0.035006
+LDB: Average compute 0.000748 is 2.1% of average load 0.035006
+LDB: TIME 62.919 LOAD: AVG 0.0350061 MAX 0.037926  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 62.9191 LOAD: AVG 0.0350061 MAX 0.037926  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 62.9192 LOAD: AVG 0.0350061 MAX 0.0363924  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 62.9193
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 62.9196
+LDB: ============= START OF LOAD BALANCING ============== 64.3791
+LDB: ============== END OF LOAD BALANCING =============== 64.3792
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 64.3792
+LDB: ============= START OF LOAD BALANCING ============== 64.4166
+LDB: Largest compute 23 load 0.003154 is 9.0% of average load 0.035191
+LDB: Average compute 0.000753 is 2.1% of average load 0.035191
+LDB: TIME 64.4167 LOAD: AVG 0.0351907 MAX 0.0370577  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 64.4168 LOAD: AVG 0.0351907 MAX 0.0370577  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 64.4168 LOAD: AVG 0.0351907 MAX 0.0366237  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 64.4169
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 64.4172
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 85000
+WRITING COORDINATES TO RESTART FILE AT STEP 85000
+FINISHED WRITING RESTART COORDINATES
+PRESSURE: 85000 -995.157 433.625 -68.3585 433.625 -293.089 217.876 -68.3585 217.876 -899.178
+GPRESSURE: 85000 -1125.9 306.209 154.008 481.441 -105.811 116.068 -262.2 -68.7293 -571.096
+PRESSAVG: 85000 35.7955 -11.5018 82.399 -11.5018 -57.2104 -16.7507 82.399 -16.7507 32.9453
+GPRESSAVG: 85000 35.9107 -11.7745 81.8446 -11.1544 -57.2477 -17.4862 82.8603 -17.4241 33.5411
+ENERGY:   85000         0.9292         8.1834         2.2778         0.0000          -9610.3199      1246.8956         0.0000         0.0000      1560.1998          -6791.8341       292.7944     -8352.0339     -6787.6556       299.6510           -729.1414      -600.9344     28157.5589         3.8435         4.0680
+FEP:      85000        11.3904     -9608.5389      1246.0790
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 85000
+WRITING VELOCITIES TO RESTART FILE AT STEP 85000
+FINISHED WRITING RESTART VELOCITIES
+LDB: ============= START OF LOAD BALANCING ============== 65.9311
+LDB: ============== END OF LOAD BALANCING =============== 65.9312
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 65.9313
+LDB: ============= START OF LOAD BALANCING ============== 65.9691
+LDB: Largest compute 29 load 0.003188 is 9.0% of average load 0.035297
+LDB: Average compute 0.000754 is 2.1% of average load 0.035297
+LDB: TIME 65.9692 LOAD: AVG 0.0352972 MAX 0.0375258  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 65.9693 LOAD: AVG 0.0352972 MAX 0.0375258  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 65.9694 LOAD: AVG 0.0352972 MAX 0.0367884  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 65.9695
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 65.9698
+LDB: ============= START OF LOAD BALANCING ============== 67.4283
+LDB: ============== END OF LOAD BALANCING =============== 67.4284
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 67.4285
+LDB: ============= START OF LOAD BALANCING ============== 67.4661
+LDB: Largest compute 20 load 0.003325 is 9.4% of average load 0.035426
+LDB: Average compute 0.000759 is 2.1% of average load 0.035426
+LDB: TIME 67.4662 LOAD: AVG 0.0354259 MAX 0.0369459  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 67.4663 LOAD: AVG 0.0354259 MAX 0.0369459  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 67.4663 LOAD: AVG 0.0354259 MAX 0.0369459  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 67.4663
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 67.4667
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 90000
+WRITING COORDINATES TO RESTART FILE AT STEP 90000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 90000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 90000 611.879 22.3253 331.923 22.3253 255.501 -217.865 331.923 -217.865 -126.799
+GPRESSURE: 90000 493.686 50.1795 267.548 -178.823 481.698 -415.943 143.927 -295.826 71.134
+PRESSAVG: 90000 22.0817 -11.141 -21.0846 -11.141 8.68374 8.14394 -21.0846 8.14394 -15.946
+GPRESSAVG: 90000 21.0894 -10.0891 -21.3193 -11.4152 6.84294 7.55637 -19.7776 6.81761 -15.1949
+ENERGY:   90000         0.8895         8.1512         1.5304         0.0000          -9674.7515      1323.6904         0.0000         0.0000      1580.8907          -6759.5993       296.6774     -8340.4900     -6756.0715       300.6037            246.8604       348.8393     27501.8249         4.9398         4.2458
+FEP:      90000        10.5711     -9673.1989      1321.5897
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 90000
+LDB: ============= START OF LOAD BALANCING ============== 68.9875
+LDB: ============== END OF LOAD BALANCING =============== 68.9875
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 68.9876
+LDB: ============= START OF LOAD BALANCING ============== 69.0249
+LDB: Largest compute 552 load 0.003248 is 9.3% of average load 0.035096
+LDB: Average compute 0.000752 is 2.1% of average load 0.035096
+LDB: TIME 69.0251 LOAD: AVG 0.0350963 MAX 0.0369916  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 69.0251 LOAD: AVG 0.0350963 MAX 0.0369916  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 69.0252 LOAD: AVG 0.0350963 MAX 0.0361953  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 69.0252
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 69.0256
+LDB: ============= START OF LOAD BALANCING ============== 70.5004
+LDB: ============== END OF LOAD BALANCING =============== 70.5005
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 70.5006
+LDB: ============= START OF LOAD BALANCING ============== 70.5374
+LDB: Largest compute 274 load 0.003100 is 8.9% of average load 0.034896
+LDB: Average compute 0.000744 is 2.1% of average load 0.034896
+LDB: TIME 70.5375 LOAD: AVG 0.0348956 MAX 0.0360097  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 70.5376 LOAD: AVG 0.0348956 MAX 0.0360097  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 70.5376 LOAD: AVG 0.0348956 MAX 0.0360097  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 70.5376
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 70.538
+LDB: ============= START OF LOAD BALANCING ============== 72.007
+LDB: ============== END OF LOAD BALANCING =============== 72.007
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 72.0071
+LDB: ============= START OF LOAD BALANCING ============== 72.0456
+LDB: Largest compute 27 load 0.003584 is 10.1% of average load 0.035513
+LDB: Average compute 0.000759 is 2.1% of average load 0.035513
+LDB: TIME 72.0458 LOAD: AVG 0.0355131 MAX 0.0381889  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 72.0458 LOAD: AVG 0.0355131 MAX 0.0381889  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 72.0459 LOAD: AVG 0.0355131 MAX 0.0366822  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 72.0459
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 72.0463
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 95000
+WRITING COORDINATES TO RESTART FILE AT STEP 95000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 95000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 95000 443.741 -6.97418 212.838 -6.97418 58.1507 -255.053 212.838 -255.053 145.986
+GPRESSURE: 95000 424.388 -52.7221 56.459 -177.727 159.854 -168.774 251.628 -32.1864 229.277
+PRESSAVG: 95000 49.4921 7.75351 17.112 7.75351 19.2562 0.481875 17.112 0.481875 -67.3098
+GPRESSAVG: 95000 50.0241 6.32227 18.4018 7.06067 21.9507 1.33911 16.0645 -0.128875 -67.3139
+ENERGY:   95000         1.7454         6.5168         2.0269         0.0000          -9714.7904      1315.4077         0.0000         0.0000      1615.9586          -6773.1350       303.2584     -8389.0936     -6769.5519       302.7635            215.9593       271.1730     27354.3191         0.4795         1.5536
+FEP:      95000        10.2891     -9713.5323      1314.6892
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 95000
+LDB: ============= START OF LOAD BALANCING ============== 73.5585
+LDB: ============== END OF LOAD BALANCING =============== 73.5585
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 73.5587
+LDB: ============= START OF LOAD BALANCING ============== 73.5963
+LDB: Largest compute 186 load 0.003277 is 9.3% of average load 0.035064
+LDB: Average compute 0.000748 is 2.1% of average load 0.035064
+LDB: TIME 73.5965 LOAD: AVG 0.0350639 MAX 0.037031  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 73.5965 LOAD: AVG 0.0350639 MAX 0.037031  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 73.5966 LOAD: AVG 0.0350639 MAX 0.0365661  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 73.5967
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 73.597
+LDB: ============= START OF LOAD BALANCING ============== 75.0565
+LDB: ============== END OF LOAD BALANCING =============== 75.0565
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 75.0566
+LDB: ============= START OF LOAD BALANCING ============== 75.0931
+LDB: Largest compute 274 load 0.003238 is 9.3% of average load 0.034887
+LDB: Average compute 0.000740 is 2.1% of average load 0.034887
+LDB: TIME 75.0932 LOAD: AVG 0.034887 MAX 0.0358559  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 75.0933 LOAD: AVG 0.034887 MAX 0.0358559  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 75.0933 LOAD: AVG 0.034887 MAX 0.0358559  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 75.0933
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 75.0937
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 100000
+WRITING COORDINATES TO RESTART FILE AT STEP 100000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 100000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 100000 -333.548 386.493 -6.91486 386.493 -365.873 208.841 -6.91486 208.841 -113.547
+GPRESSURE: 100000 -185.451 213.139 -136.48 447.631 -208.345 658.262 126.751 161.508 -74.7903
+PRESSAVG: 100000 -52.7445 5.66882 -16.3843 5.66882 16.8179 -15.0161 -16.3843 -15.0161 35.9902
+GPRESSAVG: 100000 -52.2693 6.85314 -16.3833 3.86493 16.9183 -14.534 -16.9315 -14.8047 37.1596
+TIMING: 100000  CPU: 74.3449, 0.000741798/step  Wall: 76.2732, 0.000760232/step, 0.242852 hours remaining, 0.625427 MB of memory in use.
+PERFORMANCE: 100000  averaging 226.578 ns/day, 0.000762653 sec/step with standard deviation 3.4236e-06
+ETITLE:      TS           BOND          ANGLE          DIHED          IMPRP               ELECT            VDW       BOUNDARY           MISC        KINETIC               TOTAL           TEMP      POTENTIAL         TOTAL3        TEMPAVG            PRESSURE      GPRESSURE         VOLUME       PRESSAVG      GPRESSAVG
+FEPTITLE:    TS          BOND2         ELECT2           VDW2
+
+ENERGY:  100000         0.2712         6.5270         3.3085         0.0000          -9607.9063      1250.6000         0.0000         0.0000      1606.5164          -6740.6831       301.4864     -8347.1995     -6737.8276       302.0371           -270.9896      -156.1952     27779.0103         0.0212         0.6029
+FEP:     100000        10.1068     -9606.2456      1250.2557
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 100000
+LDB: ============= START OF LOAD BALANCING ============== 76.612
+LDB: ============== END OF LOAD BALANCING =============== 76.612
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 76.6121
+LDB: ============= START OF LOAD BALANCING ============== 76.6495
+LDB: Largest compute 19 load 0.003344 is 9.5% of average load 0.035155
+LDB: Average compute 0.000752 is 2.1% of average load 0.035155
+LDB: TIME 76.6497 LOAD: AVG 0.0351554 MAX 0.0367612  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 76.6498 LOAD: AVG 0.0351554 MAX 0.0367612  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 76.6498 LOAD: AVG 0.0351554 MAX 0.0366524  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 76.6498
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 76.6502
+LDB: ============= START OF LOAD BALANCING ============== 78.1124
+LDB: ============== END OF LOAD BALANCING =============== 78.1125
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 78.1126
+LDB: ============= START OF LOAD BALANCING ============== 78.1498
+LDB: Largest compute 20 load 0.003168 is 9.0% of average load 0.035081
+LDB: Average compute 0.000748 is 2.1% of average load 0.035081
+LDB: TIME 78.15 LOAD: AVG 0.0350807 MAX 0.0364853  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 78.15 LOAD: AVG 0.0350807 MAX 0.0364853  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 78.15 LOAD: AVG 0.0350807 MAX 0.0364853  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 78.1501
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 78.1504
+LDB: ============= START OF LOAD BALANCING ============== 79.6081
+LDB: ============== END OF LOAD BALANCING =============== 79.6081
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 79.6082
+LDB: ============= START OF LOAD BALANCING ============== 79.6457
+LDB: Largest compute 16 load 0.003091 is 8.8% of average load 0.035118
+LDB: Average compute 0.000746 is 2.1% of average load 0.035118
+LDB: TIME 79.6458 LOAD: AVG 0.0351179 MAX 0.0371622  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 79.6459 LOAD: AVG 0.0351179 MAX 0.0371622  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 79.6459 LOAD: AVG 0.0351179 MAX 0.0363123  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 79.646
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 79.6463
+WRITING COORDINATES TO DCD FILE prod.dcd AT STEP 105000
+WRITING COORDINATES TO RESTART FILE AT STEP 105000
+FINISHED WRITING RESTART COORDINATES
+WRITING VELOCITIES TO RESTART FILE AT STEP 105000
+FINISHED WRITING RESTART VELOCITIES
+PRESSURE: 105000 -14.963 300.375 461.292 300.375 114.765 -213.818 461.292 -213.818 413.702
+GPRESSURE: 105000 314.527 586.628 599.2 251.484 134.296 -38.5697 288.187 176.117 335.821
+PRESSAVG: 105000 19.2425 -54.6955 -13.1039 -54.6955 63.5086 -38.6064 -13.1039 -38.6064 -60.1899
+GPRESSAVG: 105000 18.8378 -56.4344 -14.5483 -53.6867 62.6023 -36.3812 -12.8459 -40.3255 -59.7409
+ENERGY:  105000         0.3278         2.9910         2.8569         0.0000          -9720.5272      1335.0189         0.0000         0.0000      1613.5287          -6765.8039       302.8024     -8379.3326     -6764.6750       300.6313            171.1682       261.5481     27856.3842         7.5204         7.2331
+FEP:     105000         6.1757     -9719.0489      1334.5383
+
+WRITING EXTENDED SYSTEM TO RESTART FILE AT STEP 105000
+LDB: ============= START OF LOAD BALANCING ============== 81.1962
+LDB: ============== END OF LOAD BALANCING =============== 81.1962
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 81.1963
+LDB: ============= START OF LOAD BALANCING ============== 81.2338
+LDB: Largest compute 20 load 0.003291 is 9.4% of average load 0.035173
+LDB: Average compute 0.000751 is 2.1% of average load 0.035173
+LDB: TIME 81.234 LOAD: AVG 0.0351725 MAX 0.037073  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 81.234 LOAD: AVG 0.0351725 MAX 0.037073  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 81.2341 LOAD: AVG 0.0351725 MAX 0.0364782  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 81.2341
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 81.2345
+LDB: ============= START OF LOAD BALANCING ============== 82.6832
+LDB: ============== END OF LOAD BALANCING =============== 82.6832
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 82.6833
+LDB: ============= START OF LOAD BALANCING ============== 82.72
+LDB: Largest compute 27 load 0.003300 is 9.5% of average load 0.034780
+LDB: Average compute 0.000736 is 2.1% of average load 0.034780
+LDB: TIME 82.7201 LOAD: AVG 0.0347802 MAX 0.0362792  PROXIES: TOTAL 112 MAXPE 7 MAXPATCH 7 None MEM: 0.625427 MB
+LDB: TIME 82.7202 LOAD: AVG 0.0347802 MAX 0.0362792  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: TIME 82.7202 LOAD: AVG 0.0347802 MAX 0.0362792  PROXIES: TOTAL 125 MAXPE 10 MAXPATCH 8 RefineTorusLB MEM: 0.625427 MB
+LDB: ============== END OF LOAD BALANCING =============== 82.7202
+Info: useSync: 0 useProxySync: 0
+LDB: =============== DONE WITH MIGRATION ================ 82.7206
+
+================================================================================
+                     Resource Usage on 01/03/2025 21:21:16                      
+
+Job Id: 6285532 
+Queue: CSTUDENT
+Walltime: 00:01:24  (requested 12:00:00)
+Job exited with SIGTERM (15) signal.
+Exit Status 271 - Termination request. See job output error.
+
+--------------------------------------------------------------------------------
+|              |             CPUs              |            Memory             |
+--------------------------------------------------------------------------------
+| Node         | Requested   Used   Efficiency | Requested   Used   Efficiency |
+| k162         |    16       15.8      99.0%   |  0.39gb    0.07gb     17.9%   |
+--------------------------------------------------------------------------------

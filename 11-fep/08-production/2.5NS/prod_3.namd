@@ -1,3 +1,4 @@
+
 #############################################################
 ## JOB DESCRIPTION                                         ##
 #############################################################
@@ -5,19 +6,19 @@
 # Minimize followed by Production Run
 
 coordinates         combined_wb.pdb
-bincoordinates      equil.restart.coor
-binvelocities       equil.restart.vel
-extendedsystem      equil.restart.xsc
+bincoordinates      equil.coor
+binvelocities       equil.vel
+extendedsystem      equil.xsc
 
 set temperature     300  ;# target temperature used several times below
 
 # starting from scratch
 #temperature         $temperature    ;# initialize velocities randomly
 
-outputName          prod   ;# base name for output from this run
+outputName          prod_3   ;# base name for output from this run
 
 restartfreq         5000     ;# 1000 steps = every 1ps
-dcdfreq             5000 
+dcdfreq             5000
 
 outputEnergies      5000       ;# 100 steps = every 0.2 ps
 outputpressure      5000
@@ -32,7 +33,7 @@ parmfile            combined_wb.prmtop
 #cellBasisVector1                31.000  0.000   0.000
 #cellBasisVector2                0.000   31.000  0.000
 #cellBasisVector3                0.000   0.000   100.000
-#cellOrigin                      15.000  15.000  -15.000 
+#cellOrigin                      15.000  15.000  -15.000
 
 wrapAll             on
 wrapWater           on
@@ -85,24 +86,23 @@ langevinPistonTemp    $temperature
 ## EXECUTION SCRIPT                                        ##
 #############################################################
 
-source /home/502/jmh502/toppar/fep.tcl
+source fep.tcl
 
 alch                 on
 alchType             fep
 alchFile             decouple.fep
 alchCol              B
-alchOutFreq          50 
+alchOutFreq          50
 alchOutFile          decouple.fepout
 
 alchVdwLambdaEnd     1.0
 alchElecLambdaStart  0.5
 alchVdWShiftCoeff    5.0
-alchDecouple         ON  
+alchDecouple         ON
 
-alchEquilSteps       100000 
+alchEquilSteps       100000
 set nSteps           1250000
 
-runFEP         0.0   1.0   0.05      $nSteps
+runFEP  0.15 0.2   0.05      $nSteps
 
 exit
-
