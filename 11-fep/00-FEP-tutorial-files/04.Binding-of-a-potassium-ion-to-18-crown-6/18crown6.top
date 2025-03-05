@@ -1,0 +1,117 @@
+   22     1
+MASS     1 HCA1       1.00800 H ! Alkane H attached to C(sp3)H  (eq. HA1)
+MASS     2 HCA2       1.00800 H ! Alkane H attached to C(sp3)H2 (eq. HA2)
+MASS     3 HCA3       1.00800 H ! Alkane H attached to C(sp3)H3 (eq. HA3)
+MASS     4 HCA25A     1.00800 H ! Alkane H attached to C(sp3)H2 in 5-membered ring
+MASS     6 HT         1.00800 H ! TIPS3P WATER HYDROGEN
+MASS    10 CC30A     12.01100 C ! -C(sp3)   Carbon (eq. CT)
+MASS    11 CC31A     12.01100 C ! -C(sp3)H  Carbon (eq. CT1)
+MASS    12 CC32A     12.01100 C ! -C(sp3)H2 Carbon (eq. CT2)
+MASS    13 CC33A     12.01100 C ! -C(sp3)H3 Carbon (eq. CT3)
+MASS    14 CC325A    12.01100 C ! -C(sp3)H2 Carbon in 5-membered ring
+MASS    15 CC325B    12.01100 C ! -C(sp3)H2 Carbon in THF (tetrahydrofuran)
+MASS    16 CC326A    12.01100 C ! -C(sp3)H2 Carbon in THP (tetrahydropyran)
+MASS    20 OC30A     15.99940 O ! Ether Oxygen
+MASS    21 OC305A    15.99940 O ! Ether Oxygen in THF
+MASS    23 OT        15.99940 O ! TIPS3P WATER OXYGEN
+MASS    85 HE     4.00260 HE ! helium
+MASS    86 NE    20.17970 NE ! neon
+MASS    99 DUM    0.00000 H ! dummy atom
+
+DECL -C2
+DECL -O1
+DECL +C1
+
+AUTOGENERATE angle dihe
+DEFAULT FIRST HYD1 LAST HYD2
+
+RESI 18C6             0.00 ! 18-crown-6,  Chris Chipot
+GROUP                      
+ATOM C1   CC325B      0.02 
+ATOM H11  HCA25A      0.09
+ATOM H12  HCA25A      0.09
+ATOM O2   OC305A     -0.40
+ATOM C3   CC325B      0.02
+ATOM H31  HCA25A      0.09
+ATOM H32  HCA25A      0.09
+GROUP                      
+ATOM C4   CC325B      0.02 
+ATOM H41  HCA25A      0.09
+ATOM H42  HCA25A      0.09
+ATOM O5   OC305A     -0.40
+ATOM C6   CC325B      0.02
+ATOM H61  HCA25A      0.09
+ATOM H62  HCA25A      0.09
+GROUP                      
+ATOM C7   CC325B      0.02 
+ATOM H71  HCA25A      0.09
+ATOM H72  HCA25A      0.09
+ATOM O8   OC305A     -0.40
+ATOM C9   CC325B      0.02
+ATOM H91  HCA25A      0.09
+ATOM H92  HCA25A      0.09
+GROUP                      
+ATOM C10  CC325B      0.02 
+ATOM H101 HCA25A      0.09
+ATOM H102 HCA25A      0.09
+ATOM O11  OC305A     -0.40
+ATOM C12  CC325B      0.02
+ATOM H121 HCA25A      0.09
+ATOM H122 HCA25A      0.09
+GROUP                      
+ATOM C13  CC325B      0.02 
+ATOM H131 HCA25A      0.09
+ATOM H132 HCA25A      0.09
+ATOM O14  OC305A     -0.40
+ATOM C15  CC325B      0.02
+ATOM H151 HCA25A      0.09
+ATOM H152 HCA25A      0.09
+GROUP                      
+ATOM C16  CC325B      0.02 
+ATOM H161 HCA25A      0.09
+ATOM H162 HCA25A      0.09
+ATOM O17  OC305A     -0.40
+ATOM C18  CC325B      0.02
+ATOM H181 HCA25A      0.09
+ATOM H182 HCA25A      0.09
+BOND C1   O2       O2   C3
+BOND C1   H11      C1   H12 
+BOND C3   H31      C3   H32 
+BOND C3   C4 
+BOND C4   O5       O5   C6
+BOND C4   H41      C4   H42 
+BOND C6   H61      C6   H62 
+BOND C6   C7 
+BOND C7   O8       O8   C9
+BOND C7   H71      C7   H72 
+BOND C9   H91      C9   H92 
+BOND C9   C10
+BOND C10  O11      O11  C12
+BOND C10  H101     C10  H102 
+BOND C12  H121     C12  H122 
+BOND C12  C13
+BOND C13  O14      O14  C15
+BOND C13  H131     C13  H132 
+BOND C15  H151     C15  H152 
+BOND C15  C16
+BOND C16  O17      O17  C18
+BOND C16  H161     C16  H162 
+BOND C18  H181     C18  H182 
+BOND C18  C1 
+!! IC for DEET tt conformer MP2/6-31G* optimized
+IC  C1   C2   O3   C4         1.5296  110.07  180.00  111.30   1.4188
+IC  C2   O3   C4   C5         1.4188  111.30  180.00  110.07   1.5296
+IC  H11  C1   C2   O3         1.1107  110.48 -180.00  110.07   1.4188
+IC  O3   C4   C5   H51        1.4188  110.07  180.00  110.48   1.1107
+IC  H11  C2   *C1  H12        1.1107  110.48  120.09  110.35   1.1111
+IC  H11  C2   *C1  H13        1.1107  110.48 -120.09  110.35   1.1111
+IC  O3   C1   *C2  H21        1.4188  110.07  120.56  109.49   1.1125
+IC  O3   C1   *C2  H22        1.4188  110.07 -120.56  109.49   1.1125
+IC  C5   O3   *C4  H41        1.5296  110.07  120.48  109.62   1.1125
+IC  C5   O3   *C4  H42        1.5296  110.07 -120.48  109.62   1.1125
+IC  H51  C4   *C5  H52        1.1107  110.48  120.09  110.35   1.1111
+IC  H51  C4   *C5  H53        1.1107  110.48 -120.09  110.35   1.1111
+patc firs none last none
+
+
+END

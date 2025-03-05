@@ -1,0 +1,16 @@
+topology ../common/top_all22_prot.inp
+topology tyr2ala.top
+
+# Build the topology of both segments
+segment Y2A { 
+  pdb tyr2ala.pdb 
+  first ACE
+  last CT3
+}
+# The sequence of this segment is Ala-Y2A-Ala
+
+# Read coordinates from pdb files
+coordpdb tyr2ala.pdb Y2A
+
+writepsf y2a.psf
+writepdb y2a.pdb

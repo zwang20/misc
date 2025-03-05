@@ -1,0 +1,136 @@
+###################################################
+# ETHANE -> ETHANE ZERO-SUM TRANSFORMATION IN WATER
+###################################################
+
+
+# MD SETUP
+
+timestep                2.0
+numsteps                1
+
+
+# FLEXIBLE CELL
+
+useflexiblecell         no
+
+
+# INPUT
+
+structure               setup.psf 
+parameters              ../common/par_all22_prot.inp
+paraTypeCharmm          on
+
+coordinates             setup.pdb
+bincoordinates          forward-shift.coor
+binvelocities           forward-shift.vel
+
+extendedSystem          forward-shift.xsc
+
+
+# OUTPUT
+
+outputenergies          100
+outputtiming            100
+outputpressure          100
+binaryoutput            yes
+
+outputname              backward-shift
+restartname             backward-shift
+restartfreq             100
+binaryrestart           yes
+
+XSTFreq                 100
+
+
+# PME
+
+PME                     yes
+PMETolerance            10e-6
+PMEInterpOrder          4
+
+PMEGridSpacing          1.0
+
+
+# WRAP WATER FOR OUTPUT
+wrapAll                 on
+
+
+# CONSTANT-T
+
+langevin                on
+langevinTemp            300.0
+langevinDamping         1.0
+
+
+# CONSTANT-P
+
+LangevinPiston          on
+LangevinPistonTarget    1
+LangevinPistonPeriod    75
+LangevinPistonDecay     25
+LangevinPistonTemp      300
+StrainRate              0.0 0.0 0.0
+useGroupPressure        yes
+
+
+# SPACE PARTITIONING
+
+splitpatch              hydrogen
+hgroupcutoff            2.8
+stepspercycle           20
+margin                  1.0
+
+
+# CUT-OFFS
+
+switching               on
+switchdist               8.0
+cutoff                   9.0
+pairlistdist            10.0
+
+
+# RESPA 
+
+fullElectFrequency      2
+nonbondedFreq           1
+
+
+# 1-4 NON-BONDED
+
+exclude                 scaled1-4
+1-4scaling              1.0
+
+
+# COM
+
+commotion               no
+
+
+# SHAKE
+
+rigidbonds              all 
+rigidtolerance          0.000001
+rigiditerations         400
+
+
+# FEP PARAMETERS
+
+source                  ../tools/fep.tcl
+
+alch                    on 
+alchType                FEP
+alchFile                zero.fep
+alchCol                 B
+alchOutFile             backward-shift.fepout
+alchOutFreq             10
+
+alchVdwLambdaEnd        1.0
+alchElecLambdaStart     0.5
+alchVdWShiftCoeff       6.0
+alchDecouple            no
+
+alchEquilSteps          100 
+set numSteps            500
+
+runFEP 1.0 0.0 -0.0625 $numSteps
+
