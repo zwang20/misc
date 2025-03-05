@@ -1,0 +1,54 @@
+                   :-) GROMACS - gmx grompp, 2022.3-spack (-:
+
+Executable:   /apps/z_install_tree/linux-rocky8-ivybridge/gcc-12.2.0/gromacs-2022.3-l3zfxduq7zhp5wet3r3ewmwftzbbjlxt/bin/gmx_mpi
+Data prefix:  /apps/z_install_tree/linux-rocky8-ivybridge/gcc-12.2.0/gromacs-2022.3-l3zfxduq7zhp5wet3r3ewmwftzbbjlxt
+Working dir:  /srv/scratch/z5358697/01-00-fix-test/lambda_5
+Command line:
+  gmx_mpi grompp -p mobley_1017962.top
+
+
+NOTE 1 [file grompp.mdp]:
+  With PME there is a minor soft core effect present at the cut-off,
+  proportional to (LJsigma/rcoulomb)^6. This could have a minor effect on
+  energy conservation, but usually other effects dominate. With a common
+  sigma value of 0.34 nm the fraction of the particle-particle potential at
+  the cut-off at lambda=0.5 is around 7.3e-05, while ewald-rtol is 1.0e-05.
+
+Generating 1-4 interactions: fudge = 0.5
+Number of degrees of freedom in T-Coupling group System is 13198.00
+
+There was 1 note
+
+GROMACS reminds you: "You're Insignificant" (Tricky)
+
+                   :-) GROMACS - gmx mdrun, 2022.3-spack (-:
+
+Executable:   /apps/z_install_tree/linux-rocky8-ivybridge/gcc-12.2.0/gromacs-2022.3-l3zfxduq7zhp5wet3r3ewmwftzbbjlxt/bin/gmx_mpi
+Data prefix:  /apps/z_install_tree/linux-rocky8-ivybridge/gcc-12.2.0/gromacs-2022.3-l3zfxduq7zhp5wet3r3ewmwftzbbjlxt
+Working dir:  /srv/scratch/z5358697/01-00-fix-test/lambda_5
+Command line:
+  gmx_mpi mdrun
+
+Compiled SIMD: AVX_256, but for this host/run AVX_512 might be better (see
+log).
+Reading file topol.tpr, VERSION 2022.3-spack (single precision)
+Changing nstlist from 10 to 80, rlist from 1.1 to 1.228
+
+Using 1 MPI process
+
+Non-default thread affinity set, disabling internal thread affinity
+
+Using 4 OpenMP threads 
+
+starting mdrun 'mobley_1017962 in water'
+100000 steps,    200.0 ps.
+
+Writing final coordinates.
+
+               Core t (s)   Wall t (s)        (%)
+       Time:     1088.681      272.175      400.0
+                 (ns/day)    (hour/ns)
+Performance:       63.489        0.378
+
+GROMACS reminds you: "What you do makes a difference, and you have to decide what kind of difference you want to make." (Jane Goodall)
+
