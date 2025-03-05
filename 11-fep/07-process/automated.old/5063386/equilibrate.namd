@@ -1,0 +1,69 @@
+
+# Minimization and Equilibration
+
+structure          mobley_5063386.psf
+coordinates        mobley_5063386.pdb
+
+outputname         mobley_5063386_equilibrated
+
+firsttimestep      0
+
+# Input
+paraTypeCharmm      on
+parameters          ../common/par_all27_prot_lipid.inp
+parameters          mobley_5063386.prm
+temperature         298
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+cutoff              12.0
+switching           on
+switchdist          10.0
+pairlistdist        14.0
+
+
+# Integrator Parameters
+timestep            1.0
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  1
+stepspercycle       10
+
+
+# Constant Temperature Control
+langevin            on   ;# do langevin dynamics
+langevinDamping     1.0    ;# damping coefficient (gamma) of 1/ps
+langevinTemp        298
+langevinHydrogen    off  ;# don't couple langevin bath to hydrogens
+
+langevinPiston        on
+langevinPistonTarget  1.01325      ;# pressure in bar -> 1 atm
+langevinPistonPeriod  100.         ;# oscillation period around 100 fs
+langevinPistonDecay   50.          ;# oscillation decay time of 50 fs
+langevinPistonTemp    298 ;# coupled to heat bath
+
+#PME (for full-system periodic electrostatics)
+PME                 yes
+# let NAMD determine grid
+PMEGridSpacing      1.0
+
+outputEnergies      1000
+outputpressure      1000
+dcdfreq             1000
+outputTiming        1000
+
+
+# Repeating unit cells
+# Periodic Boundary Conditions
+cellBasisVector1    90.0    0.0   0.0
+cellBasisVector2     0.0  90.0   0.0
+cellBasisVector3     0.0    0.0   90.0
+cellOrigin         36.012 36.012 36.012
+
+wrapAll             on
+useGroupPressure      yes
+margin 8
+minimize            10000
+reinitvels          298
+run 100000;
