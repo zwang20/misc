@@ -1,0 +1,27 @@
+#!/bin/bash
+#PBS -l walltime=00:10:00
+#PBS -l mem=200Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+# add modules
+module purge
+module add namd/3.0.1
+
+# check if exists
+#[[ $PBS_O_WORKDIR ]] || { echo path does not exist; exit 1; } && cd ${PBS_O_WORKDIR}
+
+# print info
+hostname
+nproc
+lscpu | grep "Model name"
+
+# run program
+#namd3 +p$(nproc) equilibrate.namd
+namd3 +p$(nproc) methane-backwards.namd
+
+# print cpuinfo
+echo hostname $(hostname)
+hostname
+nproc
+lscpu | grep "Model name"
