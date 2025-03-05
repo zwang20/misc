@@ -1,0 +1,59 @@
+# This is an example PKGBUILD file. Use this as a start to creating your own,
+# and remove these comments. For more information, see 'man PKGBUILD'.
+# NOTE: Please fill out the license field for your package! If it is unknown,
+# then please put 'unknown'.
+
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=namd
+pkgver=3.0.1
+pkgrel=1
+epoch=
+pkgdesc="namd"
+arch=('x86_64')
+url=""
+license=('custom')
+groups=()
+depends=()
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=(
+	"https://www.ks.uiuc.edu/Research/namd/${pkgver}/download/453167/NAMD_${pkgver}_Linux-x86_64-multicore.tar.gz"
+)
+noextract=()
+b2sums=('d8042b00ccbaec169f473c1e5ec6dcb950bcf72a94541d8e60f857f11052522ae032a255a8d543d8b12d3efbfbecd202380d29333cd63fb1eef16e0d3f4890d2')
+validpgpkeys=()
+
+
+prepare() {
+	true
+}
+
+
+build() {
+	true
+}
+
+check() {
+	true
+}
+
+package() {
+	cd $srcdir/NAMD_${pkgver}_Linux-x86_64-multicore || exit
+	install -Dm 755 charmd $pkgdir/usr/bin/charmd
+	install -Dm 755 charmd_faceless $pkgdir/usr/bin/charmd_faceless
+	install -Dm 755 charmrun $pkgdir/usr/bin/charmrun
+	install -Dm 755 flipbinpdb $pkgdir/usr/bin/flipbinpdb
+	install -Dm 755 flipdcd $pkgdir/usr/bin/flipdcd
+	install -Dm 755 namd3 $pkgdir/usr/bin/namd3
+	install -Dm 755 psfgen $pkgdir/usr/bin/psfgen
+	install -Dm 755 sortreplicas $pkgdir/usr/bin/sortreplicas
+	cp -R lib/ $pkgdir/usr/lib/
+}
