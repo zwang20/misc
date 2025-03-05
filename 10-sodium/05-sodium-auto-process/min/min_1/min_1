@@ -1,0 +1,28 @@
+#!/bin/bash
+#PBS -l walltime=00:10:00
+#PBS -l mem=200Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+# add modules
+#module purge
+#module add namd/2.14
+
+# run job
+cd ${PBS_O_WORKDIR} || exit 1
+
+# delete previous
+rm output.*
+
+# print info
+hostname
+nproc
+lscpu | grep "Model name"
+
+# run program
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 +p$(nproc) sodium.namd || qsub 'min_1'
+
+# print cpuinfo
+hostname
+nproc
+lscpu | grep "Model name"

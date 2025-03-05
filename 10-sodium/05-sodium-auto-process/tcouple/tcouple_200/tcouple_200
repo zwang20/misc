@@ -1,0 +1,30 @@
+#!/bin/bash
+#PBS -l walltime=00:10:00
+#PBS -l mem=200Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+# add modules
+#module purge
+#module add namd/2.14
+
+# check if exists
+[[ $PBS_O_WORKDIR ]] || { echo path does not exist; exit 1; } && cd ${PBS_O_WORKDIR}
+
+# delete previous
+rm output.*
+
+# print info
+hostname
+nproc
+lscpu | grep "Model name"
+
+# run program
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 +p$(nproc) sodium.namd || qsub 'tcouple_200'
+
+# print cpuinfo
+echo hostname
+hostname
+nproc
+lscpu | grep "Model name"
+lscpu | grep "Model name" | cut -d : -f 2 | xargs
