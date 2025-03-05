@@ -1,0 +1,116 @@
+rm: cannot remove 'output.*': No such file or directory
+k111
+16
+Model name:          Intel(R) Xeon(R) Gold 6248R CPU @ 3.00GHz
+Charm++: standalone mode (not using charmrun)
+Charm++> Running in Multicore mode: 16 threads (PEs)
+Charm++> Using recursive bisection (scheme 3) for topology aware partitions
+Converse/Charm++ Commit ID: 
+CharmLB> Load balancer assumes all CPUs are same.
+Charm++> Running on 1 hosts (2 sockets x 8 cores x 1 PUs = 16-way SMP)
+Charm++> cpu topology info is gathered in 0.001 seconds.
+CharmLB> Load balancing instrumentation for communication is off.
+Info: NAMD 3.0.1 for Linux-x86_64-multicore
+Info: 
+Info: Please visit http://www.ks.uiuc.edu/Research/namd/
+Info: for updates, documentation, and support information.
+Info: 
+Info: Please cite Phillips et al., J. Chem. Phys. 153:044130 (2020) doi:10.1063/5.0014475
+Info: in all publications reporting results obtained with NAMD.
+Info: 
+Info: Based on Charm++/Converse 80000 for multicore-linux-x86_64-gcc
+Info: Built Mon Oct 14 11:11:06 CDT 2024 by dhardy on athine.ks.uiuc.edu
+Info: 1 NAMD  3.0.1  Linux-x86_64-multicore  16    k111  z5358697
+Info: Running on 16 processors, 1 nodes, 1 physical nodes.
+Info: CPU topology information available.
+Info: Charm++/Converse parallel runtime startup completed at 0.00527046 s
+CkLoopLib is used in SMP with simple dynamic scheduling (converse-level notification)
+Info: 1043.48 MB of memory in use based on /proc/self/stat
+Info: Configuration file is sodium.namd
+Info: Working in the current directory /srv/scratch/z5358697/one/one_1
+TCL: Suspending until startup complete.
+Warning: Option "1-4scaling" has been deprecated. Instead use "oneFourScaling".
+Warning: The Langevin gamma parameters differ over the particles,
+Warning: requiring extra work per step to constrain rigid bonds.
+Info: SIMULATION PARAMETERS:
+Info: TIMESTEP               1
+Info: NUMBER OF STEPS        0
+Info: STEPS PER CYCLE        10
+Info: PERIODIC CELL BASIS 1  30 0 0
+Info: PERIODIC CELL BASIS 2  0 30 0
+Info: PERIODIC CELL BASIS 3  0 0 30
+Info: PERIODIC CELL CENTER   0 0 0
+Info: WRAPPING ALL CLUSTERS AROUND PERIODIC BOUNDARIES ON OUTPUT.
+Info: LOAD BALANCER  Centralized
+Info: LOAD BALANCING STRATEGY  New Load Balancers -- DEFAULT
+Info: LDB PERIOD             2000 steps
+Info: FIRST LDB TIMESTEP     50
+Info: LAST LDB TIMESTEP     -1
+Info: LDB BACKGROUND SCALING 1
+Info: HOM BACKGROUND SCALING 1
+Info: MIN ATOMS PER PATCH    40
+Info: EMPTY PATCH LOAD       40 ATOMS
+Info: INITIAL TEMPERATURE    298
+Info: CENTER OF MASS MOVING INITIALLY? NO
+Info: DIELECTRIC             1
+Info: EXCLUDE                SCALED ONE-FOUR
+Info: 1-4 ELECTROSTATICS SCALED BY 1
+Info: MODIFIED 1-4 VDW PARAMETERS WILL BE USED
+Info: DCD FILENAME           output.dcd
+Info: DCD FREQUENCY          5
+Info: DCD FIRST STEP         5
+Info: DCD FILE WILL CONTAIN UNIT CELL DATA
+Info: NO EXTENDED SYSTEM TRAJECTORY OUTPUT
+Info: NO VELOCITY DCD OUTPUT
+Info: NO FORCE DCD OUTPUT
+Info: OUTPUT FILENAME        output
+Info: BINARY OUTPUT FILES WILL BE USED
+Info: NO RESTART FILE
+Info: SWITCHING ACTIVE
+Info: SWITCHING ON           10
+Info: SWITCHING OFF          12
+Info: PAIRLIST DISTANCE      14
+Info: PAIRLIST SHRINK RATE   0.01
+Info: PAIRLIST GROW RATE     0.01
+Info: PAIRLIST TRIGGER       0.3
+Info: PAIRLISTS PER CYCLE    2
+Info: PAIRLISTS ENABLED
+Info: MARGIN                 0
+Info: HYDROGEN GROUP CUTOFF  2.5
+Info: PATCH DIMENSION        16.5
+Info: ENERGY OUTPUT STEPS    5
+Info: ENERGY EVALUATION STEPS    5
+Info: OUTPUT ENERGY PRECISION 4
+Info: CROSSTERM ENERGY INCLUDED IN DIHEDRAL
+Info: TIMING OUTPUT STEPS    5
+Info: LANGEVIN DYNAMICS ACTIVE
+Info: LANGEVIN TEMPERATURE   298
+Info: LANGEVIN USING BBK INTEGRATOR
+Info: LANGEVIN DAMPING COEFFICIENT IS 1 INVERSE PS
+Info: LANGEVIN DYNAMICS NOT APPLIED TO HYDROGENS
+Info: MULTILEVEL SUMMATION METHOD (MSM) FOR ELECTROSTATICS ACTIVE
+Info: MSM WITH C1 CUBIC INTERPOLATION AND C2 TAYLOR SPLITTING
+Info: FULL ELECTROSTATIC EVALUATION FREQUENCY      2
+FATAL ERROR: Either computeEnergies must be a multiple of fullElectFrequency or vice versa.
+
+FATAL ERROR: Either computeEnergies must be a multiple of fullElectFrequency or vice versa.
+
+[Partition 0][Node 0] End of program
+
+================================================================================
+                     Resource Usage on 22/02/2025 21:34:53                      
+
+Job Id: 6263311 
+Queue: CSTUDENT
+Walltime: 00:00:00  (requested 12:00:00)
+Job unsucesfull. Exit Status 1 - Exit status refers to the exit value of the
+top process in the job, typically the shell.
+This may be the exit value of the last command executed in the shell.
+See job output error.
+
+--------------------------------------------------------------------------------
+|              |             CPUs              |            Memory             |
+--------------------------------------------------------------------------------
+| Node         | Requested   Used   Efficiency | Requested   Used   Efficiency |
+| k111         |    16        0.0      0.0%    |   0.2gb    0.03gb     15.0%   |
+--------------------------------------------------------------------------------
