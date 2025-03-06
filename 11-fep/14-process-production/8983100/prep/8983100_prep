@@ -1,0 +1,71 @@
+#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=400Mb
+#PBS -l ncpus=16
+#PBS -j oe
+set -e
+
+
+# check if exists
+cd "${PBS_O_WORKDIR}"
+
+echo
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+
+
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" mobley_8983100_min.namd
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" mobley_8983100_equil.namd
+cd ..
+cd fw0
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_fw0
+cd ..
+cd fw1
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_fw1
+cd ..
+cd bw0
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_bw0
+cd ..
+cd bw1
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_bw1
+cd ..
+cd fwf0
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_fwf0
+cd ..
+cd fwf1
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_fwf1
+cd ..
+cd bwf0
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_bwf0
+cd ..
+cd bwf1
+cp ../prep/mobley_8983100_equil.coor .
+cp ../prep/mobley_8983100_equil.vel  .
+cp ../prep/mobley_8983100_equil.xsc  .
+qsub 8983100_bwf1
+cd ..
+
+
