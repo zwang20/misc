@@ -26,53 +26,42 @@ mobley_5692472 N-methylmethanamine            chosen for secondary aliphatic ami
 )
 
 for mobley_id in todo_list:
+    print(mobley_id)
     os.chdir(mobley_id)
 
-    # combine fepouts
-    os.system(
-        f"cat fw0/mobley_{mobley_id}_fw0.fepout fw1/mobley_{mobley_id}_fw1.fepout > mobley_{mobley_id}_fw.fepout"
-    )
-    os.system(
-        f"cat bw0/mobley_{mobley_id}_bw0.fepout bw1/mobley_{mobley_id}_bw1.fepout > mobley_{mobley_id}_bw.fepout"
-    )
-    os.system(
-        f"cat fwf0/mobley_{mobley_id}_fwf0.fepout fwf1/mobley_{mobley_id}_fwf1.fepout > mobley_{mobley_id}_fwf.fepout"
-    )
-    os.system(
-        f"cat bwf0/mobley_{mobley_id}_bwf0.fepout bwf1/mobley_{mobley_id}_bwf1.fepout > mobley_{mobley_id}_bwf.fepout"
-    )
+    # # combine fepouts
+    # os.system(
+    #     f"cat fw0/mobley_{mobley_id}_fw0.fepout fw1/mobley_{mobley_id}_fw1.fepout > mobley_{mobley_id}_fw.fepout"
+    # )
+    # os.system(
+    #     f"cat bw0/mobley_{mobley_id}_bw0.fepout bw1/mobley_{mobley_id}_bw1.fepout > mobley_{mobley_id}_bw.fepout"
+    # )
+    # os.system(
+    #     f"cat fwf0/mobley_{mobley_id}_fwf0.fepout fwf1/mobley_{mobley_id}_fwf1.fepout > mobley_{mobley_id}_fwf.fepout"
+    # )
+    # os.system(
+    #     f"cat bwf0/mobley_{mobley_id}_bwf0.fepout bwf1/mobley_{mobley_id}_bwf1.fepout > mobley_{mobley_id}_bwf.fepout"
+    # )
+    #
+    # # frozen
+    # subprocess.run(
+    #     ["xvfb-run", "vmd"],
+    #     input=f"parsefep -forward mobley_{mobley_id}_fwf.fepout -backward mobley_{mobley_id}_bwf.fepout -bar".encode(
+    #         "utf-8"
+    #     ),
+    # ).check_returncode()
+    # os.system(f"mv ParseFEP.log ParseFEP_frozen.log")
+    #
+    # # thawed
+    # subprocess.run(
+    #     ["xvfb-run", "vmd"],
+    #     input=f"parsefep -forward mobley_{mobley_id}_fw.fepout -backward mobley_{mobley_id}_bw.fepout -bar".encode(
+    #         "utf-8"
+    #     ),
+    # ).check_returncode()
 
-    # thawed
-    vmd_process = subprocess.run(
-        ["xvfb-run", "vmd", "-e", "process_fep.tcl"],
-        capture_output=True,
-        input=f"parsefep -forward mobley_{mobley_id}_fw.fepout -backward mobley_{mobley_id}_bw.fepout -bar".encode(
-            "utf-8"
-        ),
-    )
-    if vmd_process.returncode == 0:
-        for line in vmd_process.stdout.decode("utf-8").split("\n"):
-            if "BAR-estimator: total free energy change is" in line:
-                f.write(
-                    f"{prefix},{float(line.split()[6])},{float(line.split()[11])}\n"
-                )
-                break
-
-    # frozen
-    vmd_process = subprocess.run(
-        ["xvfb-run", "vmd", "-e", "process_fep.tcl"],
-        capture_output=True,
-        input=f"parsefep -forward mobley_{mobley_id}_fwf.fepout -backward mobley_{mobley_id}_bwf.fepout -bar".encode(
-            "utf-8"
-        ),
-    )
-    if vmd_process.returncode == 0:
-        for line in vmd_process.stdout.decode("utf-8").split("\n"):
-            if "BAR-estimator: total free energy change is" in line:
-                f.write(
-                    f"{prefix},{float(line.split()[6])},{float(line.split()[11])}\n"
-                )
-                break
+    os.system("tail -n 1 ParseFEP.log")
+    os.system("tail -n 1 ParseFEP_frozen.log")
 
     for mode in ["fw0", "fw1", "bw0", "bw1", "fwf0", "fwf1", "bwf0", "bwf1"]:
         os.chdir(mode)
