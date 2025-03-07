@@ -65,35 +65,35 @@ for mobley_id in todo_list:
     os.system("tail -n 1 ParseFEP.log | cut -d ' ' -f 7")
     os.system("tail -n 1 ParseFEP_frozen.log | cut -d ' ' -f 7")
 
-    for mode in ["fw0", "fw1", "bw0", "bw1", "fwf0", "fwf1", "bwf0", "bwf1"]:
-        os.chdir(mode)
-
-        # find .o*
-        output = glob.glob(f"{mobley_id}_{mode}.o*")
-        assert len(output) == 1
-        output = output[0]
-
-        # check job is successful
-        subprocess.run(
-            ["grep", "^Job execution was successful. Exit Status 0. ", output],
-            capture_output=True,
-        ).check_returncode()
-
-        # get walltime
-        walltime = (
-            subprocess.run(["grep", "^Walltime: ", output], capture_output=True)
-            .stdout.decode("utf-8")
-            .split()[1]
-        )
-
-        # get memory usage
-        resources = (
-            subprocess.run(["grep", "^| k", output], capture_output=True)
-            .stdout.decode("utf-8")
-            .split()
-        )
-        hostname = resources[1]
-        memory = resources[8]
+    # for mode in ["fw0", "fw1", "bw0", "bw1", "fwf0", "fwf1", "bwf0", "bwf1"]:
+    #     os.chdir(mode)
+    #
+    #     # find .o*
+    #     output = glob.glob(f"{mobley_id}_{mode}.o*")
+    #     assert len(output) == 1
+    #     output = output[0]
+    #
+    #     # check job is successful
+    #     subprocess.run(
+    #         ["grep", "^Job execution was successful. Exit Status 0. ", output],
+    #         capture_output=True,
+    #     ).check_returncode()
+    #
+    #     # get walltime
+    #     walltime = (
+    #         subprocess.run(["grep", "^Walltime: ", output], capture_output=True)
+    #         .stdout.decode("utf-8")
+    #         .split()[1]
+    #     )
+    #
+    #     # get memory usage
+    #     resources = (
+    #         subprocess.run(["grep", "^| k", output], capture_output=True)
+    #         .stdout.decode("utf-8")
+    #         .split()
+    #     )
+    #     hostname = resources[1]
+    #     memory = resources[8]
 
         # get fep
         # fep = (
