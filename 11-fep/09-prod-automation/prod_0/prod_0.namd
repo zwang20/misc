@@ -1,4 +1,4 @@
-template = """
+
 #############################################################
 ## JOB DESCRIPTION                                         ##
 #############################################################
@@ -15,7 +15,7 @@ set temperature     300  ;# target temperature used several times below
 # starting from scratch
 #temperature         $temperature    ;# initialize velocities randomly
 
-outputName          prod_{index}   ;# base name for output from this run
+outputName          prod_0   ;# base name for output from this run
 
 restartfreq         5000     ;# 1000 steps = every 1ps
 dcdfreq             5000
@@ -93,8 +93,7 @@ alchType             fep
 alchFile             decouple.fep
 alchCol              B
 alchOutFreq          50
-#alchOutFile          decouple.fepout
-alchOutFile          prod_{index}.fepout
+alchOutFile          prod_0.fepout
 
 alchVdwLambdaEnd     1.0
 alchElecLambdaStart  0.5
@@ -104,43 +103,6 @@ alchDecouple         ON
 alchEquilSteps       100000
 set nSteps           1250000
 
-runFEP  {start} {end}   0.05      $nSteps
+runFEP  0.0 0.05   0.05      $nSteps
 
 exit
-"""
-
-
-bash_template = """#!/bin/bash
-#PBS -l walltime=12:00:00
-#PBS -l mem=400Mb
-#PBS -l ncpus=16
-#PBS -j oe
-
-# add modules
-#module purge
-#module add namd/3.0.1
-#module add tcl/8.6.12
-
-# check if exists
-[[ $PBS_O_WORKDIR ]] || {{ echo path does not exist; exit 1; }} && cd "${{PBS_O_WORKDIR}}"
-
-echo
-
-echo hostname "$(hostname)"
-echo nproc "$(nproc)"
-lscpu | grep "Model name"
-
-PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" prod_{index}.namd
-"""
-
-
-for i in range(20):
-    with open(f"prod_{i}.namd", "w") as f:
-        f.write(template.format(start=i / 20, end=(i + 1) / 20, index=i))
-
-    with open(f"prod_{i}.sh", "w") as f:
-        f.write(bash_template.format(index=i))
-
-with open("sub.sh", "w") as f:
-    for i in range(20):
-        f.write(f"qsub prod_{i}.sh\n")
