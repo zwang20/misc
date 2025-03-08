@@ -1,0 +1,156 @@
+template = """
+#############################################################
+## JOB DESCRIPTION                                         ##
+#############################################################
+
+# Minimize followed by Production Run
+
+coordinates         combined_wb.pdb
+bincoordinates      equil.coor
+binvelocities       equil.vel
+extendedsystem      equil.xsc
+
+set temperature     300  ;# target temperature used several times below
+
+# starting from scratch
+#temperature         $temperature    ;# initialize velocities randomly
+
+outputName          prod_{index}   ;# base name for output from this run
+
+restartfreq         5000     ;# 1000 steps = every 1ps
+dcdfreq             5000
+
+outputEnergies      5000       ;# 100 steps = every 0.2 ps
+outputpressure      5000
+XSTFreq             5000
+
+# Force-Field Parameters
+amber               on
+parmfile            combined_wb.prmtop
+
+
+# system dimensions
+#cellBasisVector1                31.000  0.000   0.000
+#cellBasisVector2                0.000   31.000  0.000
+#cellBasisVector3                0.000   0.000   100.000
+#cellOrigin                      15.000  15.000  -15.000
+
+wrapAll             on
+wrapWater           on
+
+# PME (for full-system periodic electrostatics)
+PME                 yes
+PMEGridSpacing      1.0
+
+# These are specified by AMBER
+readexclusions      yes      # from Sergey?
+exclude             scaled1-4
+1-4scaling          0.833333   # for Amber
+scnb                2.0     # for Amber
+cutoff              9.0
+switching           off
+switchdist          8.0     # from Sergey mdin_namd
+pairlistdist        11.0    # from Sergey mdin_namd
+
+stepspercycle       10   ;# redo pairlists every ten steps
+margin              1.0;
+
+
+# Integrator Parameters
+timestep            2.0  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1    ;# nonbonded forces every step
+fullElectFrequency  2    ;# PME only every other step
+
+# Constant Temperature Control
+langevin            on            ;# langevin dynamics
+langevinDamping     1.0            ;# damping coefficient of 1/ps
+langevinTemp        $temperature  ;# random noise at this level
+
+# Constant Pressure Control (variable volume)
+useGroupPressure      yes ;# needed for rigidBonds
+useFlexibleCell       no
+useConstantArea       no
+
+langevinPiston        on
+langevinPistonTarget  1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod  50.0
+langevinPistonDecay   25.0
+langevinPistonTemp    $temperature
+
+# Colvars can be used to restrain movement of the center of mass
+#colvars on
+#colvarsConfig distance.0.in
+
+#############################################################
+## EXECUTION SCRIPT                                        ##
+#############################################################
+
+source fep.tcl
+
+alch                 on
+alchType             fep
+alchFile             decouple.fep
+alchCol              B
+alchOutFreq          50
+alchOutFile          prod_{index}.fepout
+
+alchVdwLambdaEnd     1.0
+alchElecLambdaStart  0.5
+alchVdWShiftCoeff    5.0
+alchDecouple         ON
+
+alchEquilSteps       100000
+set nSteps           1250000
+
+runFEP  {start} {end}   0.05      $nSteps
+
+exit
+"""
+
+
+bash_template = """#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=400Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+# add modules
+#module purge
+#module add namd/3.0.1
+#module add tcl/8.6.12
+
+# check if exists
+[[ $PBS_O_WORKDIR ]] || {{ echo path does not exist; exit 1; }} && cd "${{PBS_O_WORKDIR}}"
+
+echo
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" prod_{index}.namd
+"""
+
+import os
+
+for i in range(20):
+    os.system(f"mkdir prod_{i}")
+
+    os.system(f"cp combined_wb.pdb prod_{i}/combined_wb.pdb")
+    os.system(f"cp combined_wb.prmtop prod_{i}/combined_wb.prmtop")
+    os.system(f"cp decouple.fep prod_{i}/decouple.fep")
+    os.system(f"cp equil.coor prod_{i}/equil.coor")
+    os.system(f"cp equil.vel prod_{i}/equil.vel")
+    os.system(f"cp equil.xsc prod_{i}/equil.xsc")
+    os.system(f"cp fep.tcl prod_{i}/fep.tcl")
+
+    with open(f"prod_{i}/prod_{i}.namd", "w") as f:
+        f.write(template.format(start=i / 20, end=(i + 1) / 20, index=i))
+
+    with open(f"prod_{i}/prod_{i}.sh", "w") as f:
+        f.write(bash_template.format(index=i))
+
+with open("sub.sh", "w") as f:
+    for i in range(20):
+        f.write(f"cd prod_{i} && qsub prod_{i}.sh && cd ..\n")
