@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=400Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+# add modules
+#module purge
+#module add namd/3.0.1
+#module add tcl/8.6.12
+
+# check if exists
+[[ $PBS_O_WORKDIR ]] || { echo path does not exist; exit 1; } && cd "${PBS_O_WORKDIR}"
+
+echo
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" prod_17.namd
