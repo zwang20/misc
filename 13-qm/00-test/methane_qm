@@ -1,0 +1,11 @@
+#!/bin/bash
+#PBS -l walltime=00:20:00
+#PBS -l mem=3000Mb
+#PBS -l ncpus=16
+#PBS -j oe
+
+cd $PBS_O_WORKDIR
+
+module load gaussian/09-D.01
+
+sg unsw -c g09 <methane.com >methane.log
