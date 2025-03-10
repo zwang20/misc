@@ -9,12 +9,12 @@ outputName          mobley_2146331_prod
 
 set temperature     300  ;# target temperature used several times below
 
-restartfreq         25000     ;# 1000 steps = every 1ps
-dcdfreq             25000
+#restartfreq         100000     ;# 1000 steps = every 1ps
+dcdfreq             100000
 
-outputEnergies      25000       ;# 100 steps = every 0.2 ps
-outputpressure      25000
-XSTFreq             25000
+outputEnergies      100000       ;# 100 steps = every 0.2 ps
+outputpressure      100000
+XSTFreq             100000
 
 # Force-Field Parameters
 amber               on
@@ -45,7 +45,7 @@ switchdist          8.0     # from Sergey mdin_namd
 pairlistdist        11.0    # from Sergey mdin_namd
 
 stepspercycle       10   ;# redo pairlists every ten steps
-margin              4.0
+margin              2.0
 
 # Integrator Parameters
 timestep            2.0  ;# 2fs/step
@@ -92,9 +92,9 @@ alchVdWShiftCoeff    5.0
 alchDecouple         ON
 
 alchEquilSteps       100000
-set nSteps           1250000
+set nSteps           1500000
 
-runFEP         0.55 0.5 -0.05      $nSteps
+runFEP         0.725 0.75 0.025      $nSteps
 
 
 exit

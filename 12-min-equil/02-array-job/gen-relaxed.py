@@ -8,12 +8,12 @@ generic_template = """
 
 set temperature     300  ;# target temperature used several times below
 
-restartfreq         25000     ;# 1000 steps = every 1ps
-dcdfreq             25000
+#restartfreq         100000     ;# 1000 steps = every 1ps
+dcdfreq             100000
 
-outputEnergies      25000       ;# 100 steps = every 0.2 ps
-outputpressure      25000
-XSTFreq             25000
+outputEnergies      100000       ;# 100 steps = every 0.2 ps
+outputpressure      100000
+XSTFreq             100000
 
 # Force-Field Parameters
 amber               on
@@ -44,7 +44,7 @@ switchdist          8.0     # from Sergey mdin_namd
 pairlistdist        11.0    # from Sergey mdin_namd
 
 stepspercycle       10   ;# redo pairlists every ten steps
-margin              4.0
+margin              2.0
 
 # Integrator Parameters
 timestep            2.0  ;# 2fs/step
@@ -100,7 +100,7 @@ alchVdWShiftCoeff    5.0
 alchDecouple         ON
 
 alchEquilSteps       100000
-set nSteps           1250000
+set nSteps           1500000
 
 runFEP         {start} {end} {step}      $nSteps
 """
@@ -119,18 +119,19 @@ GPUForceTable on
 """
 
 run_template = """#!/usr/bin/bash
-#PBS -l walltime=12:00:00
+#PBS -l walltime=01:00:00
 #PBS -l mem=500Mb
-#PBS -l ncpus=4
+#PBS -l ncpus=16
 #PBS -l ngpus=1
 #PBS -j oe
-#PBS -J 0-39
+#PBS -J 0-79
 set -e
 
 cd "${PBS_O_WORKDIR}/${PBS_ARRAY_INDEX}"
 
 PATH="/srv/scratch/z5358697/namd_cuda:$PATH" namd3 "+p$(nproc)" relaxed.namd
 """
+# test .cputype = sapphirerapids?
 
 prefix_list = list(
     i.split()[0].split("_")[1]
@@ -163,10 +164,14 @@ for v, k in enumerate(prefix_list):
 print(len(prefix_list))
 
 for prefix in prefix_list:
+    if prefix in ("2146331",):
+        # continue
+        pass
     print(prefix)
     os.makedirs(f"relaxed/{prefix}", exist_ok=True)
 
-    for i in range(40):
+    N_STEPS = 40
+    for i in range(N_STEPS * 2):
         os.makedirs(f"relaxed/{prefix}/{i}", exist_ok=True)
 
         # copy input files
@@ -193,14 +198,14 @@ for prefix in prefix_list:
             print(x, y, z)
 
         # generate constants
-        if i < 20:
-            start = i / 20
-            end = (i + 1) / 20
-            step = 0.05
+        if i < N_STEPS:
+            start = i / N_STEPS
+            end = (i + 1) / N_STEPS
+            step = 1 / N_STEPS
         else:
-            end = (40 - i - 1) / 20
-            start = (40 - i) / 20
-            step = -0.05
+            end = (N_STEPS * 2 - i - 1) / N_STEPS
+            start = (N_STEPS * 2 - i) / N_STEPS
+            step = -1 / N_STEPS
 
         assert step != 0
         if step > 0:
@@ -229,7 +234,7 @@ for prefix in prefix_list:
             )
 
     # write array job file
-    with open(f"relaxed/{prefix}-relaxed", 'w') as f:
-
+    with open(f"relaxed/{prefix}/{prefix}-relaxed", "w") as f:
+        f.write(run_template)
 
     assert False
