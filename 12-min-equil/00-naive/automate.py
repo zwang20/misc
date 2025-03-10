@@ -133,7 +133,7 @@ bondedCUDA 255
 
 run_template = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
-#PBS -l mem=400Mb
+#PBS -l mem=500Mb
 #PBS -l ncpus=16
 #PBS -j oe
 set -e
@@ -151,6 +151,29 @@ lscpu | grep "Model name"
 {run}
 """
 
-input_list = """
-mobley_1017962
-"""
+prefix_list = list(
+    i.split()[0].split["_"][1]
+    for i in """
+mobley_2146331
+mobley_6091882
+mobley_8983100
+mobley_4434915
+mobley_9029594
+mobley_4364398
+mobley_525934
+mobley_8260524
+mobley_7532833
+mobley_7015518
+mobley_6474572
+mobley_7261305
+mobley_6714389
+mobley_5692472
+mobley_9073553
+""".strip().split(
+        "\n"
+    )
+)
+
+for prefix in prefix_list:
+    print(prefix)
+    assert False
