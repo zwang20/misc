@@ -1,4 +1,4 @@
-log started: Mon Mar 10 12:17:00 2025
+log started: Mon Mar 10 12:17:06 2025
 
 Log file: ./leap.log
 >> #
@@ -324,9 +324,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -334,50 +334,62 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 12.5
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  32.323 31.461 33.409
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  32.003 31.201 34.004
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   35.010 34.260 36.199 angstroms.
-  Volume: 43418.570 A^3 
-  Total mass 17869.896 amu,  Density 0.683 g/cc
-  Added 987 residues.
+  Total vdw box size:                   34.986 34.260 37.195 angstroms.
+  Volume: 44581.503 A^3 
+  Total mass 18264.240 amu,  Density 0.680 g/cc
+  Added 1008 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.857720, 0.483311, 0.343696,
+            atom C3 at position -0.303280, 0.131311, -0.335304,
+            atom C6 at position -0.602280, 0.684311, -1.616304,
+        and atom N2 at position -0.846280, 1.134311, -2.661304.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.162280, -0.770689, 0.271696,
+            atom C3 at position -0.303280, 0.131311, -0.335304,
+            atom C6 at position -0.602280, 0.684311, -1.616304,
+        and atom N2 at position -0.846280, 1.134311, -2.661304.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	987
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:17:01 2025
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
+log started: Mon Mar 10 12:17:07 2025
 
 Log file: ./leap.log
 >> #
@@ -703,9 +715,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -713,50 +725,62 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 9.25
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  25.823 24.961 26.909
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  25.503 24.701 27.504
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   28.912 28.370 30.222 angstroms.
-  Volume: 24789.352 A^3 
-  Total mass 8951.976 amu,  Density 0.600 g/cc
-  Added 492 residues.
+  Total vdw box size:                   28.159 28.047 30.276 angstroms.
+  Volume: 23911.440 A^3 
+  Total mass 8733.776 amu,  Density 0.607 g/cc
+  Added 479 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.810698, 0.669025, 0.388260,
+            atom C3 at position -0.350302, 0.317025, -0.290740,
+            atom C6 at position -0.649302, 0.870025, -1.571740,
+        and atom N2 at position -0.893302, 1.320025, -2.616740.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.209302, -0.584975, 0.316260,
+            atom C3 at position -0.350302, 0.317025, -0.290740,
+            atom C6 at position -0.649302, 0.870025, -1.571740,
+        and atom N2 at position -0.893302, 1.320025, -2.616740.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	492
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:17:02 2025
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
+log started: Mon Mar 10 12:17:08 2025
 
 Log file: ./leap.log
 >> #
@@ -1082,9 +1106,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1092,50 +1116,62 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.875
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  29.073 28.211 30.159
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  28.753 27.951 30.754
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   32.265 31.599 33.152 angstroms.
-  Volume: 33799.873 A^3 
-  Total mass 12771.368 amu,  Density 0.627 g/cc
-  Added 704 residues.
+  Total vdw box size:                   31.981 30.866 33.876 angstroms.
+  Volume: 33439.025 A^3 
+  Total mass 12733.328 amu,  Density 0.632 g/cc
+  Added 701 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.888261, 0.442960, 0.407969,
+            atom C3 at position -0.272739, 0.090960, -0.271031,
+            atom C6 at position -0.571739, 0.643960, -1.552031,
+        and atom N2 at position -0.815739, 1.093960, -2.597031.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.131739, -0.811040, 0.335969,
+            atom C3 at position -0.272739, 0.090960, -0.271031,
+            atom C6 at position -0.571739, 0.643960, -1.552031,
+        and atom N2 at position -0.815739, 1.093960, -2.597031.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	704
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:17:03 2025
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
+log started: Mon Mar 10 12:17:09 2025
 
 Log file: ./leap.log
 >> #
@@ -1461,9 +1497,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1471,50 +1507,62 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.0625
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  27.448 26.586 28.534
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  27.128 26.326 29.129
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   30.657 29.465 31.349 angstroms.
-  Volume: 28318.004 A^3 
-  Total mass 10699.528 amu,  Density 0.627 g/cc
-  Added 589 residues.
+  Total vdw box size:                   30.021 29.461 31.561 angstroms.
+  Volume: 27914.022 A^3 
+  Total mass 10625.456 amu,  Density 0.632 g/cc
+  Added 584 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.897654, 0.531814, 0.394491,
+            atom C3 at position -0.263346, 0.179814, -0.284509,
+            atom C6 at position -0.562346, 0.732814, -1.565509,
+        and atom N2 at position -0.806346, 1.182814, -2.610509.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.122346, -0.722186, 0.322491,
+            atom C3 at position -0.263346, 0.179814, -0.284509,
+            atom C6 at position -0.562346, 0.732814, -1.565509,
+        and atom N2 at position -0.806346, 1.182814, -2.610509.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	589
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:17:04 2025
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
+log started: Mon Mar 10 12:17:09 2025
 
 Log file: ./leap.log
 >> #
@@ -1840,9 +1888,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1850,50 +1898,62 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.46875
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  28.260 27.398 29.346
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  27.941 27.139 29.941
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   31.398 30.511 31.855 angstroms.
-  Volume: 30516.641 A^3 
-  Total mass 11708.424 amu,  Density 0.637 g/cc
-  Added 645 residues.
+  Total vdw box size:                   31.156 30.511 32.993 angstroms.
+  Volume: 31362.900 A^3 
+  Total mass 11616.336 amu,  Density 0.615 g/cc
+  Added 639 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.784773, 0.614586, 0.178828,
+            atom C3 at position -0.376227, 0.262586, -0.500172,
+            atom C6 at position -0.675227, 0.815586, -1.781172,
+        and atom N2 at position -0.919227, 1.265586, -2.826172.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.235227, -0.639414, 0.106828,
+            atom C3 at position -0.376227, 0.262586, -0.500172,
+            atom C6 at position -0.675227, 0.815586, -1.781172,
+        and atom N2 at position -0.919227, 1.265586, -2.826172.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	645
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:17:05 2025
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
+log started: Mon Mar 10 12:17:10 2025
 
 Log file: ./leap.log
 >> #
@@ -2219,9 +2279,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8754702.mol2
-Loading Mol2 file: ./mobley_8754702.mol2
-Reading MOLECULE named propyl
+> mol = loadMol2 mobley_8764620.mol2
+Loading Mol2 file: ./mobley_8764620.mol2
+Reading MOLECULE named pyridine-3-carbonitrile
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -2229,46 +2289,58 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.671875
-  Solute vdw bounding box:              7.323 6.461 8.409
-  Total bounding box for atom centers:  28.667 27.805 29.753
+  Solute vdw bounding box:              7.003 6.201 9.004
+  Total bounding box for atom centers:  28.347 27.545 30.347
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   31.981 30.860 31.855 angstroms.
-  Volume: 31438.534 A^3 
-  Total mass 12248.904 amu,  Density 0.647 g/cc
-  Added 675 residues.
+  Total vdw box size:                   31.398 30.511 33.270 angstroms.
+  Volume: 31871.759 A^3 
+  Total mass 12066.736 amu,  Density 0.629 g/cc
+  Added 664 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8754702.pdb
-Writing pdb file: mobley_8754702.pdb
+> savepdb mol mobley_8764620.pdb
+Writing pdb file: mobley_8764620.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8754702.prmtop mobley_8754702.inpcrd
+> saveamberparm mol mobley_8764620.prmtop mobley_8764620.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
 Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C2 at position 0.905775, 0.614586, 0.104809,
+            atom C3 at position -0.255225, 0.262586, -0.574191,
+            atom C6 at position -0.554225, 0.815586, -1.855191,
+        and atom N2 at position -0.798225, 1.265586, -2.900191.
+
+/opt/amber/bin/teLeap: Error!
+ ** No torsion terms for atom types: ca-ca-cg-n1
+        for atom C4 at position -1.114225, -0.639414, 0.032809,
+            atom C3 at position -0.255225, 0.262586, -0.574191,
+            atom C6 at position -0.554225, 0.815586, -1.855191,
+        and atom N2 at position -0.798225, 1.265586, -2.900191.
 Building improper torsion parameters.
- total 1 improper torsion applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-cg
+        atoms are: C2 C4 C3 C6
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C3 N1 C4 H3
+ ** Warning: No sp2 improper torsion term for  ca-nb-ca-h4
+        atoms are: C1 N1 C5 H4
+ total 2 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
-Not Marking per-residue atom chain types.
-Marking per-residue atom chain types.
-  (Residues lacking connect0/connect1 - 
-   these don't have chain types marked:
 
-	res	total affected
-
-	MOL	1
-	WAT	675
-  )
- (no restraints)
+/opt/amber/bin/teLeap: Warning!
+Parameter file was not saved.
 > quit
 	Quit
 
-Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
+Exiting LEaP: Errors = 2; Warnings = 1; Notes = 0.
