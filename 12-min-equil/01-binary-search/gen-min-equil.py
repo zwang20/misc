@@ -129,28 +129,37 @@ PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" mobley_{prefix}_min.n
 PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" mobley_{prefix}_equil.namd
 """
 
-prefix_list = list(
-    i.split()[0].split("_")[1]
-    for i in """
-mobley_2146331
-mobley_6091882
-mobley_8983100
-mobley_4434915
-mobley_9029594
-mobley_4364398
-mobley_525934
-mobley_8260524
-mobley_7532833
-mobley_7015518
-mobley_6474572
-mobley_7261305
-mobley_6714389
-mobley_5692472
-mobley_9073553
-""".strip().split(
-        "\n"
-    )
-)
+# prefix_list = list(
+#     i.split()[0].split("_")[1]
+#     for i in """
+# mobley_2146331
+# mobley_6091882
+# mobley_8983100
+# mobley_4434915
+# mobley_9029594
+# mobley_4364398
+# mobley_525934
+# mobley_8260524
+# mobley_7532833
+# mobley_7015518
+# mobley_6474572
+# mobley_7261305
+# mobley_6714389
+# mobley_5692472
+# mobley_9073553
+# """.strip().split(
+#         "\n"
+#     )
+# )
+
+prefix_list = []
+with open("database.txt") as f:
+    for line in f:
+        if line.startswith("#"):
+            continue
+        prefix_list.append(line.split(";")[0].split("_")[1])
+
+print(len(prefix_list))
 
 os.chdir("input")
 for index, prefix in enumerate(prefix_list):
@@ -167,7 +176,7 @@ for index, prefix in enumerate(prefix_list):
     subprocess.run(["cp", "../../fep.tcl", "."]).check_returncode()
 
     # Do binary search
-    low, high = (10.0, 15.0)
+    low, high = (6.0, 15.0)
     curr = 12.5
     while True:
         # generate leap.in
