@@ -1,4 +1,4 @@
-log started: Mon Mar 10 12:16:09 2025
+log started: Mon Mar 10 12:16:22 2025
 
 Log file: ./leap.log
 >> #
@@ -324,9 +324,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -334,24 +334,24 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 12.5
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  33.482 32.015 32.463
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  32.346 30.485 33.745
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   36.592 35.267 35.723 angstroms.
-  Volume: 46100.747 A^3 
-  Total mass 18512.550 amu,  Density 0.667 g/cc
-  Added 1022 residues.
+  Total vdw box size:                   35.436 33.542 37.195 angstroms.
+  Volume: 44209.818 A^3 
+  Total mass 17871.910 amu,  Density 0.671 g/cc
+  Added 986 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -359,7 +359,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -370,14 +372,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	1022
+	WAT	986
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:10 2025
+log started: Mon Mar 10 12:16:23 2025
 
 Log file: ./leap.log
 >> #
@@ -703,9 +705,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -713,24 +715,24 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 9.25
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  26.982 25.515 25.963
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  25.846 23.985 27.245
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   30.021 28.644 29.273 angstroms.
-  Volume: 25172.545 A^3 
-  Total mass 9054.150 amu,  Density 0.597 g/cc
-  Added 497 residues.
+  Total vdw box size:                   28.912 27.188 30.222 angstroms.
+  Volume: 23756.896 A^3 
+  Total mass 8539.622 amu,  Density 0.597 g/cc
+  Added 468 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -738,7 +740,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -749,14 +753,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	497
+	WAT	468
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:11 2025
+log started: Mon Mar 10 12:16:23 2025
 
 Log file: ./leap.log
 >> #
@@ -1082,9 +1086,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1092,24 +1096,24 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.875
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  30.232 28.765 29.213
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  29.096 27.235 30.495
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   32.955 31.785 31.855 angstroms.
-  Volume: 33367.662 A^3 
-  Total mass 13450.054 amu,  Density 0.669 g/cc
-  Added 741 residues.
+  Total vdw box size:                   32.265 30.511 33.876 angstroms.
+  Volume: 33349.211 A^3 
+  Total mass 12449.094 amu,  Density 0.620 g/cc
+  Added 685 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -1117,7 +1121,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -1128,14 +1134,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	741
+	WAT	685
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:12 2025
+log started: Mon Mar 10 12:16:24 2025
 
 Log file: ./leap.log
 >> #
@@ -1461,9 +1467,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1471,24 +1477,24 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.0625
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  28.607 27.140 27.588
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  27.471 25.610 28.870
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   31.981 30.511 30.728 angstroms.
-  Volume: 29983.252 A^3 
-  Total mass 11035.910 amu,  Density 0.611 g/cc
-  Added 607 residues.
+  Total vdw box size:                   30.975 28.882 31.349 angstroms.
+  Volume: 28046.081 A^3 
+  Total mass 10647.494 amu,  Density 0.630 g/cc
+  Added 585 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -1496,7 +1502,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -1507,14 +1515,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	607
+	WAT	585
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:13 2025
+log started: Mon Mar 10 12:16:25 2025
 
 Log file: ./leap.log
 >> #
@@ -1840,9 +1848,9 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
@@ -1850,24 +1858,24 @@ Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
 > solvatebox mol TIP3PBOX 10.46875
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  29.419 27.952 28.400
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  28.284 26.422 29.683
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   32.265 30.866 31.349 angstroms.
-  Volume: 31220.294 A^3 
-  Total mass 12351.078 amu,  Density 0.657 g/cc
-  Added 680 residues.
+  Total vdw box size:                   31.398 29.461 31.855 angstroms.
+  Volume: 29466.374 A^3 
+  Total mass 11169.958 amu,  Density 0.629 g/cc
+  Added 614 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -1875,7 +1883,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -1886,14 +1896,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	680
+	WAT	614
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:14 2025
+log started: Mon Mar 10 12:16:26 2025
 
 Log file: ./leap.log
 >> #
@@ -2219,34 +2229,34 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> solvatebox mol TIP3PBOX 10.265625
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  29.013 27.546 27.994
+> solvatebox mol TIP3PBOX 10.671875
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  28.690 26.828 30.089
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   32.221 30.511 31.349 angstroms.
-  Volume: 30818.973 A^3 
-  Total mass 11810.598 amu,  Density 0.636 g/cc
-  Added 650 residues.
+  Total vdw box size:                   31.981 30.258 33.088 angstroms.
+  Volume: 32017.705 A^3 
+  Total mass 11890.598 amu,  Density 0.617 g/cc
+  Added 654 residues.
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -2254,7 +2264,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
@@ -2265,14 +2277,14 @@ Marking per-residue atom chain types.
 	res	total affected
 
 	MOL	1
-	WAT	650
+	WAT	654
   )
  (no restraints)
 > quit
 	Quit
 
 Exiting LEaP: Errors = 0; Warnings = 0; Notes = 0.
-log started: Mon Mar 10 12:16:15 2025
+log started: Mon Mar 10 12:16:26 2025
 
 Log file: ./leap.log
 >> #
@@ -2598,23 +2610,23 @@ Reading title:
 Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
 >> 
 > 
-> mol = loadMol2 mobley_8668219.mol2
-Loading Mol2 file: ./mobley_8668219.mol2
-Reading MOLECULE named (3R)-2,3-dimethylpentane
+> mol = loadMol2 mobley_8691603.mol2
+Loading Mol2 file: ./mobley_8691603.mol2
+Reading MOLECULE named m-cresol
 > check mol
 Checking 'mol'....
 Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> solvatebox mol TIP3PBOX 10.3671875
-  Solute vdw bounding box:              8.482 7.015 7.463
-  Total bounding box for atom centers:  29.216 27.749 28.197
+> solvatebox mol TIP3PBOX 10.7734375
+  Solute vdw bounding box:              7.347 5.485 8.745
+  Total bounding box for atom centers:  28.893 27.031 30.292
   Solvent unit box:                     18.774 18.774 18.774
 The number of boxes:  x= 2  y= 2  z= 2
-  Total vdw box size:                   32.265 30.860 31.349 angstroms.
-  Volume: 31214.651 A^3 
-  Total mass 12188.934 amu,  Density 0.648 g/cc
+  Total vdw box size:                   31.981 30.511 33.270 angstroms.
+  Volume: 32463.439 A^3 
+  Total mass 12196.870 amu,  Density 0.624 g/cc
   Added 671 residues.
 > check mol
 Checking 'mol'....
@@ -2622,10 +2634,10 @@ Checking parameters for unit 'mol'.
 Checking for bond parameters.
 Checking for angle parameters.
 Unit is OK.
-> savepdb mol mobley_8668219.pdb
-Writing pdb file: mobley_8668219.pdb
+> savepdb mol mobley_8691603.pdb
+Writing pdb file: mobley_8691603.pdb
    printing CRYST1 record to PDB file with box info
-> saveamberparm mol mobley_8668219.prmtop mobley_8668219.inpcrd
+> saveamberparm mol mobley_8691603.prmtop mobley_8691603.inpcrd
 Checking Unit.
 Building topology.
 Building atom parameters.
@@ -2633,7 +2645,9 @@ Building bond parameters.
 Building angle parameters.
 Building proper torsion parameters.
 Building improper torsion parameters.
- total 0 improper torsions applied
+ ** Warning: No sp2 improper torsion term for  ca-ca-ca-oh
+        atoms are: C5 C7 C6 O1
+ total 5 improper torsions applied
 Building H-Bond parameters.
 Incorporating Non-Bonded adjustments.
 Not Marking per-residue atom chain types.
