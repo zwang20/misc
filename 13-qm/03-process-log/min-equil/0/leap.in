@@ -1,0 +1,10 @@
+
+source leaprc.gaff2
+source leaprc.water.tip3p
+mol = loadMol2 qm_2146331.mol2
+check mol
+solvatebox mol TIP3PBOX 11.890625
+check mol
+savepdb mol mobley_2146331.pdb
+saveamberparm mol mobley_2146331.prmtop mobley_2146331.inpcrd
+quit

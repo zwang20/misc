@@ -5,7 +5,7 @@ import subprocess
 tleap_template = """
 source leaprc.gaff2
 source leaprc.water.tip3p
-mol = loadMol2 mobley_{prefix}.mol2
+mol = loadMol2 qm_{prefix}.mol2
 check mol
 solvatebox mol TIP3PBOX {size}
 check mol
@@ -78,6 +78,11 @@ langevinPistonPeriod  50.0
 langevinPistonDecay   25.0
 langevinPistonTemp    $temperature
 
+# CONSTRAINTS
+fixedAtoms          on
+fixedAtomsFile      mobley_{prefix}.pdb
+fixedAtomsCol       B
+
 {run}
 
 exit
@@ -104,30 +109,6 @@ foreach temp {30 60 90 120 150 180 210 240 270 300} dur {25000 25000 25000 25000
 }
 """
 
-run_template = """#!/usr/bin/bash
-#PBS -l walltime=12:00:00
-#PBS -l mem=500Mb
-#PBS -l ncpus=16
-#PBS -j oe
-set -e
-
-
-# check if exists
-cd "${{PBS_O_WORKDIR}}"
-
-echo
-
-echo hostname "$(hostname)"
-echo nproc "$(nproc)"
-lscpu | grep "Model name"
-
-{run}
-"""
-
-prep_run = """
-PATH="/srv/scratch/z5358697/namd_avx512:$PATH" namd3 "+p$(nproc)" mobley_{prefix}_min.namd
-PATH="/srv/scratch/z5358697/namd_avx512:$PATH" namd3 "+p$(nproc)" mobley_{prefix}_equil.namd
-"""
 
 # prefix_list = []
 # with open("database.txt") as f:
@@ -136,18 +117,46 @@ PATH="/srv/scratch/z5358697/namd_avx512:$PATH" namd3 "+p$(nproc)" mobley_{prefix
 #             continue
 #         prefix_list.append(line.split(";")[0].split("_")[1])
 
+from common import prefix_list, skip_list
+
+run_template = f"""#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=500Mb
+#PBS -l ncpus=16
+#PBS -l select=cpuflags=avx512f
+#PBS -j oe
+#PBS -J 0-{len(prefix_list) - 1}
+set -e
+
+
+# check if exists
+cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
+
+echo
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" min.namd
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" equil.namd
+"""
+
+
 print(len(prefix_list))
 
-os.chdir("input")
+os.chdir("min-equil")
 for index, prefix in enumerate(prefix_list):
-    print(f"{index:03d}", "current atom", "=" * 10, prefix)
+    if prefix in skip_list:
+        continue
+    print(f"{index:03d}", "current molecule", "=" * 10, prefix)
 
     os.makedirs(str(index), exist_ok=True)
     os.chdir(str(index))
 
     # copy mol2 file here
     subprocess.run(
-        ["cp", f"../../FreeSolv/mol2files_gaff/mobley_{prefix}.mol2", "."]
+        ["cp", f"../../mol2/qm_{prefix}.mol2", f"qm_{prefix}.mol2"]
     ).check_returncode()
 
     subprocess.run(["cp", "../../fep.tcl", "."]).check_returncode()
@@ -224,7 +233,7 @@ for index, prefix in enumerate(prefix_list):
             )
         )
 
-    with open(f"{prefix}_prep", "w") as f:
-        f.write(run_template.format(run=prep_run.format(prefix=prefix)))
-
     os.chdir("..")
+
+with open("qm-min-equil", "w") as f:
+    f.write(run_template)
