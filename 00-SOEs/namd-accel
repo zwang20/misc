@@ -1,0 +1,17 @@
+## guide to namd accel
+
+# 0. dont use accel for min / equil
+they take like 20 mins anyways
+
+# 1. using gpus
+gpus can only be used without constraints
+margin must be small (<=2.0)
+ncpus must be large (at least 8, needs further testing)\
+or else it explodes
+
+# 2. using avx512
+needs avx512f and avx512dq
+prefix job with
+#PBS -l select=cpuflags=avx512f
+idk how to do both
+usually one comes with the other
