@@ -28,7 +28,14 @@ mobley_9073553
 
 for prefix in prefix_list:
     print(prefix)
+    os.makedirs("com", exist_ok=True)
     subprocess.run(
-        ["obabel", f"FreeSolv/mol2files_sybyl/mobley_{prefix}.mol2", f"-O{prefix}.com"]
+        [
+            "obabel",
+            f"FreeSolv/mol2files_sybyl/mobley_{prefix}.mol2",
+            f"-Ocom/{prefix}.com",
+        ]
     )
-    assert False
+    subprocess.run(
+        ["sed", "s/^#$/#m062X\\/6-31+G(d) OPT Freq=noraman/", "-i", f"com/{prefix}.com"]
+    )
