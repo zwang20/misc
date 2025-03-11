@@ -144,7 +144,7 @@ mobley_9073553
 
 run_template = f"""#!/usr/bin/bash
 #PBS -l walltime=12:00:00
-#PBS -l mem=500Mb
+#PBS -l mem=1Gb
 #PBS -l ncpus=16
 #PBS -l ngpus=1
 #PBS -j oe
@@ -156,6 +156,7 @@ cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
 PATH="/srv/scratch/z5358697/namd_cuda:$PATH" namd3 "+p$(nproc)" relaxed.namd
 """
 # test .cputype = sapphirerapids?
+# test .cpuflags = avx512f avx512dq
 
 # reverse id to index conversion
 id_to_index = dict()
