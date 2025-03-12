@@ -27,6 +27,11 @@ mobley_9073553
 
 
 for index, prefix in enumerate(prefix_list):
+    if (
+        prefix
+        in "ParseFEP_2146331.log  ParseFEP_4434915.log  ParseFEP_6091882.log  ParseFEP_8983100.log  ParseFEP_9029594.log"
+    ):
+        continue
 
     print(index, prefix)
 
