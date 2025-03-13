@@ -10,7 +10,7 @@ def get_previous_files():
     )
 
 
-def get_prefix_list(batch):
+def get_prefix_list(batch=get_previous_files()[-1].split(".")[0]):
     prefix_list = []
     with open(f"batch/{batch}.txt", encoding="utf-8") as f:
         for line in f:
