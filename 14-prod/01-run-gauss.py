@@ -30,6 +30,8 @@ for prefix in prefix_list:
         ],
         check=True,
     )
+    assert False
+    # use def2SVP if iodine
     subprocess.run(
         [
             "sed",
