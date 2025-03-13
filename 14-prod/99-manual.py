@@ -37,7 +37,7 @@ if mode == 0:
             todo_list.append(prefix)
 
 elif mode == 1:
-    while bad_prefix := int(input("Bad prefix: ")):
+    while bad_prefix := input("Bad prefix: "):
         assert (
             str(bad_prefix) in prefix_list
         ), f"{bad_prefix} not found in batch {batch}"
