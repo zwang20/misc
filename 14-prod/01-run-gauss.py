@@ -9,12 +9,9 @@ runs gaussian geometry optimization for molecule
 import itertools
 import subprocess
 
-previous_files = (
-    subprocess.run(["ls batch | sort -h"], shell=True, capture_output=True, check=True)
-    .stdout.decode("utf-8")
-    .strip()
-    .split()
-)
+from common import get_previous_files
+
+previous_files = get_previous_files()
 
 # get prefixes
 prefix_list = []
