@@ -1,0 +1,2607 @@
+#!/usr/bin/perl -w
+# todo:
+# fix scf done line in xyz (from molden)
+# delete hlc and sym file (G3engmol?)
+# symmetry read
+# change scf=gdiis
+# Gives csv file in G3engmol?
+# isolate Br, and 3rd row for com, so, normally, one don't need basis library.
+# 
+#
+
+# ccsd for close shell ; uccsd for open shell (by default)
+
+################################################################
+#                         CRIN 1.0
+#			            Create Inputs
+#                       David Brittain
+#                         11/10/06
+#
+#  Modified Leaf 04Jan08
+#
+# Program to take file containing geometries, extract
+# the geometries, and create Gaussian/Q-Chem/Molpro/Gamess Input
+#
+# Syntax: crin [format] $mol.[log com xyz zmat ar inp uhfna.punch sad.punch opt.punch]
+#		
+# Which is which?
+# .log : Gaussian output
+# .com : Gaussian input
+# .xyz : can be Spartan xyz, which has only lines of xyz coordinate. (?)
+#      : or Normal xyz, which has Natom, blank line and xyz coordinate.
+#      : or Molden xyz, which has Natom, comment line and xyz coordinate.
+#      : or Modified xyz, which has Natom, charge and multiplicity and xyz coordinate.
+# .zmat : zmatrix from molden, with or without charge and multiplicity on the top.
+# .ar : Gaussian Archive
+# .inp : Gamess input 
+# .uhfna.punch : Gamess uhf punch file
+# .sad.punch : Gamess sad punch file
+# .opt.punch : Gamess opt punch file
+#
+# Q-Chem is not working (?)
+# 
+#
+# Features:
+#	Can be used to turn all files in a directory into input
+#	files with the same directives, eg. turn a directory
+#	full of molden z-matrices into B3LYP/6-31g* optimizations,
+#	or turn a dir full of optimized geometry .log files into
+#	molpro ccsd(t)/6-31g* inputs
+#
+#	Works with both zmat and cartesian coordinates in all input
+#	formats. Even supports old g98 archive zmat format.
+#
+#	Gaussian:
+#	Supports multiple --Link1-- jobs. So long as the header and
+#	footer are matched in that the %chk lines are the same, the 	
+#	output will run correctly. The charge/multiplicity line is
+#	corrected from whatever it is in the footer file to whatever
+#	it is in the input geometry file.
+#
+#	All comment lines are changed to the current (stripped)
+#	filename, even if there are multiple --Link1-- jobs.
+#
+#	Molpro:
+#	Fixes wf card so that nelec and spin are correct and the
+#	irreducible representation number is as specified on the
+#	command line.
+#
+#	Puts (stripped) filename in the title card.
+#
+#
+#Changelog:
+#
+#To do:
+#
+#	-put standard inputs in a library dir in $HOME, then put 
+#	variables pointing to these files in .cshrc
+#
+#	-qchem - strip a possible zero (8th field) from zmat
+#	input. This arises when using old (g98) archives that
+#	were opt=zmatrix.
+#
+#
+################################################################
+
+#declarations:
+#my($output_type,$symm,$headerfile,$footerfile,$inputfile,$geometry,$stripped_geometry);
+#my($i,$inputfile_stripped,$cm,$header,$footer,$finaldeck, $iszmat, $nelec,$c,$m,$spin);
+#my($job,@xyz);
+#my($data,$mult,$norb,$det,$fin,@vec,$punchline);
+#my($HOME,$multi,$charge);
+
+#$HOME="home/$ENV{REMOTE_DIR}/$ENV{REMOTE_USER}";
+$grid="INT(grid=ultrafine)"; #for students, this can be turned off.
+
+if(@ARGV <2){
+    die "More arguments needed.\nSyntax: crin [options] \$mol.log \n";
+}
+
+$job = $ARGV[0];
+if($job =~ /mr/ ) {$output_type="gamess";}
+elsif($job =~ /w1m/i  ) {$output_type="molpro";}
+elsif($job =~ /w1/i   ) {$output_type="gaussian";}
+elsif($job =~ /uaks/i ) {$output_type="gaussian";}
+elsif($job =~ /uahf/i ) {$output_type="gaussian";}
+elsif($job =~ /smd/i  ) {$output_type="gaussian";}
+elsif($job =~ /adf/i  ) {$output_type="adf";}
+elsif($job =~ /g3/i   ) {$output_type="gaussian";}
+elsif($job =~ /opt/i  ) {$output_type="gaussian";}
+elsif($job =~ /freq/i ) {$output_type="gaussian";}
+elsif($job =~ /sp/i ) {$output_type="gaussian";}
+elsif($job =~ /xyz/i  ) {$output_type="gaussian";}
+elsif($job =~ /ar/i  ) {$output_type="gaussian";}
+elsif($job =~ /ccsdt/i) {$output_type="molpro";}
+elsif($job eq "-q" )    {$output_type="qchem";}
+elsif($job =~ /nbo/i  ) {$output_type="gaussian";}
+else         {die "unsupported output type $job.\n";}
+
+# ARGV[2] is the diffuse fun switch
+if (!$ARGV[2] or $ARGV[2] =~ /0/){
+    #print "no diffuse function\n";
+    $basis = "6-31G*";
+    $genbasis = "6-31Gd";
+    $heavybasis = "lacvp + polarisation + ecp";
+}
+else{
+    print "add diffuse function\n";
+    $basis = "6-31+G*";
+    $genbasis = "6-31pGd";
+    $heavybasis = "lacvp + polarisation + diffuse + ecp";
+}
+
+#check to see all of the files exist
+
+#strip the geometries from whatever the input file is.
+$inputfile = $ARGV[1];
+if ($inputfile =~ /\.ar/) {
+    $inputfile_stripped = stripname($inputfile,"\.ar");	# strip .ar from $inputfilename
+    $geometry = striparc($inputfile,0);				# get geometry string
+    $stripped_geometry = stripcom($geometry);			# cull leading and trailing rubbish
+}
+elsif($inputfile =~  /\.log/ ){
+    if($inputfile =~  /\.298\.mecn\.log/ and $job =~ /mecn/i){
+        $inputfile_stripped = stripname($inputfile,"\.298\.mecn\.log");
+    }
+    else{
+        $inputfile_stripped = stripname($inputfile,"\.log");	# strip .log from $inputfilename
+    }
+    $geometry = striparc($inputfile,0);				# get geometry string
+    if ($geometry eq ""){
+        print "Caution! $inputfile This is not optimised geometry!\n";
+        $stripped_geometry = striplastxyz($inputfile);
+    }
+    else{
+        $stripped_geometry = stripcom($geometry);			# cull leading and trailing rubbish
+    }
+    @atom = split(/\n/,$stripped_geometry);
+    @atomline = split(/\n/,$stripped_geometry);
+    for $i (1..$#atom){
+        $atom[$i] =~ s/-*\d+.*//g;
+        $atom[$i] =~ s/\s+//g;
+        $atomn = atomicN($atom[$i]);
+        if ($atomn > 18){
+            $Rassolov=1;
+            if ($atomn > 36){
+                print "use $heavybasis for $atom[$i]\n";
+                $heavy=1;
+            }
+        }
+    }
+}
+elsif($inputfile =~  /\.com/ ){
+    $inputfile_stripped = stripname($inputfile,"\.com");  # strip .com from $inputfilename
+    $geometry = strip($inputfile);
+    $stripped_geometry = stripcom($geometry);
+    $stripped_geometry =~ s/\s*\n$//;
+    if ($job =~ /opt/i){
+        rename($inputfile,$inputfile_stripped.".oldcom")||die "Can't mv $inputfile to $inputfile_stripped".".old\n";
+    }
+    @atom = split(/\n/,$stripped_geometry);
+    @atomline = split(/\n/,$stripped_geometry);
+    for $i (1..$#atom){
+        $atom[$i] =~ s/-*\d+.*//g;
+        $atom[$i] =~ s/\s+//g;
+        $atomn = atomicN($atom[$i]);
+        if ($atomn > 18){
+            $Rassolov=1;
+            if ($atomn > 36){
+                print "use $heavybasis for $atom[$i]\n";
+                $heavy=1;
+            }
+        }
+    }
+    $stripped_geometry = ${stripped_geometry}."\n";
+}
+elsif($inputfile =~  /\.zmat/ ){
+    $inputfile_stripped = stripname($inputfile,"\.zmat");  # strip .zmat from $inputfilename
+    $geometry = strip($inputfile);
+    $geometry =~ s/\s*\n$//;
+
+    if ($geometry =~ /^\s*-*\d+/){
+        $stripped_geometry = $geometry;
+    }
+    else{
+        print "$inputfile\n";
+        $charge = &promptUser("  What is the charge of this molecule?",0);
+        $multi = &promptUser("  What is the multiplicity of this molecule?",1);
+        $stripped_geometry = ${charge}." ".${multi}."\n".${geometry};
+    }
+    $stripped_geometry = ${stripped_geometry}."\n";
+}
+elsif($inputfile =~  /\.inp/ ){
+    $inputfile_stripped = stripname($inputfile,"\.inp");  # strip .inp from $inputfilename
+    $geometry = strip($inputfile);
+    $stripped_geometry = stripcom($geometry);
+}
+elsif($inputfile =~  /\.gin/ ){
+    $inputfile_stripped = stripname($inputfile,"\.gin");  # strip .xyz from $inputfilename
+    $stripped_geometry = strip($inputfile);
+    $stripped_geometry =~ s/\s+\n/\n/;
+}
+elsif($inputfile =~  /\.xyz/ ){
+    $inputfile_stripped = stripname($inputfile,"\.xyz");  # strip .xyz from $inputfilename
+    $stripped_geometry = strip($inputfile);
+    $stripped_geometry =~ s/scf done:\s*-*\d+.\d+//;
+    $stripped_geometry =~ s/^\s*\d+\s*\n//;
+    $stripped_geometry =~ s/^\s*\n//;
+    $stripped_geometry =~ s/\s*\n$//;
+
+
+    if ($stripped_geometry =~ /^\s*-*\d+/){
+        $stripped_geometry = $stripped_geometry;
+    }
+    else{
+        print "$inputfile\n";
+        $charge = &promptUser("  What is the charge of this molecule?",0);
+        $multi = &promptUser("  What is the multiplicity of this molecule?",1);
+        $stripped_geometry = ${charge}." ".${multi}."\n".${stripped_geometry};
+    }
+    $stripped_geometry = ${stripped_geometry}."\n";
+
+
+    @atom = split(/\n/,$stripped_geometry);
+    for $i (1..$#atom){ # ignoring the mc line
+        $atom[$i] =~ s/-*\d+.*//g;
+        $atom[$i] =~ s/\s+//g;
+        $atomn = atomicN($atom[$i]);
+        if ($atomn > 18){
+            $Rassolov=1;
+            if ($atomn > 36){
+                print "use $heavybasis for $atom[$i]\n";
+                $heavy=1;
+            }
+        }
+    }
+}
+elsif($inputfile =~  /\.uhfna\.punch/ ){
+    $inputfile_stripped = stripname($inputfile,"\.punch");  # strip .inp from $inputfilename
+    $stripped_geometry = stripnatural($inputfile);
+    ($data,$mult,$charge,$norb,$det) = stripgam("$inputfile_stripped.inp");
+}
+elsif($inputfile =~  /\.sad\.punch/ ){
+    $inputfile_stripped = stripname($inputfile,"\.punch");  # strip .inp from $inputfilename
+    $stripped_geometry = strippunch($inputfile);
+    ($data,$mult,$charge,$norb,$det) = stripgam("$inputfile_stripped.inp");
+}
+elsif($inputfile =~  /\.opt\.punch/ ){
+    $inputfile_stripped = stripname($inputfile,"\.punch");  # strip .inp from $inputfilename
+    $stripped_geometry = strippunch($inputfile);
+    ($data,$mult,$charge,$norb,$det) = stripgam("$inputfile_stripped.inp");
+}
+elsif($inputfile =~ /\.out$/){
+    $inputfile_stripped = stripname($inputfile,"\.out\$");
+    $stripped_geometry = stripout($inputfile);
+    $stripped_geometry =~ s/^\s*\d+\s*\n//;
+    $stripped_geometry =~ s/^\s*\n//;
+
+    if ($stripped_geometry =~ /^\s*-*\d+/){
+        $stripped_geometry = $stripped_geometry;
+    }
+    else{ 
+        #$charge = &promptUser("  What is the charge of this molecule?",0);
+        #$multi = &promptUser("  What is the multiplicity of this molecule?",1);
+        $charge = "";
+        $multi  = "";
+        $stripped_geometry = ${charge}." ".${multi}."\n".${stripped_geometry};
+    }
+}
+else {
+    print "Unknown file extension. Supported filetypes:\n";
+    print "Gaussian .log and .com (zmat and cartesian)\n";
+    print "Molden .zmat (gaussian format)\n";
+    print "Qchem .inp\n";
+    print "Molpro .out\n";
+    print "Any file containing a charge/multiplicity line,\n";
+    print "immediately followed by cartesian or zmat (gaussian)\n";
+    print "coordinates, where the file has a .com, .inp or .zmat\n";
+    print "extension. Leading and/or trailing garbage is allowed.\n";
+    die;
+}
+
+
+#Now, create the output.
+
+if ($output_type =~ /adf/){
+    $cm = getcm("$stripped_geometry");
+    ($c,$m)=split(/[ \t]+/,$cm);
+    $spin = $m-1;
+
+    $header ="#! /bin/sh\n\n# ==============================\n# The Molecule\n# ==============================\n\n\"\$ADFBIN/adf\" <<eor\nTITLE  fragment\n\nATOMS\n";
+    $footer = "END\n\nCHARGE $c.0 $spin \n\n";
+
+    if($spin!=0){
+        $footer = ${footer}."UNRESTRICTED\n\n";
+    }
+
+
+    $footer = ${footer}."\nBASIS\ntype TZP\ncore Large\nEND\n\nXC\nGGA Becke Perdew\n";
+    #$footer = ${footer}."\nEND\n\nGEOMETRY\n\toptim Delocalized\n";
+    #if ($job =~ /adfts/){
+    #    $footer = ${footer}."\ttransitionstate mode=1\n";
+    #}
+    $footer = ${footer}."END\n\nSAVE  TAPE21 TAPE13\n\neor\n";
+    $stripped_geometry =~ s/^\s*-*\d+.*\n//g;
+    $finaldeck = ${header}.${stripped_geometry}."\n".${footer};
+    writedeck($finaldeck,$inputfile_stripped.".fragment.run");
+
+    $header ="#! /bin/sh\n\n# dependency: $inputfile_stripped $inputfile_stripped.fragment.t21\n# ==============================\n# The Molecule\n# ==============================\n\n\"\$ADFBIN/adf\" <<eor\nTITLE \n\nATOMS\n";
+    $footer = "END\n\nCHARGE $c.0 $spin \n\n";
+    if($spin!=0){
+        $footer = ${footer}."UNRESTRICTED\n\n";
+    }
+
+
+    $footer = ${footer}."SYMMETRY NOSYM\n\nSOLVATION\n\tSurf Delley\n\tDiv  ndiv=4\n\tSolvent name=CRS cav0=0.0 cav1=0.0\n\tCharged method=CONJ corr\n\tC-Mat EXACT\n\tSCF VAR ALL\nEND\n\nBASIS\ntype TZP\ncore Large\nEND\n\nXC\nGGA Becke Perdew\nEND\n\nRESTART\t$inputfile_stripped.fragment.t21\n\nSAVE  TAPE21 TAPE13\n\neor\n";
+
+    @atom = split(/\n/,$stripped_geometry);
+    @radiiline = split(/\n/,$stripped_geometry);
+    for $i (0..$#atom){
+        $atom[$i] =~ s/-*\d+.*//g; 
+        $atom[$i] =~ s/\s+//g; 
+        $radii = adfradii($atom[$i]);
+        $radiiline[$i] =~ s/$/\tR=$radii/g;
+    }
+
+    $stripped_geometry = join("\n",@radiiline);
+    $finaldeck = ${header}.${stripped_geometry}."\n".${footer};
+    writedeck($finaldeck,$inputfile_stripped.".run");
+}
+
+if ($output_type eq "gaussian"){
+    $cm = getcm("$stripped_geometry");
+    $iszmat = check_geometry_type($stripped_geometry);
+    #if it is, only print the first 7 fields of the zmat
+    #if the no. of fields is 8.
+    ##$finaldeck = ${stripped_geometry}."\n";
+    #$finaldeck = addcomment($inputfile_stripped, $finaldeck);
+    if($job =~  /w1ts/i)  {
+        @mult=split(/\s+/,$cm);
+        if ($mult[1] != 1){
+            $header ="\%chk=$inputfile_stripped.w1ts.chk\n\#UB3LYP/cc-pVTZ+d OPT=(TS,calcfc,noeigentest) IOP(2/17=4) Freq=noraman\n\n$inputfile_stripped.w1ts\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.w1ts.chk\n\#RB3LYP/cc-pVTZ+d OPT=(TS,calcfc,noeigentest) IOP(2/17=4) Freq=noraman\n\n$inputfile_stripped.w1ts\n\n";
+        }
+        $footer ="\n";
+    }
+    elsif($job =~  /w1opt/i  ){
+        @mult=split(/\s+/,$cm);
+        if ($mult[1] != 1){
+            $header ="\%chk=$inputfile_stripped.w1opt.chk\n\#W1U\n\n$inputfile_stripped.w1opt\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.w1opt.chk\n\#W1U\n\n$inputfile_stripped.w1opt\n\n";
+        }
+        $footer ="\n";
+    }
+    elsif($job =~  /uahf/i ){
+        $solvent = &promptUser("  What is the solvent you want to use?",h2o);
+        if ($solvent eq "water" or $solvent eq "h2o"){
+            $pcm = "CPCM";
+        }
+        else{
+            $pcm = "PCM";
+        }
+        chomp($solvent);
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.uahf.chk\n\#HF/gen 6D pseudo=read SCRF=($pcm,Solvent=$solvent,Read)\n\n$inputfile_stripped.uahf\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+            $footer =${footer}."Radii=UAHF SCFVAC\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.uahf.chk\n\#HF/gen 6D SCRF=($pcm,Solvent=$solvent,Read)\n\n$inputfile_stripped.uahf\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."Radii=UAHF SCFVAC\n\n";
+        }
+    }
+    elsif($job =~  /uaks/i ){
+        $solvent = &promptUser("  What is the solvent you want to use?",h2o);
+        if ($solvent eq "water" or $solvent eq "h2o"){
+            $pcm = "CPCM";
+        }
+        else{
+            $pcm = "PCM";
+        }
+        chomp($solvent);
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.uaks.chk\n\#HF/gen 6D pseudo=read SCRF=($pcm,Solvent=$solvent,Read)\n\n$inputfile_stripped.uaks\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+            $footer =${footer}."Radii=UAHF SCFVAC\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.uaks.chk\n\#HF/gen 6D SCRF=($pcm,Solvent=$solvent,Read)\n\n$inputfile_stripped.uaks\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."Radii=UAHF SCFVAC\n\n";
+        }
+    }
+    elsif($job =~  /g3cc/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.cc.chk\n\#UCCSD(T,T1Diag)/gen pseudo=read 6D SCF=tight\n\n$inputfile_stripped.ccsd\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.cc.chk\n\#UCCSD(T,T1Diag)/gen 6D SCF=tight\n\n$inputfile_stripped.ccsd\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+        }
+    }
+    elsif($job =~  /g3mp2rad/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/gen 6D pseudo=read SCF=tight\n\n$inputfile_stripped.mp2s\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+            $footer =${footer}."--link1--\n\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/gen 5D pseudo=read SCF=tight guess=read geom=check\n\n$inputfile_stripped.mp2l\n\n$cm\n";
+            $footer =${footer}."\n@/$HOME/Basis/GTMP2LARGE.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/aug-cc-pVTZ-PP.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/gen 6D SCF=tight\n\n$inputfile_stripped.mp2s\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."--link1--\n\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/gen 5D SCF=tight guess=read geom=check\n\n$inputfile_stripped.mp2l\n\n$cm\n";
+            $footer =${footer}."\n@/$HOME/Basis/GTMP2LARGE.gbs/N\n";
+        }
+    }
+    elsif($job =~  /g3full/i ){
+        $header ="\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/gen 6D SCF=tight\n\n$inputfile_stripped.mp2s\n\n";
+        $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+        $footer =${footer}."--link1--\n\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/6-311+G(3df,2p) SCF=tight guess=read geom=check\n\n$inputfile_stripped.mp2m\n\n$cm\n\n";
+    }
+    elsif($job =~  /g3s/i ){
+        $header ="\%chk=$inputfile_stripped.mp2.chk\n\#ROMP2/6-31G(d) SCF=tight\n\n$inputfile_stripped.mp2s\n\n";
+        $footer ="";
+    }
+    elsif($job =~  /optf/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid OPT IOP(2/17=4) Freq=noraman\n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid OPT IOP(2/17=4) Freq=noraman\n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /opts/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid OPT=(TS,calcfc,noeigentest,maxcyc=200) IOP(2/17=4) Freq=noraman \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid OPT=(TS,calcfc,noeigentest,maxcyc=200) IOP(2/17=4) Freq=noraman \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /optz/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid OPT=(z-matrix) IOP(2/17=4) \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid OPT=(z-matrix) IOP(2/17=4) \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /opt/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid OPT IOP(2/17=4) \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid OPT IOP(2/17=4) \n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /freq/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid SCF=tight Freq=(noraman)\n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid SCF=tight Freq=(noraman)\n\n$inputfile_stripped.freq\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+        }
+    }
+    elsif($job =~  /sp/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid SCF=tight \n\n$inputfile_stripped.sp\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid SCF=tight \n\n$inputfile_stripped.sp\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /smd/i ){
+        $solvent = &promptUser("  What is the solvent you want to use?",h2o);
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.smd.chk\n\#HF/gen 6D pseudo=read OPT\n\n$inputfile_stripped.smd\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+            $footer =${footer}."--link1--\n\%chk=$inputfile_stripped.smd.chk\n\#HF/gen 6D pseudo=read SCF=tight SCRF=(SMD,Solvent=$solvent,dovac,self) guess=read geom=check\n\n$inputfile_stripped.smd\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.smd.chk\n\#HF/gen 6D OPT\n\n$inputfile_stripped.smd\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."--link1--\n\%chk=$inputfile_stripped.smd.chk\n\#HF/gen 6D SCF=tight SCRF=(SMD,Solvent=$solvent,dovac,self) guess=read geom=check\n\n$inputfile_stripped.smd\n\n";
+            $footer =${footer}."$cm\n\n@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /nbo/i ){
+        if ($heavy){
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D pseudo=read $grid SCF=tight Density=current Pop=NBO\n\n$inputfile_stripped.sp\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n\n";
+            $footer =${footer}."@/$HOME/Basis/lacvp.ecp/N\n\n";
+        }
+        else{
+            $header ="\%chk=$inputfile_stripped.chk\n\#B3LYP/gen 6D $grid SCF=tight Density=current Pop=NBO\n\n$inputfile_stripped.sp\n\n";
+            $footer ="@/$HOME/Basis/$genbasis.gbs/N\n";
+        }
+    }
+    elsif($job =~  /xyz/i ){
+        if ($inputfile =~ /\.out$/){
+            @xyz = split(/\n/,$stripped_geometry);
+            $header ="$#xyz\n";
+            $stripped_geometry =~ s/,/ /g;
+        }
+        else{
+            if ($iszmat){
+                $header = "";
+            }
+            else{
+                @xyz = split(/\n/,$stripped_geometry);
+                $header ="$#xyz\n";
+            }
+        }
+        $footer ="";
+    }
+    elsif($job =~ /ar/){
+        $header =" 1\\1\\GINC";
+        $stripped_geometry = striparc($inputfile,1)."@";
+        $footer ="";
+    }
+    $footer = ${footer}."\n";
+    $finaldeck = ${header}.${stripped_geometry}."\n".${footer};
+    if($job =~  /w1opt/i)  {writedeck($finaldeck,$inputfile_stripped.".w1opt.com");}
+    elsif($job =~  /w1ts/i)   {writedeck($finaldeck,$inputfile_stripped.".w1ts.com");}
+    elsif($job =~  /g3mp2/i) {writedeck($finaldeck,$inputfile_stripped.".g3.com");}
+    elsif($job =~  /g3cc/i)  {writedeck($finaldeck,$inputfile_stripped.".g3cc.com");}
+    elsif($job =~  /g3full/i){writedeck($finaldeck,$inputfile_stripped.".g3full.com");}
+    elsif($job =~  /g3/i) {writedeck($finaldeck,$inputfile_stripped.".g3.com");}
+    elsif($job =~  /uaks/i)  {writedeck($finaldeck,$inputfile_stripped.".$solvent.uaks.com");}
+    elsif($job =~  /uahf/i)  {writedeck($finaldeck,$inputfile_stripped.".$solvent.uahf.com");}
+    elsif($job =~  /smd/i)   {writedeck($finaldeck,$inputfile_stripped.".smd.com");}
+    elsif($job =~  /opt/i)   {writedeck($finaldeck,$inputfile_stripped.".com");}
+    elsif($job =~  /freq/i)  {writedeck($finaldeck,$inputfile_stripped.".freq.com");}
+    elsif($job =~  /sp/i)  {writedeck($finaldeck,$inputfile_stripped.".sp.com");}
+    elsif($job =~  /nbo/i)   {writedeck($finaldeck,$inputfile_stripped.".nbo.com");}
+    elsif($job =~  /xyz/i)   {writedeck($finaldeck,$inputfile_stripped.".xyz");}
+    elsif($job =~  /ar/i)   {writedeck($finaldeck,$inputfile_stripped.".ar");}
+}
+if ($output_type eq "gamess"){
+    if($job =~  /mrpt2/i)  {
+        $header =" \$contrl $mult $charge scftyp=mcscf mplevl=2 \$END\n \$BASIS  GBASIS=N31 NGAUSS=6 NDFUNC=1 DIFFSP=.T. \$END\n \$SYSTEM TIMLIM=172800 MEMDDI=50 MWORDS=100 PARALL=.T. \$END\n \$GUESS guess=moread $norb \$END\n$det";
+    $footer="";  }   
+    elsif($job =~  /mruhf/i)  {
+
+    $cm = getcm("$stripped_geometry");
+    ($c,$m)=split(/[ \t]+/,$cm);
+
+    $stripped_geometry =~ s/^\s*-*\d+.*\n//g;
+
+    @atom = split(/\n/,$stripped_geometry);
+    @atomline = split(/\n/,$stripped_geometry);
+    for $i (0..$#atom){
+        $atom[$i] =~ s/-*\d+.*//g; 
+        $atom[$i] =~ s/\s+//g; 
+        $atomn = atomicN($atom[$i])*1.0;
+        $atomline[$i] =~ s/$atom[$i]/ $atom[$i] $atomn./g;
+    }
+
+    $stripped_geometry = join("\n",@atomline);
+
+    $header =" \$contrl MULT=$m ICHARG=$c scftyp=uhf coord=cart \$END\n \$SCF UHFNOS=.TRUE. \$END\n \$BASIS  GBASIS=N31 NGAUSS=6 NDFUNC=1 DIFFSP=.T. \$END\n \$SYSTEM TIMLIM=172800 MWORDS=10 PARALL=.T. \$END\n \$DATA\n$inputfile_stripped\nC1 \n";
+       $footer=" \n\$END\n";}
+    elsif($job =~  /mrsad/i)  {
+        $header =" \$contrl $mult $charge runtyp=SADPOINT scftyp=mcscf \$end\n \$BASIS  GBASIS=N31 NGAUSS=6 NDFUNC=1 DIFFSP=.T. \$END\n \$SYSTEM TIMLIM=172800 MEMDDI=50 MWORDS=100 PARALL=.T. \$END\n \$GUESS guess=moread norb=XX \$end\n \$STATPT HESS=calc \$end\n \$det ncore=XX nels=X nact=X \$end\n \$MCSCF FULLNR=.T. \$END\n \$DATA\n".${data}." \$END\n";   
+       $footer="";   }
+    elsif($job =~  /mropt/i)  {
+        $header =" \$contrl $mult $charge runtyp=OPTIMIZE scftyp=mcscf \$end\n \$BASIS  GBASIS=N31 NGAUSS=6 NDFUNC=1 DIFFSP=.T. \$END\n \$SYSTEM TIMLIM=172800 MEMDDI=50 MWORDS=100 PARALL=.T. \$END\n \$GUESS guess=moread norb=XX \$end\n \$det ncore=XX nels=X nact=X \$end\n \$MCSCF FULLNR=.T. \$END\n \$DATA\n".${data}." \$END\n";   
+       $footer="";   }
+    elsif($job =~  /mrhess/i)  {
+        $header =" \$contrl $mult $charge runtyp=HESSIAN scftyp=mcscf \$end\n \$BASIS  GBASIS=N31 NGAUSS=6 NDFUNC=1 DIFFSP=.T. \$END\n \$SYSTEM TIMLIM=172800 MEMDDI=50 MWORDS=100 PARALL=.T. \$END\n \$GUESS guess=moread $norb \$end\n \$STATPT HESS=calc \$end\n$det";   
+       $footer="";   }
+    else{
+        $header ="";
+       $footer="";   
+    }
+    $finaldeck = ${header}.${stripped_geometry}.${footer}."\n";
+    if($job =~  /mruhf/i) {writedeck($finaldeck,$inputfile_stripped.".uhfna.inp");}
+    elsif($job =~  /mrsad/i) {$inputfile_stripped = stripname($inputfile_stripped,"\.uhfna"); 
+        writedeck($finaldeck,$inputfile_stripped.".sad.inp");}
+    elsif($job =~  /mropt/i) {
+        $inputfile_stripped = stripname($inputfile_stripped,"\.uhfna");  # strip .inp from $inputfilename
+        writedeck($finaldeck,$inputfile_stripped.".opt.inp");}
+    elsif($job =~  /mrpt2/i) {
+        $inputfile_stripped = stripname($inputfile_stripped,"\.opt");  # strip .inp from $inputfilename
+        $inputfile_stripped = stripname($inputfile_stripped,"\.sad");  # strip .inp from $inputfilename
+        writedeck($finaldeck,$inputfile_stripped.".mrpt2.inp");}
+    elsif($job =~  /mrhess/i) {
+        $inputfile_stripped = stripname($inputfile_stripped,"\.opt");  # strip .inp from $inputfilename
+        $inputfile_stripped = stripname($inputfile_stripped,"\.sad");  # strip .inp from $inputfilename
+        writedeck($finaldeck,$inputfile_stripped.".hess.inp");}
+}
+if ($output_type eq "qchem"){
+    $finaldeck = "\$rem\n\tJOBTYP\t\t\t\tOPT\n\tEXCHANGE\t\t\tEDF1\n\tBASIS\t\t\t\t$basis\n\tXC_GRID\t\t\t\t000100000194\n\tGEOM_OPT_TOL_ENERGY 1\n\tGEOM_OPT_TOL_DISPLACEMENT 1\n\tGEOM_OPT_TOL_GRADIENT 1\n\$end\n\n";
+    $finaldeck = ${finaldeck}."\$molecule\n";
+    $cm = getcm("$stripped_geometry");
+    $finaldeck = ${finaldeck}.${stripped_geometry};
+    $finaldeck = ${finaldeck}."\$end\n";
+    writedeck($finaldeck,$inputfile_stripped.".in");
+}
+if ($output_type eq "molpro"){
+    $cm = getcm("$stripped_geometry");
+    $iszmat = check_geometry_type($stripped_geometry);
+    if ($iszmat == 0){
+        ($stripped_geometry,$nelec) = molpro_cartesian($stripped_geometry);
+    }
+    elsif($iszmat == 1){
+        ($stripped_geometry,$nelec) = molpro_zmat($stripped_geometry);
+    }
+    else{
+        die "\$iszmat not 0 or 1.\n";
+    }
+    ($c,$m)=split(/[ \t]+/,$cm);
+
+    $spin = $m-1;
+    $nelec -= $c;
+
+    if ($spin == 0) {
+        $cc = "ccsd"; 
+    }
+    else {
+        $cc = "uccsd";
+    }
+    if($job eq "w1m"){
+        # DZ
+        $header ="*** $inputfile_stripped CCSD(T)/augh-cc-pVDZ+2df\n";
+        $footer =" 
+        basis={
+        ! HYDROGEN
+        s,H ,0.130100000E+02,0.196200000E+01,0.444600000E+00,0.122000000E+00
+        c,1.3, 3.349872639E-02, 2.348008012E-01, 8.136829579E-01
+        c,4.4, 0.100000000E+01
+        p,H ,0.727000000E+00
+        c,1.1, 0.100000000E+01
+        ! CARBON       
+        s,C ,0.666500000E+04,0.100000000E+04,0.228000000E+03,0.647100000E+02,0.210600000E+02,0.749500000E+01,0.279700000E+01,0.521500000E+00,0.159600000E+00,0.469000000E-01
+        c,1.7, 0.6935163173E-03, 0.5341502433E-02, 0.2713667141E-01, 0.1019923853E+00, 0.2755086365E+00, 0.4510864331E+00, 0.2875657448E+00
+        c,1.8, 0.6283132185E-06,-0.5484799995E-04, 0.0000000000E+00,-0.3631370641E-02,-0.1179836986E-01,-0.1109098848E-00,-0.1347422469E+00, 0.1101758493E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        p,C ,0.943900000E+01,0.200200000E+01,0.545600000E+00,0.151700000E+00,0.404100000E-01
+        c,1.3, 0.5697925159E-01, 0.3132072115E+00, 0.7603767417E+00 
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        d,C ,0.550000000E+00,0.151000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! SULFUR       
+        s,S ,0.110800000E+06,0.166100000E+05,0.378100000E+04,0.107100000E+04,0.349800000E+03,0.126300000E+03,0.492600000E+02,0.201600000E+02,0.572000000E+01,0.218200000E+01,0.432700000E+00,0.157000000E+00,0.507000000E-01
+        c,1.9,  0.2473264502E-03, 0.1917849609E-02, 0.9949164926E-02, 0.4024606574E-01, 0.1284272288E+00, 0.3030281224E+00, 0.4205361301E+00, 0.2302228118E+00, 0.2021310901E-01
+        c,1.10, 0.5186543367E-06, 0.8854114980E-05,-0.1103825516E-04, 0.0000000000E+00,-0.2829767404E-02,-0.1420430521E-01,-0.7925957164E-01,-0.5717399668E-01, 0.5041316107E+00, 0.5986999344E+00
+        c,1.11,-0.3100151889E-06,-0.1521883796E-05,-0.1329167593E-04, 0.0000000000E+00, 0.0000000000E+00, 0.1660999689E-02, 0.6254159503E-02, 0.1231523750E-01,-0.1292541306E+00,-0.4332201238E+00, 0.1224752699E+01
+        c,12.12, 0.100000000E+01
+        c,13.13, 0.100000000E+01
+        p,S ,0.399700000E+03,0.941900000E+02,0.297500000E+02,0.107700000E+02,0.411900000E+01,0.162500000E+01,0.472600000E+00,0.140700000E+00,0.399000000E-01
+        c,1.6, 0.4492098529E-02, 0.3429423432E-01, 0.1448173162E+00, 0.3552755390E+00, 0.4613191954E+00, 0.2056299248E+00
+        c,1.7, 0.0000000000E+00, 0.3591120971E-03,-0.2649934096E-02,-0.2500977796E-02,-0.4704960514E-01, 0.1371651777E+00, 0.9235408885E+00
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        d,S ,0.479000000E+00,0.2993800000E+01,0.1197500000E+01,0.152000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        ! NITROGEN     
+        s,N ,0.904600000E+04,0.135700000E+04,0.309300000E+03,0.877300000E+02,0.285600000E+02,0.102100000E+02,0.383800000E+01,0.746600000E+00,0.224800000E+00,0.612400000E-01
+        c,1.7, 0.7017087426D-03, 0.5402998803D-02, 0.2747295103D-01, 0.1035145797D+00, 0.2795865786D+00, 0.4513172405D+00, 0.2806268749D+00
+        c,1.8, 0.9318822149D-07,-0.5928282833D-04, 0.0000000000E-00,-0.3942437472D-02,-0.1298770044D-01,-0.1195479847D+00,-0.1215152812D+00, 0.1100412801D+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        p,N ,0.135500000E+02,0.291700000E+01,0.797300000E+00,0.218500000E+00,0.561100000E-01
+        c,1.3, 0.5890567677D-01, 0.3204611067D+00, 0.7530420618D+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        d,N ,0.817000000E+00,0.230000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! Cl.dz
+        s,Cl,0.1279000000D+06 ,0.1917000000D+05 ,0.4363000000D+04 ,0.1236000000D+04 ,0.4036000000D+03 ,0.1457000000D+03 ,0.5681000000D+02 ,0.2323000000D+02 ,0.6644000000D+01 ,0.1279000000D+06 ,0.1917000000D+05 ,0.4363000000D+04 ,0.4036000000D+03 ,0.1457000000D+03 ,0.5681000000D+02 ,0.2323000000D+02 ,0.6644000000D+01 ,0.2575000000D+01 ,0.1279000000D+06 ,0.1917000000D+05 ,0.4363000000D+04 ,0.1457000000D+03 ,0.5681000000D+02 ,0.2323000000D+02 ,0.6644000000D+01 ,0.2575000000D+01 ,0.5371000000D+00 ,0.1938000000D+00 ,0.6080000000D-01
+        c,1.9,0.2408031561D-03 ,0.1868281399D-02 ,0.9694154040D-02 ,0.3925828587D-01 ,0.1257356400D+00 ,0.2988351996D+00 ,0.4208754485D+00 ,0.2365405891D+00 ,0.2173229091D-01
+        c,10.18,0.5177336290D-06 ,0.8683595167D-05 ,-0.9967708599D-05 ,-0.2761221630D-02 ,-0.1410209822D-01 ,-0.7899373439D-01 ,-0.6124966887D-01 ,0.5012020368D+00 ,0.6028114592D+00
+        c,19.27,-0.3894877827D-06 ,-0.1887466317D-05 ,-0.1652844772D-04 ,0.2075744084D-02 ,0.7732112841D-02 ,0.1571616892D-01 ,-0.1522723349D+00 ,-0.4613485400D+00 ,0.1244422401D+01
+        c,28.28,0.1000000000D+01
+        c,29.29,0.1000000000D+01
+        p,Cl,0.4176000000D+03 ,0.9833000000D+02 ,0.3104000000D+02 ,0.1119000000D+02 ,0.4249000000D+01 ,0.1624000000D+01 ,0.9833000000D+02 ,0.3104000000D+02 ,0.1119000000D+02 ,0.4249000000D+01 ,0.1624000000D+01 ,0.5322000000D+00 ,0.1620000000D+00 ,0.4660000000D-01
+        c,1.6,0.5264464995D-02 ,0.3986808520D-01 ,0.1648068774D+00 ,0.3876806852D+00 ,0.4575650195D+00 ,0.1513597742D+00
+        c,7.12,0.1400555738D-03 ,-0.3104349717D-02 ,-0.7983955198D-02 ,-0.4288879095D-01 ,0.1968140533D+00 ,0.8722929134D+00
+        c,13.13,0.1000000000D+01
+        c,14.14,0.1000000000D+01
+        d,Cl,0.6000000000D+00 ,0.3750000000D+01 ,0.1500000000D+01 ,0.1960000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        ! F.dz
+        s,F,0.1471000000D+05 ,0.2207000000D+04 ,0.5028000000D+03 ,0.1426000000D+03 ,0.4647000000D+02 ,0.1670000000D+02 ,0.6356000000D+01 ,0.1471000000D+05 ,0.2207000000D+04 ,0.1426000000D+03 ,0.4647000000D+02 ,0.1670000000D+02 ,0.6356000000D+01 ,0.1316000000D+01 ,0.3897000000D+00 ,0.9863000000D-01
+        c,1.7,0.7229535153D-03 ,0.5569055564D-02 ,0.2834429748D-01 ,0.1067956983D+00 ,0.2878097307D+00 ,0.4517054881D+00 ,0.2668829077D+00
+        c,8.14,0.1290778164D-05 ,-0.6210677792D-04 ,-0.4324567048D-02 ,-0.1508225640D-01 ,-0.1310922180D+00 ,-0.9972183590D-01 ,0.1096794977D+01
+        c,15.15,0.1000000000D+01
+        c,16.16,0.1000000000D+01
+        p,F,0.2267000000D+02 ,0.4977000000D+01 ,0.1347000000D+01 ,0.3471000000D+00 ,0.8502000000D-01
+        c,1.3,0.6483402149D-01 ,0.3405353598D+00 ,0.7346464068D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        d,F,0.1640000000D+01 ,0.4640000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! O.dz
+        s,O,0.1172000000D+05 ,0.1759000000D+04 ,0.4008000000D+03 ,0.1137000000D+03 ,0.3703000000D+02 ,0.1327000000D+02 ,0.5025000000D+01 ,0.1172000000D+05 ,0.1759000000D+04 ,0.1137000000D+03 ,0.3703000000D+02 ,0.1327000000D+02 ,0.5025000000D+01 ,0.1013000000D+01 ,0.3023000000D+00 ,0.7896000000D-01
+        c,1.7,0.7118644339D-03 ,0.5485201992D-02 ,0.2790992963D-01 ,0.1051332075D+00 ,0.2840024898D+00 ,0.4516739459D+00 ,0.2732081255D+00
+        c,8.14,-0.3061230940D-06 ,-0.6176233985D-04 ,-0.4157270688D-02 ,-0.1410008840D-01 ,-0.1261384807D+00 ,-0.1096145977D+00 ,0.1098688332D+01
+        c,15.15,0.1000000000D+01
+        c,16.16,0.1000000000D+01
+        p,O,0.1770000000D+02 ,0.3854000000D+01 ,0.1046000000D+01 ,0.2753000000D+00 ,0.6856000000D-01
+        c,1.3,0.6267916628D-01 ,0.3335365659D+00 ,0.7412396416D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        d,O,0.1185000000D+01 ,0.3320000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        }
+        ";
+        $finaldeck = ${header}.${stripped_geometry}.${footer}."wf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\nrhf\n$cc(t)";
+        writedeck($finaldeck,$inputfile_stripped.".dz.ini");
+
+        # TZ
+        $header ="*** $inputfile_stripped CCSD(T)/augh-cc-pVTZ+2df\n";
+        $footer =" 
+        basis={
+        ! HYDROGEN     
+        s,H ,0.338700000E+02,0.509500000E+01,0.115900000E+01,0.325800000E+00,0.102700000E+00
+        c,1.3, 0.2549486323E-01, 0.1903627659E+00, 0.8521620222E+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        p,H ,0.140700000E+01,0.388000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        d,H ,0.105700000E+01
+        c,1.1, 0.100000000E+01
+        ! CARBON       
+        s,C ,0.823600000E+04,0.123500000E+04,0.280800000E+03,0.792700000E+02,0.255900000E+02,0.899700000E+01,0.331900000E+01,0.364300000E+00,0.905900000E+00,0.128500000E+00,0.4402000000E-01
+        c,1.7, 0.5419783203E-03, 0.4192873817E-02, 0.2152216205E-01, 0.8353432195E-01, 0.2395828457E+00, 0.4428528419E+00, 0.3517995618E+00
+        c,1.8, 0.8318202971E-05, 0.5754289758E-04, 0.2359672919E-03, 0.0000000000E+00,-0.6715965456E-02,-0.5504926385E-01,-0.1681798862E+00, 0.1071293593E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        p,C ,0.187100000E+02,0.413300000E+01,0.120000000E+01,0.382700000E+00,0.120900000E+00,0.356900000E-01
+        c,1.3, 0.3942638716E-01, 0.2440889849E+00, 0.8154920089E+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        d,C ,0.109700000E+01,0.318000000E+00,0.100000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        f,C ,0.761000000E+00,0.268000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! SULFUR       
+        s,S ,0.374100000E+06,0.560500000E+05,0.127600000E+05,0.361500000E+04,0.118300000E+04,0.428800000E+03,0.167800000E+03,0.694700000E+02,0.298400000E+02,0.127200000E+02,0.524400000E+01,0.221900000E+01,0.349000000E+00,0.776700000E+00,0.132200000E+00,0.497000000E-01
+        c,1.11, 0.5425113228D-04, 0.4211790315D-03, 0.2208660086D-02, 0.9199598750D-02, 0.3213735190D-01, 0.9474510879D-01, 0.2238325198D+00, 0.3748153925D+00, 0.3296923919D+00, 0.8466651172D-01,-0.1203631365D-02
+        c,1.12, 0.3640330002D-06, 0.2924228000D-05, 0.1308347104D-04, 0.4808823117D-04, 0.0000000000D+00,-0.9253407904D-03,-0.8811522073D-02,-0.4092122036D-01,-0.1030774199D+00, 0.3249695664D-01, 0.5216756700D+00, 0.5456817753D+00
+        c,1.13,-0.1873462192D-08,-0.6339900392D-07,-0.3887236741D-07,-0.1699606042D-05, 0.0000000000D+00,-0.3073499329D-04, 0.9164522923D-05, 0.0000000000D+00, 0.2346449344D-02,-0.4587630495D-03,-0.6319616417D-01,-0.3382535059D+00, 0.1156502952D+01
+        c,14.14, 0.100000000E+01
+        c,15.15, 0.100000000E+01
+        c,16.16, 0.100000000E+01
+        p,S ,0.574400000E+03,0.135800000E+03,0.431900000E+02,0.158700000E+02,0.620800000E+01,0.248300000E+01,0.322900000E+00,0.868800000E+00,0.109800000E+00,0.351000000E-01
+        c,1.6, 0.2495012134D-02, 0.1985550782D-01, 0.9117959218D-01, 0.2622309055D+00, 0.4468316811D+00, 0.3655010168D+00
+        c,1.7, 0.2911187641D-04, 0.2245958894D-03, 0.0000000000D+00,-0.2840254154D-02,-0.1743300046D-01,-0.6509577064D-02, 0.1004092949D+01
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        d,S ,0.269000000E+00,0.819000000E+00,0.5118700000D+01,0.2047500000D+01,0.101000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        f,S ,0.557000000E+00,0.1392500000D+01,0.218000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        ! NITROGEN     
+        s,N ,0.114200000E+05,0.171200000E+04,0.389300000E+03,0.110000000E+03,0.355700000E+02,0.125400000E+02,0.464400000E+01,0.511800000E+00,0.129300000E+01,0.178700000E+00,0.576000000E-01
+        c,1.7, 0.5345638595D-03, 0.4134356596D-02, 0.2123353578D-01, 0.8250062241D-01, 0.2381388709D+00, 0.4425515469D+00, 0.3537574220D+00
+        c,1.8, 0.9021026067D-05, 0.5980366520D-04, 0.2582351507D-03, 0.0000000000E-00,-0.6887949590D-02,-0.5836349557D-01,-0.1661629770D+00, 0.1071192188D+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        p,N ,0.266300000E+02,0.594800000E+01,0.174200000E+01,0.555000000E+00,0.172500000E+00,0.491000000E-01
+        c,1.3, 0.3980721230D-01, 0.2490026605D+00, 0.8104797267D+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        d,N ,0.165400000E+01,0.469000000E+00,0.151000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        f,N ,0.109300000E+01,0.364000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! Cl.tz
+        s,Cl,0.4561000000D+06 ,0.6833000000D+05 ,0.1555000000D+05 ,0.4405000000D+04 ,0.1439000000D+04 ,0.5204000000D+03 ,0.2031000000D+03 ,0.8396000000D+02 ,0.3620000000D+02 ,0.1583000000D+02 ,0.6334000000D+01 ,0.4561000000D+06 ,0.6833000000D+05 ,0.1555000000D+05 ,0.4405000000D+04 ,0.5204000000D+03 ,0.2031000000D+03 ,0.8396000000D+02 ,0.3620000000D+02 ,0.1583000000D+02 ,0.6334000000D+01 ,0.2694000000D+01 ,0.4561000000D+06 ,0.6833000000D+05 ,0.1555000000D+05 ,0.4405000000D+04 ,0.5204000000D+03 ,0.2031000000D+03 ,0.3620000000D+02 ,0.1583000000D+02 ,0.6334000000D+01 ,0.2694000000D+01 ,0.4313000000D+00 ,0.9768000000D+00 ,0.1625000000D+00 ,0.5910000000D-01
+        c,1.11,0.4932294768D-04 ,0.3832079673D-03 ,0.2009478156D-02 ,0.8389501239D-02 ,0.2948439505D-01 ,0.8787599479D-01 ,0.2115897588D+00 ,0.3656115543D+00 ,0.3412463497D+00 ,0.1021625703D+00 ,0.2142499488D-02
+        c,12.22,0.3267155161D-06 ,0.2711358325D-05 ,0.1164857653D-04 ,0.4641847181D-04 ,-0.7677793835D-03 ,-0.8088078988D-02 ,-0.3770775763D-01 ,-0.1033889790D+00 ,0.9939253565D-02 ,0.5097062322D+00 ,0.5722331230D+00
+        c,23.33,0.4970774867D-08 ,-0.5231102897D-07 ,-0.2518419673D-07 ,-0.1588166365D-05 ,-0.2842107511D-04 ,0.9848868075D-05 ,0.2358307408D-02 ,0.6444551772D-03 ,-0.6268573342D-01 ,-0.3487784552D+00 ,0.1162169515D+01
+        c,34.34,0.1000000000D+01
+        c,35.35,0.1000000000D+01
+        c,36.36,0.1000000000D+01
+        p,Cl,0.6633000000D+03 ,0.1568000000D+03 ,0.4998000000D+02 ,0.1842000000D+02 ,0.7240000000D+01 ,0.2922000000D+01 ,0.6633000000D+03 ,0.1568000000D+03 ,0.1842000000D+02 ,0.7240000000D+01 ,0.2922000000D+01 ,0.3818000000D+00 ,0.1022000000D+01 ,0.1301000000D+00 ,0.4190000000D-01
+        c,1.6,0.2472064025D-02 ,0.1975502338D-01 ,0.9099173548D-01 ,0.2631878341D+00 ,0.4490780732D+00 ,0.3601830723D+00
+        c,7.12,0.3320196861D-04 ,0.2956040122D-03 ,-0.2466393359D-02 ,-0.2154858938D-01 ,0.5271732307D-02 ,0.1000894064D+01
+        c,13.13,0.1000000000D+01
+        c,14.14,0.1000000000D+01
+        c,15.15,0.1000000000D+01
+        d,Cl,0.1046000000D+01 ,0.3440000000D+00 ,0.6537500000D+01 ,0.2615000000D+01 ,0.1350000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        f,Cl,0.7060000000D+00 ,0.1765000000D+01 ,0.3120000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        ! F.tz
+        s,F,0.1950000000D+05 ,0.2923000000D+04 ,0.6645000000D+03 ,0.1875000000D+03 ,0.6062000000D+02 ,0.2142000000D+02 ,0.7950000000D+01 ,0.1950000000D+05 ,0.2923000000D+04 ,0.6645000000D+03 ,0.6062000000D+02 ,0.2142000000D+02 ,0.7950000000D+01 ,0.8815000000D+00 ,0.2257000000D+01 ,0.3041000000D+00 ,0.9158000000D-01
+        c,1.7,0.5190024441D-03 ,0.4015781354D-02 ,0.2067746110D-01 ,0.8086901703D-01 ,0.2358075463D+00 ,0.4425823060D+00 ,0.3569628672D+00
+        c,8.14,0.9720399405D-05 ,0.6332758211D-04 ,0.2887812714D-03 ,-0.7084819492D-02 ,-0.6294853050D-01 ,-0.1638259029D+00 ,0.1071183841D+01
+        c,15.15,0.1000000000D+01
+        c,16.16,0.1000000000D+01
+        c,17.17,0.1000000000D+01
+        p,F,0.4388000000D+02 ,0.9926000000D+01 ,0.2930000000D+01 ,0.9132000000D+00 ,0.2672000000D+00 ,0.7361000000D-01
+        c,1.3,0.4190462069D-01 ,0.2626978417D+00 ,0.7977593735D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        d,F,0.3107000000D+01 ,0.8550000000D+00 ,0.2920000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        f,F,0.1917000000D+01 ,0.7240000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! O.tz
+        s,O,0.1533000000D+05 ,0.2299000000D+04 ,0.5224000000D+03 ,0.1473000000D+03 ,0.4755000000D+02 ,0.1676000000D+02 ,0.6207000000D+01 ,0.1533000000D+05 ,0.2299000000D+04 ,0.5224000000D+03 ,0.4755000000D+02 ,0.1676000000D+02 ,0.6207000000D+01 ,0.6882000000D+00 ,0.1752000000D+01 ,0.2384000000D+00 ,0.7376000000D-01
+        c,1.7,0.5198089434D-03 ,0.4020256215D-02 ,0.2071282673D-01 ,0.8101055358D-01 ,0.2359629851D+00 ,0.4426534455D+00 ,0.3570644227D+00
+        c,8.14,0.9133766235D-05 ,0.6073625959D-04 ,0.2687822822D-03 ,-0.6969400301D-02 ,-0.6064569004D-01 ,-0.1655195358D+00 ,0.1071513689D+01
+        c,15.15,0.1000000000D+01
+        c,16.16,0.1000000000D+01
+        c,17.17,0.1000000000D+01
+        p,O,0.3446000000D+02 ,0.7749000000D+01 ,0.2280000000D+01 ,0.7156000000D+00 ,0.2140000000D+00 ,0.5974000000D-01
+        c,1.3,0.4116348957D-01 ,0.2577628359D+00 ,0.8024192744D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        d,O,0.2314000000D+01 ,0.6450000000D+00 ,0.2140000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        f,O,0.1428000000D+01 ,0.5000000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        }
+        ";
+        $finaldeck = ${header}.${stripped_geometry}.${footer}."wf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\nrhf\n$cc(t)";
+        writedeck($finaldeck,$inputfile_stripped.".tz.ini");
+
+        # QZ
+        $header ="*** $inputfile_stripped CCSD/augh-cc-pVQZ+2df\n";
+        $footer =" 
+        basis={
+        ! HYDROGEN     
+        s,H ,0.826400000E+02,0.124100000E+02,0.282400000E+01,0.797700000E+00,0.258100000E+00,0.898900000E-01
+        c,1.3, 0.2295075779D-01, 0.1755401181D+00, 0.8647035510D+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        p,H ,0.229200000E+01,0.838000000E+00,0.292000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        d,H ,0.206200000E+01,0.662000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        f,H ,0.139700000E+01
+        c,1.1, 0.100000000E+01
+        ! CARBON       
+        s,C ,0.339800000E+05,0.508900000E+04,0.115700000E+04,0.326600000E+03,0.106100000E+03,0.381100000E+02,0.147500000E+02,0.603500000E+01,0.253000000E+01,0.735500000E+00,0.290500000E+00,0.111100000E+00,0.414500000E-01
+        c,1.9, 0.9163454570D-04, 0.7089090129D-03, 0.3718751399D-02, 0.1546710574D-01, 0.5329807549D-01, 0.1480683352D+00, 0.3077621740D+00, 0.4021296445D+00, 0.2185645031D+00
+        c,1.9,-0.5571036021D-04,-0.4427507575D-03,-0.2301717514D-02,-0.9746380913D-02,-0.3375461404D-01,-0.1001613634D+00,-0.2262808226D+00,-0.4148750525D+00,-0.3460463685D+00
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        c,12.12, 0.100000000E+01
+        c,13.13, 0.100000000E+01
+        p,C ,0.345100000E+02,0.791500000E+01,0.236800000E+01,0.813200000E+00,0.289000000E+00,0.100700000E+00,0.321800000E-01
+        c,1.3, 0.3168785521D-01, 0.2128943073D+00, 0.8395867520D+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        d,C ,0.184800000E+01,0.649000000E+00,0.228000000E+00,0.766000000E-01
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        f,C ,0.141900000E+01,0.485000000E+00,0.187000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        g,C ,0.101100000E+01,0.424000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! SULFUR       
+        s,S ,0.727800000E+06,0.109000000E+06,0.248000000E+05,0.701400000E+04,0.227800000E+04,0.814700000E+03,0.313400000E+03,0.127700000E+03,0.544800000E+02,0.238500000E+02,0.942800000E+01,0.429000000E+01,0.190900000E+01,0.627000000E+00,0.287300000E+00,0.117200000E+00,0.428000000E-01
+        c,1.13, 0.2359828338D-04, 0.1834666540D-03, 0.9642098600D-03, 0.4065074292D-02, 0.1469623094D-01, 0.4650471708D-01, 0.1254988708D+00, 0.2684134747D+00, 0.3847810097D+00, 0.2653526973D+00, 0.4372941897D-01,-0.3787794462D-02, 0.2180671370D-02
+        c,1.13,-0.6675454680D-05,-0.5186787333D-04,-0.2731919589D-03,-0.1152857166D-02,-0.4209898019D-02,-0.1356120666D-01,-0.3859928092D-01,-0.9199779915D-01,-0.1710820746D+00,-0.1733918638D+00, 0.1308716747D+00, 0.5783298591D+00, 0.4420615093D+00
+        c,1.13, 0.3349331900D-05, 0.2603263789D-04, 0.1374289359D-03, 0.5786192374D-03, 0.2120995438D-02, 0.6819151142D-02, 0.1958898407D-01, 0.4689862120D-01, 0.9016100213D-01, 0.9392838027D-01,-0.7540746093D-01,-0.4445449498D+00,-0.5903897467D+00
+        c,14.14, 0.100000000E+01
+        c,15.15, 0.100000000E+01
+        c,16.16, 0.100000000E+01
+        c,17.17, 0.100000000E+01
+        p,S ,0.154600000E+04,0.366400000E+03,0.118400000E+03,0.445300000E+02,0.183800000E+02,0.796500000E+01,0.354100000E+01,0.159100000E+01,0.620500000E+00,0.242000000E+00,0.901400000E-01,0.317000000E-01
+        c,1.8, 0.4437964923D-03, 0.3798102484D-02, 0.1995364074D-01, 0.7464639296D-01, 0.1984972810D+00, 0.3539377116D+00, 0.3809328670D+00, 0.1719447351D+00
+        c,1.8,-0.4570725543D-03,-0.3873579781D-02,-0.2074913814D-01,-0.7784538408D-01,-0.2165871697D+00,-0.3880663578D+00,-0.4775723250D+00, 0.3730586506D-01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        c,12.12, 0.100000000E+01
+        d,S ,0.203000000E+00,0.504000000E+00,0.125000000E+01,0.7812500000D+01,0.3125000000D+01,0.748000000E-01
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        f,S ,0.335000000E+00,0.869000000E+00,0.2172500000D+01,0.140000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        g,S ,0.683000000E+00,0.297000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! NITROGEN   augh-cc-pVQZ  
+        s,N ,0.458400000E+05,0.686800000E+04,0.156300000E+04,0.442400000E+03,0.144300000E+03,0.521800000E+02,0.203400000E+02,0.838100000E+01,0.352900000E+01,0.105400000E+01,0.411800000E+00,0.155200000E+00,0.5464000000E-01
+        c,1.9, 0.9271063356E-04, 0.7225383072E-03, 0.3777958318E-02, 0.1565197348E-01, 0.5355651447E-01, 0.1479208236E+00, 0.3070163017E+00, 0.4007558217E+00, 0.2193221195E+00
+        c,1.9,-0.5733867787E-04,-0.4558424891E-03,-0.2362353528E-02,-0.9971196082E-02,-0.3430573097E-01,-0.1014550566E+00,-0.2295754654E+00,-0.4206422748E+00,-0.3335964279E+00
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        c,12.12, 0.100000000E+01
+        c,13.13, 0.100000000E+01
+        p,N ,0.493300000E+02,0.113700000E+02,0.343500000E+01,0.118200000E+01,0.417300000E+00,0.142800000E+00,0.4402000000E-01
+        c,1.3, 0.3112609737E-01, 0.2135566435E+00, 0.8383625589E+00
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        d,N ,0.283700000E+01,0.968000000E+00,0.335000000E+00,0.1110000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        f,N ,0.202700000E+01,0.685000000E+00,0.2450000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        g,N ,0.142700000E+01,0.5590000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! Cl.qz
+        s,Cl,0.8349000000D+06 ,0.1250000000D+06 ,0.2843000000D+05 ,0.8033000000D+04 ,0.2608000000D+04 ,0.9339000000D+03 ,0.3600000000D+03 ,0.1470000000D+03 ,0.6288000000D+02 ,0.2760000000D+02 ,0.1108000000D+02 ,0.5075000000D+01 ,0.2278000000D+01 ,0.8349000000D+06 ,0.1250000000D+06 ,0.2843000000D+05 ,0.8033000000D+04 ,0.2608000000D+04 ,0.9339000000D+03 ,0.3600000000D+03 ,0.1470000000D+03 ,0.6288000000D+02 ,0.2760000000D+02 ,0.1108000000D+02 ,0.5075000000D+01 ,0.2278000000D+01 ,0.8349000000D+06 ,0.1250000000D+06 ,0.2843000000D+05 ,0.8033000000D+04 ,0.2608000000D+04 ,0.9339000000D+03 ,0.3600000000D+03 ,0.1470000000D+03 ,0.6288000000D+02 ,0.2760000000D+02 ,0.1108000000D+02 ,0.5075000000D+01 ,0.2278000000D+01 ,0.7775000000D+00 ,0.3527000000D+00 ,0.1431000000D+00 ,0.5190000000D-01
+        c,1.13,0.2316813597D-04 ,0.1801355069D-03 ,0.9477037511D-03 ,0.4001068088D-02 ,0.1446173646D-01 ,0.4565492677D-01 ,0.1232380847D+00 ,0.2643477315D+00 ,0.3829581885D+00 ,0.2709122034D+00 ,0.4713660756D-01 ,-0.3717360914D-02 ,0.2191403687D-02
+        c,14.26,-0.6678472058D-05 ,-0.5187631603D-04 ,-0.2734166461D-03 ,-0.1155879120D-02 ,-0.4217681145D-02 ,-0.1356109987D-01 ,-0.3856478553D-01 ,-0.9218685416D-01 ,-0.1722747828D+00 ,-0.1795615096D+00 ,0.1180640840D+00 ,0.5790933945D+00 ,0.4537312818D+00
+        c,27.39,0.3348214746D-05 ,0.2593591727D-04 ,0.1370048684D-03 ,0.5777964899D-03 ,0.2116870532D-02 ,0.6791811123D-02 ,0.1950309596D-01 ,0.4682469825D-01 ,0.9057464761D-01 ,0.9708904980D-01 ,-0.6716841705D-01 ,-0.4492777313D+00 ,-0.5936554705D+00
+        c,40.40,0.1000000000D+01
+        c,41.41,0.1000000000D+01
+        c,42.42,0.1000000000D+01
+        c,43.43,0.1000000000D+01
+        p,Cl,0.1703000000D+04 ,0.4036000000D+03 ,0.1303000000D+03 ,0.4905000000D+02 ,0.2026000000D+02 ,0.8787000000D+01 ,0.3919000000D+01 ,0.1765000000D+01 ,0.1703000000D+04 ,0.4036000000D+03 ,0.1303000000D+03 ,0.4905000000D+02 ,0.2026000000D+02 ,0.8787000000D+01 ,0.3919000000D+01 ,0.1765000000D+01 ,0.7207000000D+00 ,0.2839000000D+00 ,0.1060000000D+00 ,0.3760000000D-01
+        c,1.8,0.4760970310D-03 ,0.4081755686D-02 ,0.2142808245D-01 ,0.7980591045D-01 ,0.2098336098D+00 ,0.3665286283D+00 ,0.3733380492D+00 ,0.1469268139D+00
+        c,9.16,-0.5072233278D-03 ,-0.4324309210D-02 ,-0.2307077250D-01 ,-0.8670209122D-01 ,-0.2378081398D+00 ,-0.4228337352D+00 ,-0.4842248802D+00 ,0.1516960363D+00
+        c,17.17,0.1000000000D+01
+        c,18.18,0.1000000000D+01
+        c,19.19,0.1000000000D+01
+        c,20.20,0.1000000000D+01
+        d,Cl,0.2540000000D+00 ,0.6280000000D+00 ,0.1551000000D+01 ,0.9693800000D+01 ,0.3877500000D+01 ,0.9520000000D-01
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        f,Cl,0.4230000000D+00 ,0.1089000000D+01 ,0.2722500000D+01 ,0.2170000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        g,Cl,0.8270000000D+00 ,0.3780000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! F.qz
+        s,F,0.7453000000D+05 ,0.1117000000D+05 ,0.2543000000D+04 ,0.7210000000D+03 ,0.2359000000D+03 ,0.8560000000D+02 ,0.3355000000D+02 ,0.1393000000D+02 ,0.5915000000D+01 ,0.7453000000D+05 ,0.1117000000D+05 ,0.2543000000D+04 ,0.7210000000D+03 ,0.2359000000D+03 ,0.8560000000D+02 ,0.3355000000D+02 ,0.1393000000D+02 ,0.5915000000D+01 ,0.1843000000D+01 ,0.7124000000D+00 ,0.2637000000D+00 ,0.8594000000D-01
+        c,1.9,0.9577535513D-04 ,0.7440232851D-03 ,0.3889487580D-02 ,0.1605598217D-01 ,0.5473208689D-01 ,0.1507332702D+00 ,0.3107678397D+00 ,0.3980756452D+00 ,0.2127533576D+00
+        c,10.18,-0.6087352124D-04 ,-0.4759202569D-03 ,-0.2465377610D-02 ,-0.1037063444D-01 ,-0.3558887410D-01 ,-0.1053139587D+00 ,-0.2386214363D+00 ,-0.4312750631D+00 ,-0.3068966243D+00
+        c,19.19,0.1000000000D+01
+        c,20.20,0.1000000000D+01
+        c,21.21,0.1000000000D+01
+        c,22.22,0.1000000000D+01
+        p,F,0.8039000000D+02 ,0.1863000000D+02 ,0.5694000000D+01 ,0.1953000000D+01 ,0.6702000000D+00 ,0.2166000000D+00 ,0.6568000000D-01
+        c,1.3,0.3138418892D-01 ,0.2185767586D+00 ,0.8332559023D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        d,F,0.5014000000D+01 ,0.1725000000D+01 ,0.5860000000D+00 ,0.2070000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        f,F,0.3562000000D+01 ,0.1148000000D+01 ,0.4600000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        g,F,0.2376000000D+01 ,0.9240000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! O.qz
+        s,O,0.6142000000D+05 ,0.9199000000D+04 ,0.2091000000D+04 ,0.5909000000D+03 ,0.1923000000D+03 ,0.6932000000D+02 ,0.2697000000D+02 ,0.1110000000D+02 ,0.4682000000D+01 ,0.6142000000D+05 ,0.9199000000D+04 ,0.2091000000D+04 ,0.5909000000D+03 ,0.1923000000D+03 ,0.6932000000D+02 ,0.2697000000D+02 ,0.1110000000D+02 ,0.4682000000D+01 ,0.1428000000D+01 ,0.5547000000D+00 ,0.2067000000D+00 ,0.6959000000D-01
+        c,1.9,0.9073892679D-04 ,0.7037307878D-03 ,0.3694082531D-02 ,0.1534294431D-01 ,0.5285340844D-01 ,0.1471190548D+00 ,0.3077642591D+00 ,0.4017798693D+00 ,0.2187614704D+00
+        c,10.18,-0.5610638588D-04 ,-0.4460457677D-03 ,-0.2325609695D-02 ,-0.9841060083D-02 ,-0.3410146134D-01 ,-0.1017236829D+00 ,-0.2328190588D+00 ,-0.4266610114D+00 ,-0.3235402795D+00
+        c,19.19,0.1000000000D+01
+        c,20.20,0.1000000000D+01
+        c,21.21,0.1000000000D+01
+        c,22.22,0.1000000000D+01
+        p,O,0.6342000000D+02 ,0.1466000000D+02 ,0.4459000000D+01 ,0.1531000000D+01 ,0.5302000000D+00 ,0.1750000000D+00 ,0.5348000000D-01
+        c,1.3,0.3132750252D-01 ,0.2166542485D+00 ,0.8352428422D+00
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        d,O,0.3775000000D+01 ,0.1300000000D+01 ,0.4440000000D+00 ,0.1540000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        f,O,0.2666000000D+01 ,0.8590000000D+00 ,0.3240000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        g,O,0.1846000000D+01 ,0.7140000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        } ";
+        $finaldeck = ${header}.${stripped_geometry}.${footer}."wf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\nrhf\n$cc";
+        writedeck($finaldeck,$inputfile_stripped.".qz.ini");
+
+        # MTsmall
+        $header ="*** $inputfile_stripped CCSD(T)/MTsmall\n";
+        $footer =" 
+        basis={
+        ! HYDROGEN     
+        s,H ,0.338700000E+02,0.509500000E+01,0.115900000E+01,0.325800000E+00,0.102700000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        p,H ,0.140700000E+01,0.388000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        d,H ,0.105700000E+01
+        c,1.1, 0.100000000E+01
+        ! CARBON       
+        s,C ,0.823600000E+04,0.123500000E+04,0.280800000E+03,0.792700000E+02,0.255900000E+02,0.899700000E+01,0.331900000E+01,0.364300000E+00,0.905900000E+00,0.128500000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        p,C ,0.187100000E+02,0.413300000E+01,0.120000000E+01,0.382700000E+00,0.120900000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        d,C ,0.1000000000D+02,0.3300000000D+01,0.109700000E+01,0.318000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        f,C ,0.2300000000D+01,0.761000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! SULFUR       
+        s,S ,0.374100000E+06,0.560500000E+05,0.127600000E+05,0.361500000E+04,0.118300000E+04,0.428800000E+03,0.167800000E+03,0.694700000E+02,0.298400000E+02,0.127200000E+02,0.524400000E+01,0.221900000E+01,0.349000000E+00,0.776700000E+00,0.132200000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        c,11.11, 0.100000000E+01
+        c,12.12, 0.100000000E+01
+        c,13.13, 0.100000000E+01
+        c,14.14, 0.100000000E+01
+        c,15.15, 0.100000000E+01
+        p,S ,0.574400000E+03,0.135800000E+03,0.431900000E+02,0.158700000E+02,0.620800000E+01,0.248300000E+01,0.322900000E+00,0.868800000E+00,0.109800000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        d,S ,0.7500000000D+01,0.2500000000D+01,0.269000000E+00,0.819000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        f,S ,0.1700000000D+01,0.557000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! NITROGEN     MTSmall
+        s,N ,0.114200000E+05,0.171200000E+04,0.389300000E+03,0.110000000E+03,0.355700000E+02,0.125400000E+02,0.464400000E+01,0.511800000E+00,0.129300000E+01,0.178700000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        c,6.6, 0.100000000E+01
+        c,7.7, 0.100000000E+01
+        c,8.8, 0.100000000E+01
+        c,9.9, 0.100000000E+01
+        c,10.10, 0.100000000E+01
+        p,N ,0.266300000E+02,0.594800000E+01,0.174200000E+01,0.555000000E+00,0.172500000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        c,5.5, 0.100000000E+01
+        d,N ,0.1500000000D+02,0.5000000000D+01,0.165400000E+01,0.469000000E+00
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        c,3.3, 0.100000000E+01
+        c,4.4, 0.100000000E+01
+        f,N ,0.3000000000D+01,0.109300000E+01
+        c,1.1, 0.100000000E+01
+        c,2.2, 0.100000000E+01
+        ! Cl.mtsmall
+        s,Cl,0.4561000000D+06 ,0.6833000000D+05 ,0.1555000000D+05 ,0.4405000000D+04 ,0.1439000000D+04 ,0.5204000000D+03 ,0.2031000000D+03 ,0.8396000000D+02 ,0.3620000000D+02 ,0.1583000000D+02 ,0.6334000000D+01 ,0.2694000000D+01 ,0.4313000000D+00 ,0.9768000000D+00 ,0.1625000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        c,8.8,0.1000000000D+01
+        c,9.9,0.1000000000D+01
+        c,10.10,0.1000000000D+01
+        c,11.11,0.1000000000D+01
+        c,12.12,0.1000000000D+01
+        c,13.13,0.1000000000D+01
+        c,14.14,0.1000000000D+01
+        c,15.15,0.1000000000D+01
+        p,Cl,0.6633000000D+03 ,0.1568000000D+03 ,0.4998000000D+02 ,0.1842000000D+02 ,0.7240000000D+01 ,0.2922000000D+01 ,0.3818000000D+00 ,0.1022000000D+01 ,0.1301000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        c,8.8,0.1000000000D+01
+        c,9.9,0.1000000000D+01
+        d,Cl,0.9500000000D+01 ,0.3000000000D+01 ,0.1046000000D+01 ,0.3440000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        f,Cl,0.2000000000D+01 ,0.7060000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! F.mtsmall
+        s,F,0.1950000000D+05 ,0.2923000000D+04 ,0.6645000000D+03 ,0.1875000000D+03 ,0.6062000000D+02 ,0.2142000000D+02 ,0.7950000000D+01 ,0.8815000000D+00 ,0.2257000000D+01 ,0.3041000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        c,8.8,0.1000000000D+01
+        c,9.9,0.1000000000D+01
+        c,10.10,0.1000000000D+01
+        p,F,0.4388000000D+02 ,0.9926000000D+01 ,0.2930000000D+01 ,0.9132000000D+00 ,0.2672000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        d,F,0.2700000000D+02 ,0.9000000000D+01 ,0.3107000000D+01 ,0.8550000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        f,F,0.6000000000D+01 ,0.1917000000D+01
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        ! O.mtsmall
+        s,O,0.1533000000D+05 ,0.2299000000D+04 ,0.5224000000D+03 ,0.1473000000D+03 ,0.4755000000D+02 ,0.1676000000D+02 ,0.6207000000D+01 ,0.6882000000D+00 ,0.1752000000D+01 ,0.2384000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        c,6.6,0.1000000000D+01
+        c,7.7,0.1000000000D+01
+        c,8.8,0.1000000000D+01
+        c,9.9,0.1000000000D+01
+        c,10.10,0.1000000000D+01
+        p,O,0.3446000000D+02 ,0.7749000000D+01 ,0.2280000000D+01 ,0.7156000000D+00 ,0.2140000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        c,5.5,0.1000000000D+01
+        d,O,0.2100000000D+02 ,0.7000000000D+01 ,0.2314000000D+01 ,0.6450000000D+00
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        c,3.3,0.1000000000D+01
+        c,4.4,0.1000000000D+01
+        f,O,0.4300000000D+01 ,0.1428000000D+01
+        c,1.1,0.1000000000D+01
+        c,2.2,0.1000000000D+01
+        }";
+        $finaldeck = ${header}.${stripped_geometry}.${footer}."wf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\nrhf\n$cc(t)";
+        writedeck($finaldeck,$inputfile_stripped.".mt.ini");
+
+        # MTsmall-fu.dkh
+        $header ="*** $inputfile_stripped CCSD(T)/MTsmall-fu.dkh\n";
+        $finaldeck = ${header}.${stripped_geometry}.${footer}."wf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\nDKROLL=1\nrhf\n{$cc(t);core,0,0,0,0,0,0;}";
+        writedeck($finaldeck,$inputfile_stripped.".mtfull.ini");
+
+    }
+    if($job eq "ccsdt"){
+        $header ="*** $inputfile_stripped CCSD(T)\n";
+        $footer ="";
+        if ($heavy or $Rassolov){
+            $footer ="basis={\ndefault=$basis\n";
+            if ($basis =~ /\+/){
+                $footer =${footer}."
+                !
+                ! As 6-31+G* with the new version.
+                !
+                s, As, 100595.500000,15104.820000,3440.884000,970.396100,311.285200,106.628400,2166.679000,516.541400,167.867400,63.646380,26.136730,10.854390,95.069890,33.180870,14.067730,6.153288,2.721712,1.185334,1.615315,0.551330,0.222762,0.082923,0.03180000 
+                c, 1.6, 1.726750E-03,1.323462E-02,6.535848E-02,2.278042E-01,4.774525E-01,3.567619E-01
+                c, 7.12, 2.271761E-03,3.033475E-02,1.259057E-01,-6.687172E-03,-6.065306E-01,-4.823144E-01
+                c, 13.18, -5.587423E-03,5.632506E-02,2.625835E-01,-1.718349E-01,-7.175645E-01,-3.184598E-01
+                c, 19.21, 2.645372E-01,-1.952737E-01,-9.595400E-01
+                c, 22.22, 1.000000E+00
+                c, 23.23, 1.000000E+00
+                p, As, 2166.679000,516.541400,167.867400,63.646380,26.136730,10.854390,95.069890,33.180870,14.067730,6.153288,2.721712,1.185334,1.615315,0.551330,0.222762,0.082923,0.03180000 
+                c, 1.6, 3.832156E-03,3.023558E-02,1.328632E-01,3.447648E-01,4.640368E-01,2.064824E-01
+                c, 7.12, -6.816583E-03,-2.970303E-02,4.704335E-02,3.645042E-01,4.945157E-01,2.149830E-01
+                c, 13.15, -2.574061E-02,3.072764E-01,7.537368E-01
+                c, 16.16, 1.000000E+00
+                c, 17.17, 1.000000E+00
+                d, As, 50.302270,13.841660,4.393458,1.310755,0.327700  
+                c, 1.3, 8.144711E-02,3.792908E-01,7.040401E-01
+                c, 4.4, 1.000000E+00c, 5.5, 1.000000E+00\n";
+                $footer =${footer}."
+                !
+                ! Se 6-31+G* with the new version.
+                !
+                s, Se, 107027.300000, 16070.760000, 3661.226000, 1032.673000, 331.333900, 113.547000, 2313.540000, 551.684900, 179.440100, 68.130440, 28.030620, 11.665720, 101.575400, 35.615450, 15.131350, 6.646923, 2.972805, 1.316707, 1.846991, 0.647159, 0.257987, 0.094107,0.03390000
+                c, 1.6, 1.722646E-03, 1.320324E-02, 6.520494E-02, 2.273787E-01, 4.771451E-01, 3.575553E-01
+                c, 7.12, 2.261924E-03, 3.019493E-02, 1.258828E-01, -4.373809E-03, -6.043277E-01, -4.861200E-01
+                c, 13.18, -5.752618E-03, 5.675608E-02, 2.651243E-01, -1.670582E-01, -7.188737E-01, -3.221907E-01
+                c, 19.21, 2.823156E-01, -2.129616E-01, -9.545384E-01
+                c, 22.22, 1.000000E+00
+                c, 23.23, 1.000000E+00
+                p, Se, 2313.540000, 551.684900, 179.440100, 68.130440, 28.030620, 11.665720, 101.575400, 35.615450, 15.131350, 6.646923, 2.972805, 1.316707, 1.846991, 0.647159, 0.257987, 0.094107,0.03390000
+                c, 1.6, 3.818409E-03, 3.015145E-02, 1.325614E-01, 3.443419E-01, 4.639237E-01, 2.068198E-01
+                c, 7.12, -6.942389E-03, -3.014441E-02, 4.776411E-02, 3.663827E-01, 4.940086E-01, 2.100109E-01
+                c, 13.15, -2.653920E-02, 3.357291E-01, 7.301815E-01
+                c, 16.16, 1.00
+                c, 17.17, 1.00
+                d, Se, 56.185440, 15.548080, 4.989394, 1.523844, 0.381000
+                c, 1.3, 7.904963E-02, 3.746449E-01, 7.071645E-01
+                c, 4.4, 1.000000E+00
+                c, 5.5, 1.000000E+00\n";
+                $footer =${footer}."
+                !
+                ! Bromine 6-31+G* with the new version.
+                !
+                s, BR, 1.13718200E+05, 1.70744400E+04, 3.88957600E+03, 1.09709600E+03, 3.52062400E+02, 1.20700200E+02, 2.47113800E+03, 5.89383800E+02, 1.91873800E+02, 7.29533900E+01, 3.00583900E+01, 1.25292700E+01, 1.09641100E+02, 3.85894800E+01, 1.63781800E+01, 7.22183600E+00, 3.26369700E+00, 1.46549900E+00, 2.10365100E+00,  7.54705000E-01, 3.00514000E-01, 1.09071000E-01, 3.90000000E-02
+                c, 1.6, 1.71769600E-03, 1.31674400E-02, 6.50455300E-02, 2.26950500E-01, 4.76835700E-01, 3.58367700E-01
+                c, 7.12, 2.24368700E-03, 2.99485300E-02, 1.25600900E-01, -9.83278600E-04, -6.01314100E-01, -4.91398300E-01
+                c, 13.18, -5.97568300E-03, 5.54212200E-02, 2.68120000E-01, -1.54360600E-01, -7.20630600E-01, -3.31643700E-01
+                c, 19.21, 3.02902900E-01, -2.15265900E-01, -9.63394100E-01
+                c, 22.22, 1.00000000E+00
+                c, 23.23, 1.00000000E+00
+                p, BR, 2.47113800E+03, 5.89383800E+02, 1.91873800E+02, 7.29533900E+01, 3.00583900E+01, 1.25292700E+01, 1.09641100E+02, 3.85894800E+01, 1.63781800E+01, 7.22183600E+00, 3.26369700E+00, 1.46549900E+00, 2.10365100E+00,  7.54705000E-01, 3.00514000E-01, 1.09071000E-01, 3.90000000E-02
+                c, 1.6, 3.79018200E-03, 2.99597900E-02, 1.31822800E-01, 3.43270800E-01, 4.64234500E-01, 2.07938700E-01
+                c, 7.12, -6.90748300E-03, -3.04143200E-02, 4.60272500E-02, 3.65068900E-01, 4.94923200E-01, 2.09039400E-01
+                c, 13.15, -2.82671400E-02, 3.50306500E-01, 7.18244600E-01
+                c, 16.16, 1.00000000E+00
+                c, 17.17, 1.00000000E+00
+                d, BR, 6.22551400E+01, 1.73128400E+01, 5.60791500E+00, 1.74648600E+00, 4.36600000E-01
+                c, 1.3, 7.70422900E-02, 3.70738400E-01, 7.09762800E-01
+                c, 4.4, 1.00000000E+00
+                c, 5.5, 1.00000000E+00\n";
+                $footer =${footer}."
+                !
+                ! TIN       (4s,4p,1d) -> [2s,3p,1d]
+                ! TIN       (3s,3p) -> [2s,2p]
+                ! TIN       (1p,1d)
+                s, SN , 0.5418000, 0.3784000, 0.0926000, 0.0174
+                c, 1.2, -4.2089644, 4.5198368
+                c, 3.3, 1
+                c, 4.4, 1
+                p, SN , 1.0470000, 0.1932000, 0.0630000, 0.0174
+                c, 1.2, -0.1417678, 1.0554488
+                c, 3.3, 1
+                c, 4.4, 1
+                d, SN , 0.1860
+                c, 1.1, 1
+                ! ANTIMONY       (4s,4p,1d) -> [2s,3p,1d]
+                ! ANTIMONY       (3s,3p) -> [2s,2p]
+                ! ANTIMONY       (1p,1d)
+                s, SB , 0.5863000, 0.4293000, 0.1078000, 0.0220
+                c, 1.2, -4.7537662, 5.1096593
+                c, 3.3, 1
+                c, 4.4, 1
+                p, SB , 1.1110000, 0.2365000, 0.0800000, 0.0220
+                c, 1.2, -0.1811707, 1.0791649
+                c, 3.3, 1
+                c, 4.4, 1
+                d, SB , 0.2070
+                c, 1.1, 1
+                ! TELLURIUM       (4s,4p,1d) -> [2s,3p,1d]
+                ! TELLURIUM       (3s,3p) -> [2s,2p]
+                ! TELLURIUM       (1p,1d)
+                s, TE , 0.6938000, 0.4038000, 0.1165000, 0.0274
+                c, 1.2, -2.4115013, 2.9179976
+                c, 3.3, 1
+                c, 4.4, 1
+                p, TE , 1.2310000, 0.2756000, 0.0911000, 0.0274
+                c, 1.2, -0.1923340, 1.0876382
+                c, 3.3, 1
+                c, 4.4, 1
+                d, TE , 0.2500
+                c, 1.1, 1
+                ! IODINE       (4s,4p,1d) -> [2s,3p,1d]
+                ! IODINE       (3s,3p) -> [2s,2p]
+                ! IODINE       (1p,1d)
+                s, I , 0.7242000, 0.4653000, 0.1336000, 0.0308
+                c, 1.2, -2.9731048, 3.4827643
+                c, 3.3, 1
+                c, 4.4, 1
+                p, I , 1.2900000, 0.3180000, 0.1053000, 0.0308
+                c, 1.2, -0.2092377, 1.1035347
+                c, 3.3, 1
+                c, 4.4, 1
+                d, I , 0.2940
+                c, 1.1, 1
+                ! LEAD       (4s,4p,1d) -> [2s,3p,1d]
+                ! LEAD       (3s,3p) -> [2s,2p]
+                ! LEAD       (1p,1d)
+                s, PB , 0.5135000, 0.3756000, 0.0944000, 0.0168
+                c, 1.2, -4.3675036, 4.8504656
+                c, 3.3, 1
+                c, 4.4, 1
+                p, PB , 0.8748000, 0.1843000, 0.0598000, 0.0168
+                c, 1.2, -0.1793128, 1.0776505
+                c, 3.3, 1
+                c, 4.4, 1
+                d, PB , 0.1790
+                c, 1.1, 1
+                ! BISMUTH       (4s,4p,1d) -> [2s,3p,1d]
+                ! BISMUTH       (3s,3p) -> [2s,2p]
+                ! BISMUTH       (1p,1d)
+                s, BI , 0.5744000, 0.3851000, 0.1050000, 0.0204
+                c, 1.2, -3.2278875, 3.7637689
+                c, 3.3, 1
+                c, 4.4, 1
+                p, BI , 0.9105000, 0.2194000, 0.0745000, 0.0204
+                c, 1.2, -0.2164189, 1.1041867
+                c, 3.3, 1
+                c, 4.4, 1
+                d, BI , 0.1920
+                c, 1.1, 1
+            ! Elements                             References
+            ! --------                             ----------
+            ! Na - Hg: P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 270 (1985).
+            !          P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 284 (1985).
+            !          P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 299 (1985).
+            !   
+
+
+            ! Effective core Potentials 
+            ! ------------------------- 
+            ECP, sn, 46, 3 ;
+            5; !  f potential 
+            0,0.2169021,-0.0665380;
+            1,33.3097182,-29.7469416;
+            2,9.8846832,-61.8307278;
+            2,2.5019593,-18.9410634;
+            2,0.7833323,-2.2384982;
+            5; !  s-f potential 
+            0,155.6062293,2.9482777;
+            1,56.5145464,63.7614718;
+            2,22.6583648,230.5276788;
+            2,6.5837080,85.0713314;
+            2,1.5947702,28.8215644;
+            5; !  p-f potential 
+            0,40.4666705,2.6941946;
+            1,13.6218440,44.8271079;
+            2,4.1092688,57.6223370;
+            2,1.5046137,-44.6853312;
+            2,1.3646762,57.1351815;
+            5; !  d-f potential 
+            0,60.1915052,3.0259297;
+            1,20.4961142,39.5341071;
+            2,8.4438328,68.4686504;
+            2,2.6103790,29.1123764;
+            2,0.6501317,5.8428577;
+            ECP, sb, 46, 3 ;
+            6; !  f potential 
+            0,227.2723558,-0.0692261;
+            1,77.1429882,-31.5434712;
+            2,26.0116501,-115.8407306;
+            2,9.1421159,-42.0224212;
+            2,2.9281082,-20.0463938;
+            2,0.9231136,-2.8796028;
+            5; !  s-f potential 
+            0,116.0010888,2.9331303;
+            1,59.6755065,44.1104819;
+            2,27.6135849,228.0198050;
+            2,7.8045081,92.5610162;
+            2,1.6934418,31.2537244;
+            5; !  p-f potential 
+            0,27.8050796,4.9947369;
+            1,10.3929685,38.0223860;
+            2,3.6381067,62.0520654;
+            2,1.9839681,-49.5489389;
+            2,1.5546562,51.3666000;
+            5; !  d-f potential 
+            0,83.2183030,2.9738470;
+            1,30.3070501,41.6495825;
+            2,13.2014120,104.5919562;
+            2,3.6961611,42.3187857;
+            2,0.7711144,7.9413503;
+            ECP, te, 46, 3 ;
+            6; !  f potential 
+            0,285.0323292,-0.0719675;
+            1,75.9105798,-31.3740754;
+            2,26.1827859,-112.9711996;
+            2,9.0635141,-41.9599185;
+            2,2.9543257,-19.1274006;
+            2,0.9169942,-2.2917778;
+            5; !  s-f potential 
+            0,188.3327504,2.9286639;
+            1,68.6306921,68.9626773;
+            2,27.4402195,276.9637063;
+            2,7.8835282,104.4701765;
+            2,1.8443362,34.8384805;
+            5; !  p-f potential 
+            0,54.0822795,4.9732188;
+            1,28.5434714,38.8983634;
+            2,16.8660857,137.3139246;
+            2,5.5244176,69.7370323;
+            2,1.4625225,22.7487178;
+            5; !  d-f potential 
+            0,34.5312648,3.1548778;
+            1,11.2699366,33.1153649;
+            2,2.2704361,210.3056318;
+            2,1.7766992,-321.1963746;
+            2,1.4251666,152.4853001;
+            ECP, i, 46, 3 ;
+            5; !  f   potential 
+            0,1.0715702,-0.0747621;
+            1,44.1936028,-30.0811224;
+            2,12.9367609,-75.3722721;
+            2,3.1956412,-22.0563758;
+            2,0.8589806,-1.6979585;
+            5; !  s-f potential 
+            0,127.9202670,2.9380036;
+            1,78.6211465,41.2471267;
+            2,36.5146237,287.8680095;
+            2,9.9065681,114.3758506;
+            2,1.9420086,37.6547714;
+            5; !  p-f potential 
+            0,13.0035304,2.2222630;
+            1,76.0331404,39.4090831;
+            2,24.1961684,177.4075002;
+            2,6.4053433,77.9889462;
+            2,1.5851786,25.7547641;
+            5; !  d-f potential 
+            0,40.4278108,7.0524360;
+            1,28.9084375,33.3041635;
+            2,15.6268936,186.9453875;
+            2,4.1442856,71.9688361;
+            2,0.9377235,9.3630657;
+            ECP, pb, 78, 4 ;
+            6; !  g potential 
+            0,376.5803786,-0.1789605;
+            1,86.4840014,-54.3972337;
+            2,26.6784276,-199.7061759;
+            2,9.4261986,-79.1223941;
+            2,2.7101719,-24.9869020;
+            2,0.8792031,-4.4397939;
+            6; !  s-g potential 
+            0,132.4248796,2.8115386;
+            1,47.2376044,65.0367205;
+            2,17.6312727,212.7868545;
+            2,5.4744712,72.1053175;
+            2,1.2634856,33.0140940;
+            2,0.7651447,-5.7708461;
+            6; !  p-g potential 
+            0,67.8966454,4.8754911;
+            1,24.9898225,63.9148102;
+            2,10.7052939,148.1064358;
+            2,3.2792568,47.3106301;
+            2,0.8452522,21.0306702;
+            2,0.6416245,-7.0930772;
+            6; !  d-g potential 
+            0,68.8336005,3.2161388;
+            1,24.2815874,55.7386086;
+            2,9.4532762,121.4168351;
+            2,2.4788185,19.3456064;
+            2,2.4789161,15.3675168;
+            2,0.5551738,6.1298724;
+            6; !  f-g potential 
+            0,128.1021322,4.1353682;
+            1,54.8029154,67.5128446;
+            2,24.5529308,258.7373107;
+            2,8.1144792,113.2478264;
+            2,1.6931290,34.1680201;
+            2,0.7670500,-6.5531956;
+            ECP, bi, 78, 4 ;
+            6; !  g potential 
+            0,223.3091971,-0.1833520;
+            1,86.4699216,-53.3389492;
+            2,26.8492203,-201.9117841;
+            2,9.3823622,-76.3115295;
+            2,2.7614708,-24.2578468;
+            2,0.9423923,-4.0319700;
+            6; !  s-g potential 
+            0,155.9783914,2.7916510;
+            1,54.4591139,71.8553817;
+            2,20.1794558,252.4327444;
+            2,6.1273104,89.6045109;
+            2,1.1805983,61.1744136;
+            2,0.9932464,-33.0471906;
+            6; !  p-g potential 
+            0,74.5091386,4.8462914;
+            1,28.0487647,65.6883396;
+            2,12.0168508,166.2619673;
+            2,3.6914327,54.1393329;
+            2,0.9080824,28.6204880;
+            2,0.7394617,-12.3452204;
+            6; !  d-g potential 
+            0,68.0856679,3.2183832;
+            1,23.7250355,54.8952681;
+            2,9.2437053,116.5540708;
+            2,1.8452292,69.0760662;
+            2,1.2209859,-72.6410870;
+            2,0.8740861,38.9400055;
+            6; !  f-g potential 
+            0,134.3538983,3.9864075;
+            1,51.5812797,63.0262078;
+            2,54.9307284,92.5259959;
+            2,17.0475346,240.9973672;
+            2,3.7702824,62.1844577;
+            2,0.7670500,-1.7251134;"
+            }
+            else{
+                $footer =${footer}."
+                !
+                ! As 6-31G* with the new version.
+                !
+                s, As, 100595.500000,15104.820000,3440.884000,970.396100,311.285200,106.628400,2166.679000,516.541400,167.867400,63.646380,26.136730,10.854390,95.069890,33.180870,14.067730,6.153288,2.721712,1.185334,1.615315,0.551330,0.222762,0.082923
+                c, 1.6, 1.726750E-03,1.323462E-02,6.535848E-02,2.278042E-01,4.774525E-01,3.567619E-01
+                c, 7.12, 2.271761E-03,3.033475E-02,1.259057E-01,-6.687172E-03,-6.065306E-01,-4.823144E-01
+                c, 13.18, -5.587423E-03,5.632506E-02,2.625835E-01,-1.718349E-01,-7.175645E-01,-3.184598E-01
+                c, 19.21, 2.645372E-01,-1.952737E-01,-9.595400E-01
+                c, 22.22, 1.000000E+00
+                p, As, 2166.679000,516.541400,167.867400,63.646380,26.136730,10.854390,95.069890,33.180870,14.067730,6.153288,2.721712,1.185334,1.615315,0.551330,0.222762,0.082923
+                c, 1.6, 3.832156E-03,3.023558E-02,1.328632E-01,3.447648E-01,4.640368E-01,2.064824E-01
+                c, 7.12, -6.816583E-03,-2.970303E-02,4.704335E-02,3.645042E-01,4.945157E-01,2.149830E-01
+                c, 13.15, -2.574061E-02,3.072764E-01,7.537368E-01
+                c, 16.16, 1.000000E+00
+                d, As, 50.302270,13.841660,4.393458,1.310755,0.327700  
+                c, 1.3, 8.144711E-02,3.792908E-01,7.040401E-01
+                c, 4.4, 1.000000E+00
+                c, 5.5, 1.000000E+00\n";
+                $footer =${footer}."
+                !
+                ! Se 6-31G* with the new version.
+                !
+                s, Se, 107027.300000, 16070.760000, 3661.226000, 1032.673000, 331.333900, 113.547000, 2313.540000, 551.684900, 179.440100, 68.130440, 28.030620, 11.665720, 101.575400, 35.615450, 15.131350, 6.646923, 2.972805, 1.316707, 1.846991, 0.647159, 0.257987, 0.094107
+                c, 1.6, 1.722646E-03, 1.320324E-02, 6.520494E-02, 2.273787E-01, 4.771451E-01, 3.575553E-01
+                c, 7.12, 2.261924E-03, 3.019493E-02, 1.258828E-01, -4.373809E-03, -6.043277E-01, -4.861200E-01
+                c, 13.18, -5.752618E-03, 5.675608E-02, 2.651243E-01, -1.670582E-01, -7.188737E-01, -3.221907E-01
+                c, 19.21, 2.823156E-01, -2.129616E-01, -9.545384E-01
+                c, 22.22, 1.000000E+00
+                p, Se, 2313.540000, 551.684900, 179.440100, 68.130440, 28.030620, 11.665720, 101.575400, 35.615450, 15.131350, 6.646923, 2.972805, 1.316707, 1.846991, 0.647159, 0.257987, 0.094107
+                c, 1.6, 3.818409E-03, 3.015145E-02, 1.325614E-01, 3.443419E-01, 4.639237E-01, 2.068198E-01
+                c, 7.12, -6.942389E-03, -3.014441E-02, 4.776411E-02, 3.663827E-01, 4.940086E-01, 2.100109E-01
+                c, 13.15, -2.653920E-02, 3.357291E-01, 7.301815E-01
+                c, 16.16, 1.00
+                d, Se, 56.185440, 15.548080, 4.989394, 1.523844, 0.381000
+                c, 1.3, 7.904963E-02, 3.746449E-01, 7.071645E-01
+                c, 4.4, 1.000000E+00
+                c, 5.5, 1.000000E+00\n";
+                $footer =${footer}."
+                !
+                ! Bromine 6-31G* with the new version.
+                !
+                s, BR, 1.13718200E+05, 1.70744400E+04, 3.88957600E+03, 1.09709600E+03, 3.52062400E+02, 1.20700200E+02, 2.47113800E+03, 5.89383800E+02, 1.91873800E+02, 7.29533900E+01, 3.00583900E+01, 1.25292700E+01, 1.09641100E+02, 3.85894800E+01, 1.63781800E+01, 7.22183600E+00, 3.26369700E+00, 1.46549900E+00, 2.10365100E+00,  7.54705000E-01, 3.00514000E-01, 1.09071000E-01
+                c, 1.6, 1.71769600E-03, 1.31674400E-02, 6.50455300E-02, 2.26950500E-01, 4.76835700E-01, 3.58367700E-01
+                c, 7.12, 2.24368700E-03, 2.99485300E-02, 1.25600900E-01, -9.83278600E-04, -6.01314100E-01, -4.91398300E-01
+                c, 13.18, -5.97568300E-03, 5.54212200E-02, 2.68120000E-01, -1.54360600E-01, -7.20630600E-01, -3.31643700E-01
+                c, 19.21, 3.02902900E-01, -2.15265900E-01, -9.63394100E-01
+                c, 22.22, 1.00000000E+00
+                p, BR, 2.47113800E+03, 5.89383800E+02, 1.91873800E+02, 7.29533900E+01, 3.00583900E+01, 1.25292700E+01, 1.09641100E+02, 3.85894800E+01, 1.63781800E+01, 7.22183600E+00, 3.26369700E+00, 1.46549900E+00, 2.10365100E+00,  7.54705000E-01, 3.00514000E-01, 1.09071000E-01
+                c, 1.6, 3.79018200E-03, 2.99597900E-02, 1.31822800E-01, 3.43270800E-01, 4.64234500E-01, 2.07938700E-01
+                c, 7.12, -6.90748300E-03, -3.04143200E-02, 4.60272500E-02, 3.65068900E-01, 4.94923200E-01, 2.09039400E-01
+                c, 13.15, -2.82671400E-02, 3.50306500E-01, 7.18244600E-01
+                c, 16.16, 1.00000000E+00
+                d, BR, 6.22551400E+01, 1.73128400E+01, 5.60791500E+00, 1.74648600E+00, 4.36600000E-01
+                c, 1.3, 7.70422900E-02, 3.70738400E-01, 7.09762800E-01
+                c, 4.4, 1.00000000E+00
+                c, 5.5, 1.00000000E+00\n";
+                $footer =${footer}."
+                !
+                ! TIN       (3s,3p,1d) -> [2s,3p,1d]
+                ! TIN       (3s,3p) -> [2s,2p]
+                ! TIN       (1p,1d)
+                s, SN , 0.5418000, 0.3784000, 0.0926000
+                c, 1.2, -4.2089644, 4.5198368
+                c, 3.3, 1
+                p, SN , 1.0470000, 0.1932000, 0.0630000
+                c, 1.2, -0.1417678, 1.0554488
+                c, 3.3, 1
+                d, SN , 0.1860
+                c, 1.1, 1
+                ! ANTIMONY       (3s,3p,1d) -> [2s,3p,1d]
+                ! ANTIMONY       (3s,3p) -> [2s,2p]
+                ! ANTIMONY       (1p,1d)
+                s, SB , 0.5863000, 0.4293000, 0.1078000
+                c, 1.2, -4.7537662, 5.1096593
+                c, 3.3, 1
+                p, SB , 1.1110000, 0.2365000, 0.0800000
+                c, 1.2, -0.1811707, 1.0791649
+                c, 3.3, 1
+                d, SB , 0.2070
+                c, 1.1, 1
+                ! TELLURIUM       (3s,3p,1d) -> [2s,3p,1d]
+                ! TELLURIUM       (3s,3p) -> [2s,2p]
+                ! TELLURIUM       (1p,1d)
+                s, TE , 0.6938000, 0.4038000, 0.1165000
+                c, 1.2, -2.4115013, 2.9179976
+                c, 3.3, 1
+                p, TE , 1.2310000, 0.2756000, 0.0911000
+                c, 1.2, -0.1923340, 1.0876382
+                c, 3.3, 1
+                d, TE , 0.2500
+                c, 1.1, 1
+                ! IODINE       (3s,3p,1d) -> [2s,3p,1d]
+                ! IODINE       (3s,3p) -> [2s,2p]
+                ! IODINE       (1p,1d)
+                s, I , 0.7242000, 0.4653000, 0.1336000
+                c, 1.2, -2.9731048, 3.4827643
+                c, 3.3, 1
+                p, I , 1.2900000, 0.3180000, 0.1053000
+                c, 1.2, -0.2092377, 1.1035347
+                c, 3.3, 1
+                d, I , 0.2940
+                c, 1.1, 1
+                ! LEAD       (3s,3p,1d) -> [2s,3p,1d]
+                ! LEAD       (3s,3p) -> [2s,2p]
+                ! LEAD       (1p,1d)
+                s, PB , 0.5135000, 0.3756000, 0.0944000
+                c, 1.2, -4.3675036, 4.8504656
+                c, 3.3, 1
+                p, PB , 0.8748000, 0.1843000, 0.0598000
+                c, 1.2, -0.1793128, 1.0776505
+                c, 3.3, 1
+                d, PB , 0.1790
+                c, 1.1, 1
+                ! BISMUTH       (3s,3p,1d) -> [2s,3p,1d]
+                ! BISMUTH       (3s,3p) -> [2s,2p]
+                ! BISMUTH       (1p,1d)
+                s, BI , 0.5744000, 0.3851000, 0.1050000
+                c, 1.2, -3.2278875, 3.7637689
+                c, 3.3, 1
+                p, BI , 0.9105000, 0.2194000, 0.0745000
+                c, 1.2, -0.2164189, 1.1041867
+                c, 3.3, 1
+                d, BI , 0.1920
+                c, 1.1, 1
+            ! Elements                             References
+            ! --------                             ----------
+            ! Na - Hg: P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 270 (1985).
+            !          P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 284 (1985).
+            !          P. J. Hay and W. R. Wadt, J. Chem. Phys. 82, 299 (1985).
+            !   
+
+
+            ! Effective core Potentials 
+            ! ------------------------- 
+            ECP, sn, 46, 3 ;
+            5; !  f potential 
+            0,0.2169021,-0.0665380;
+            1,33.3097182,-29.7469416;
+            2,9.8846832,-61.8307278;
+            2,2.5019593,-18.9410634;
+            2,0.7833323,-2.2384982;
+            5; !  s-f potential 
+            0,155.6062293,2.9482777;
+            1,56.5145464,63.7614718;
+            2,22.6583648,230.5276788;
+            2,6.5837080,85.0713314;
+            2,1.5947702,28.8215644;
+            5; !  p-f potential 
+            0,40.4666705,2.6941946;
+            1,13.6218440,44.8271079;
+            2,4.1092688,57.6223370;
+            2,1.5046137,-44.6853312;
+            2,1.3646762,57.1351815;
+            5; !  d-f potential 
+            0,60.1915052,3.0259297;
+            1,20.4961142,39.5341071;
+            2,8.4438328,68.4686504;
+            2,2.6103790,29.1123764;
+            2,0.6501317,5.8428577;
+            ECP, sb, 46, 3 ;
+            6; !  f potential 
+            0,227.2723558,-0.0692261;
+            1,77.1429882,-31.5434712;
+            2,26.0116501,-115.8407306;
+            2,9.1421159,-42.0224212;
+            2,2.9281082,-20.0463938;
+            2,0.9231136,-2.8796028;
+            5; !  s-f potential 
+            0,116.0010888,2.9331303;
+            1,59.6755065,44.1104819;
+            2,27.6135849,228.0198050;
+            2,7.8045081,92.5610162;
+            2,1.6934418,31.2537244;
+            5; !  p-f potential 
+            0,27.8050796,4.9947369;
+            1,10.3929685,38.0223860;
+            2,3.6381067,62.0520654;
+            2,1.9839681,-49.5489389;
+            2,1.5546562,51.3666000;
+            5; !  d-f potential 
+            0,83.2183030,2.9738470;
+            1,30.3070501,41.6495825;
+            2,13.2014120,104.5919562;
+            2,3.6961611,42.3187857;
+            2,0.7711144,7.9413503;
+            ECP, te, 46, 3 ;
+            6; !  f potential 
+            0,285.0323292,-0.0719675;
+            1,75.9105798,-31.3740754;
+            2,26.1827859,-112.9711996;
+            2,9.0635141,-41.9599185;
+            2,2.9543257,-19.1274006;
+            2,0.9169942,-2.2917778;
+            5; !  s-f potential 
+            0,188.3327504,2.9286639;
+            1,68.6306921,68.9626773;
+            2,27.4402195,276.9637063;
+            2,7.8835282,104.4701765;
+            2,1.8443362,34.8384805;
+            5; !  p-f potential 
+            0,54.0822795,4.9732188;
+            1,28.5434714,38.8983634;
+            2,16.8660857,137.3139246;
+            2,5.5244176,69.7370323;
+            2,1.4625225,22.7487178;
+            5; !  d-f potential 
+            0,34.5312648,3.1548778;
+            1,11.2699366,33.1153649;
+            2,2.2704361,210.3056318;
+            2,1.7766992,-321.1963746;
+            2,1.4251666,152.4853001;
+            ECP, i, 46, 3 ;
+            5; !  f   potential 
+            0,1.0715702,-0.0747621;
+            1,44.1936028,-30.0811224;
+            2,12.9367609,-75.3722721;
+            2,3.1956412,-22.0563758;
+            2,0.8589806,-1.6979585;
+            5; !  s-f potential 
+            0,127.9202670,2.9380036;
+            1,78.6211465,41.2471267;
+            2,36.5146237,287.8680095;
+            2,9.9065681,114.3758506;
+            2,1.9420086,37.6547714;
+            5; !  p-f potential 
+            0,13.0035304,2.2222630;
+            1,76.0331404,39.4090831;
+            2,24.1961684,177.4075002;
+            2,6.4053433,77.9889462;
+            2,1.5851786,25.7547641;
+            5; !  d-f potential 
+            0,40.4278108,7.0524360;
+            1,28.9084375,33.3041635;
+            2,15.6268936,186.9453875;
+            2,4.1442856,71.9688361;
+            2,0.9377235,9.3630657;
+            ECP, pb, 78, 4 ;
+            6; !  g potential 
+            0,376.5803786,-0.1789605;
+            1,86.4840014,-54.3972337;
+            2,26.6784276,-199.7061759;
+            2,9.4261986,-79.1223941;
+            2,2.7101719,-24.9869020;
+            2,0.8792031,-4.4397939;
+            6; !  s-g potential 
+            0,132.4248796,2.8115386;
+            1,47.2376044,65.0367205;
+            2,17.6312727,212.7868545;
+            2,5.4744712,72.1053175;
+            2,1.2634856,33.0140940;
+            2,0.7651447,-5.7708461;
+            6; !  p-g potential 
+            0,67.8966454,4.8754911;
+            1,24.9898225,63.9148102;
+            2,10.7052939,148.1064358;
+            2,3.2792568,47.3106301;
+            2,0.8452522,21.0306702;
+            2,0.6416245,-7.0930772;
+            6; !  d-g potential 
+            0,68.8336005,3.2161388;
+            1,24.2815874,55.7386086;
+            2,9.4532762,121.4168351;
+            2,2.4788185,19.3456064;
+            2,2.4789161,15.3675168;
+            2,0.5551738,6.1298724;
+            6; !  f-g potential 
+            0,128.1021322,4.1353682;
+            1,54.8029154,67.5128446;
+            2,24.5529308,258.7373107;
+            2,8.1144792,113.2478264;
+            2,1.6931290,34.1680201;
+            2,0.7670500,-6.5531956;
+            ECP, bi, 78, 4 ;
+            6; !  g potential 
+            0,223.3091971,-0.1833520;
+            1,86.4699216,-53.3389492;
+            2,26.8492203,-201.9117841;
+            2,9.3823622,-76.3115295;
+            2,2.7614708,-24.2578468;
+            2,0.9423923,-4.0319700;
+            6; !  s-g potential 
+            0,155.9783914,2.7916510;
+            1,54.4591139,71.8553817;
+            2,20.1794558,252.4327444;
+            2,6.1273104,89.6045109;
+            2,1.1805983,61.1744136;
+            2,0.9932464,-33.0471906;
+            6; !  p-g potential 
+            0,74.5091386,4.8462914;
+            1,28.0487647,65.6883396;
+            2,12.0168508,166.2619673;
+            2,3.6914327,54.1393329;
+            2,0.9080824,28.6204880;
+            2,0.7394617,-12.3452204;
+            6; !  d-g potential 
+            0,68.0856679,3.2183832;
+            1,23.7250355,54.8952681;
+            2,9.2437053,116.5540708;
+            2,1.8452292,69.0760662;
+            2,1.2209859,-72.6410870;
+            2,0.8740861,38.9400055;
+            6; !  f-g potential 
+            0,134.3538983,3.9864075;
+            1,51.5812797,63.0262078;
+            2,54.9307284,92.5259959;
+            2,17.0475346,240.9973672;
+            2,3.7702824,62.1844577;
+            2,0.7670500,-1.7251134;"
+            }
+            $footer=${footer}."}\nint,,cart\nrhf\n$cc(t)\n";
+        }
+        else{
+            $footer ="basis=$basis\nint,,cart\nrhf\n$cc(t)\n";
+        }
+
+        $finaldeck = ${header}.${stripped_geometry}."\nwf,NELEC=".${nelec}.",SYMMETRY=1,SPIN=".${spin}.",CHARGE=".${c}."\n".${footer};
+        writedeck($finaldeck,$inputfile_stripped.".ccsdt.ini");
+    }
+}
+
+
+
+sub stripgam{
+    my ($fin,$data,@data,$mult,$charge,$norb,$det,@crap,$gamline);
+    $mult="";
+    $charge="";
+    $norb="";
+    $det="";
+    $data="";
+    my ($gamfile) = @_; 
+    open GAM, "$gamfile" or die $!; 
+    while ($gamline = <GAM>){
+        if ($gamline =~ /norb/i){
+            @crap = split(/\s+/,$gamline);
+            $norb= $crap[3];
+        }
+        if ($gamline =~ /\$det/i){
+            $det= $gamline;
+        }
+        if ($gamline =~ /MULT/i){
+            @crap= split(/\s+/,$gamline);
+            $mult= $crap[2];
+        }
+        if ($gamline =~ /ICHARG/i){
+            @crap= split(/\s+/,$gamline);
+            $charge = $crap[3];
+        }
+        if ($gamline =~ /DATA/i){
+            $fin =0;
+            while ($fin ==0){
+                $gamline = readline(GAM);
+                if ($gamline =~ /\$END/i){
+                    $fin = 1;
+                }
+                else{
+                    push @data,$gamline;
+                }
+            }
+        }
+    }
+    $data = join("",@data);
+    return($data,$mult,$charge,$norb,$det);
+    close GAM;
+}
+
+sub stripnatural{
+    my($fin,@vec,$punchline,@stripped_geometry);
+    my ($punchfile) = @_;
+
+    open PUNCH, "$punchfile" or die $!;
+    $punchline=readline(PUNCH);
+    push @stripped_geometry,$punchline;
+    $punchline=readline(PUNCH);
+    push @stripped_geometry,$punchline;
+    $punchline=readline(PUNCH);
+    if ($punchline =~ /C1/){
+        push @stripped_geometry,$punchline;
+    }
+    else{
+        push @stripped_geometry,$punchline;
+        $punchline=readline(PUNCH);
+        push @stripped_geometry,$punchline;
+    }
+    while ($punchline = <PUNCH>){
+        if ($punchline =~ /UHF NATURAL ORBITALS/){
+            push @vec,$punchline;
+            $fin =0 ;
+            while ($fin == 0){
+                $punchline = readline(PUNCH);
+                if ($punchline =~ /POPULATION ANALYSIS/){
+                    $fin = 1;
+                }
+                else{
+                    push @vec,$punchline;
+                }
+            }
+        }
+    }
+    $punchline = join("",@vec)."\n";
+    return ($punchline);
+    close PUNCH;
+}
+
+sub strippunch{
+    my($fin,@vec,$punchline,@stripped_geometry);
+    my ($punchfile) = @_;
+    open PUNCH, "$punchfile" or die $!;
+    $punchline=readline(PUNCH);
+    push @stripped_geometry,$punchline;
+    $punchline=readline(PUNCH);
+    push @stripped_geometry,$punchline;
+    $punchline=readline(PUNCH);
+    if ($punchline =~ /C1/){
+        push @stripped_geometry,$punchline;
+    }
+    else{
+        push @stripped_geometry,$punchline;
+        $punchline=readline(PUNCH);
+        push @stripped_geometry,$punchline;
+    }
+    while (<PUNCH>){
+        if (/RESULTS FROM SUCCESSFUL MCSCF    GEOMETRY SEARCH/){
+            readline(PUNCH);
+            readline(PUNCH);
+            readline(PUNCH);
+            readline(PUNCH);
+            $fin =0 ;
+            while ($fin == 0){
+                $punchline = readline(PUNCH);
+                if ($punchline =~ /NATURAL ORBITALS OF MCSCF/){
+                    $fin = 1;
+                    while ($fin ==1){
+                        $punchline = readline(PUNCH);
+                        if ($punchline =~ /OPTIMIZED MCSCF MO-S /){
+                            push @vec,$punchline;
+                            $fin = 2;
+                            while ($fin == 2){
+                                $punchline = readline(PUNCH);
+                                if ($punchline =~ /POPULATION ANALYSIS/){
+                                    $fin = 3;
+                                }
+                                else{
+                                    push @vec,$punchline;
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    push @stripped_geometry,$punchline;
+                }
+            }
+        }
+    }
+    $punchline = join("",@stripped_geometry)." \$END\n".join("",@vec)."\n";
+    return ($punchline);
+    close PUNCH;
+}
+
+
+sub stripout{
+    my ($data,@data,$outline,$fin);
+    $data="";
+    $outline="";
+    my ($outfile) = @_; 
+    open OUT, "$outfile" or die $!; 
+    while ($outline = <OUT>){
+        if ($outline =~ /geometry/){
+            $fin =0;
+            while ($fin ==0){
+                $outline = readline(OUT);
+                if ($outline =~ /}/ or $outline =~ /endg$/i){
+                    $fin = 1;
+                }
+                else{
+                    push @data,$outline;
+                }
+            }
+        }
+    }
+    $data = join("",@data);
+    return($data);
+    close OUT;
+}
+
+
+sub stripcom{
+#stripcom("geometry_string"), returns stripped geometry string.
+
+#declarations:
+    my($geometry, @file, $cm_flag, $bk, @stripped_geometry, $cm_index, $i);
+    my($temp2, @temp, $iszmat, $stripped_geometry);
+
+    $geometry = $_[0];
+    @file = split(/\n/,$geometry);
+    $cm_flag = 0;   # whether we've hit the (first) charge/multiplicity section or not.
+    $bk = 0;        #blank line counter for zmat section
+    @stripped_geometry = ();
+    $cm_index = 9999999;
+
+    for($i = 0; $i <= $#file; $i++){
+
+
+        #match the charge/multiplicity section.
+        if ($file[$i] =~/^[ \t]*-*\+*[ \t]*[0-9]{1,2}[ \t]*\+*[ \t]*[0-9]{1,2}[ \t]*$/){
+            $cm_flag +=1;			#means you only get the top geometry.
+            if ($cm_flag == 1){
+                push(@stripped_geometry, $file[$i]);		#put cm into array
+                $cm_index = $i;				#mark where cm is
+                $temp2 = $file[$i+1];				#get next line
+                $temp2 =~ s/^[ \t]*//;				#strip leading whitespace
+                $temp2 =~ s/[ \t]*$//;				#strip trailing whitespace
+
+                @temp = split(/[ \t]+/,$temp2);		#split
+
+
+                if ($temp[0] =~ /\b[a-z]{1,2}\b/i){		#see if zmat
+                    if (@temp == 1){
+                        $iszmat = 1;
+                    }else{
+                        if (@temp == 4 or @temp == 5){
+                            $iszmat = 0;
+                        }else{
+                            die "$temp2 : Not xyz or zmat!\n";
+                        }
+                    }
+                }
+                else{
+                    die "$temp[0] : not an atom!!\n";
+                }
+            }
+        }
+        $file[$i] =~s/ 0 //;
+        if ($i > $cm_index && $cm_flag == 1){	#discard useless header and footer
+            if($iszmat == 0 && $file[$i] =~/^[ \t]*[a-zA-Z]{1,2}[ \t]{1,}-?\+? *\.?[0-9]{1,}\.?[0-9]*[ \t]{1,}-?\+? *\.?[0-9]{1,}\.?[0-9]*[ \t]{1,}-?\+? *\.?[0-9]{1,}\.?[0-9]*[ \t]*$/){		#if zmat and a coordinate
+                push(@stripped_geometry, $file[$i]);
+            }
+            if($iszmat == 1){
+                if($file[$i] =~ /^[ \t]*$/){
+                    $bk+=1;				#count blank lines in zmat
+                }
+                if ($bk < 2){		# if zmat and before the end of it, then
+                    push(@stripped_geometry, $file[$i]);
+                }
+            }
+        }
+
+    }
+
+
+
+
+
+    $stripped_geometry = join("\n",@stripped_geometry);
+    return "$stripped_geometry\n";
+}
+
+sub striplastxyz {
+    my @stripped_geometry=("");
+    @stripped_geometry = ();
+    my $charge="";
+    my $multi="";
+    @symbo=("H" ,                                                                                "He",
+        "Li","Be",                                                   "B", "C", "N", "O", "F","Ne",
+        "Na","Mg",                                                  "Al","Si", "P", "S","Cl","Ar",
+        "K" ,"Ca","Sc","Ti", "V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr",
+        "Rb","Sr", "Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te", "I","Xe",
+        "Cs","Ba",
+        "La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu",
+        "Hf","Ta", "W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn",
+        "Fr","Ra",
+        "Ac","Th","Pa", "U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr");
+
+    open(LOG, $_[0]) || die "Can't open $_[0] for reading.\n";
+    while (<LOG>){
+        if (/Multiplicity/){
+            @mc = split(/\s+/,$_);
+            $charge = $mc[3];
+            $multi = $mc[6];
+        }
+        if (/orientation/){
+            @last_geometry="";
+            $line = readline(LOG);
+            $line = readline(LOG);
+            $line = readline(LOG);
+            $line = readline(LOG);
+            $stop = 0;
+            while ($stop < 1){
+                $line = readline(LOG);
+                if ($line =~ /-------/){
+                    $stop=1;
+                }
+                else{
+                    $stop=0;
+                    push @last_geometry, $line;
+                }
+            }
+        }
+    }
+    close LOG;
+    push @stripped_geometry, "$charge $multi";
+    for ($i = 1 ;$i <= $#last_geometry ; $i++){
+        @crap= split(/\s+/,$last_geometry[$i]);
+        $atom[$i] = $crap[2];
+        $x[$i] = $crap[4];
+        $y[$i] = $crap[5];
+        $z[$i] = $crap[6];
+        push @stripped_geometry, "$symbo[$atom[$i]-1]\t$x[$i]\t$y[$i]\t$z[$i]";
+    }
+    $stripped_geometry = join("\n",@stripped_geometry);
+    return "$stripped_geometry\n";
+}
+
+sub atomicN {
+
+    my ($a1) = @_;
+
+    @symbo=("h" ,                                                                                "he",
+        "li","be",                                                   "b", "c", "n", "o", "f","ne",
+        "na","mg",                                                  "al","si", "p", "s","cl","ar",
+        "k" ,"ca","sc","ti", "v","cr","mn","fe","co","ni","cu","zn","ga","ge","as","se","br","kr",
+        "rb","sr", "y","zr","nb","mo","tc","ru","rh","pd","ag","cd","in","sn","sb","te", "i","xe",
+        "cs","ba",
+        "la","ce","pr","nd","pm","sm","eu","gd","tb","dy","ho","er","tm","yb","lu",
+        "hf","ta", "w","re","os","ir","pt","au","hg","tl","pb","bi","po","at","rn",
+        "fr","ra",
+        "ac","th","pa", "u","np","pu","am","cm","bk","cf","es","fm","md","no","lr");
+
+
+    my %index;
+    @index{@symbo} = (0..$#symbo);
+    my $index = $index{lc($a1)} + 1 ;
+    return $index; 
+}
+
+sub adfradii {
+
+    my ($a1) = @_;
+    %Klamt = ('h'  => 1.30,  
+                                      'c'  => 2.00,
+        'n'  => 1.83,  'o'  => 1.72,  'f'  => 1.72,
+        'si' => 2.48,  'p'  => 2.13,
+        's'  => 2.16,  'cl' => 2.05, 
+        'br' => 2.16,
+        'i'  => 2.32,  'cu' => 1.883,
+        'ne' => 1.333, 'ar' => 1.658, 'kr' => 1.792, 'xe' => 1.900   );
+
+    if ($Klamt{lc($a1)}) {
+        return $Klamt{lc($a1)};
+    }
+    else{
+        die "the atomic radii is not defined by Klamt!\n";
+    }
+}
+
+sub striparc {
+#striparc("inputfile",1|0) : returns geometry from .log, with 1 gives archive form, and 0 breaks into xyz lines
+
+    my ( @file);
+    my ( @archive);
+    my ($i);
+    local $/;
+
+
+    $arc = $_[1];
+
+    open(LOG, $_[0]) || die "Can't open $_[0] for reading.\n";
+    undef $/;
+    @file = split(/\n\n+/,<LOG>,-1);
+    close(LOG)||die "Can't close $_[0].\n";
+    for ($i= 0;$i <= $#file;$i++){
+        if ($file[$i]=~/GINC(.+?)@/s){
+            push(@archive, $1);
+        }
+    }
+    if ($arc){
+        return $archive[0];
+    }
+    else{
+        if ($archive[0]){
+            $archive[0] =~ s/ //g;
+            $archive[0] =~ s/\n//g;
+            $archive[0] =~ s/\r//g;
+            $archive[0] =~ s/\\/\n/g;
+            $archive[0] =~ s/,/ /g;
+            $archive[0] =~ s/ /  /g;
+            $archive[0] =~ s/  -/ -/g;
+            return $archive[0];
+        }
+        else{
+            return "";
+        }
+    }
+}
+
+
+sub stripname {
+    my ($strippedfile);
+    $strippedfile = $_[0];
+    $strippedfile =~ s/$_[1]\b//;
+    return $strippedfile;
+}
+
+
+
+sub strip {
+# strip("filename") : gets a txt file, turns it into a string.
+    my ($i,$file,$temp);
+    local $/;
+
+    open(INPUTFILE, $_[0]) ||die "Can't open $_[0] for reading.\n";
+    undef $/;
+    $file = <INPUTFILE>;
+    close(INPUTFILE)|| die "Can't close $_[0].\n";
+    return $file;
+}
+
+sub writedeck{
+#writedeck("string", "filename") : writes "string" to "filename"
+    my ($temp);
+
+    open(OUTFILE, ">$_[1]") ||die "Can't open $_[0] for writing.\n";
+    $temp = $\;
+    print OUTFILE $_[0];
+
+    close(OUTFILE) || die "Can't close $_[1].\n";
+}
+
+sub getcm {
+#getcm("geometry") : gets charge/multiplicity line from "geometry" string.
+    my ($geometry, @geometry, $cm);
+
+    $geometry = $_[0];
+    @geometry = split(/\n/, $geometry);
+    $cm = $geometry[0];
+    return $cm;
+}
+
+
+
+sub addcomment{
+#addcomment("inputfile", "comment") : substitutes the comment
+#line(s) in a (complete) gaussian .com string with "comment"
+
+    my($comment, @inputfile, $inputfile, $i);
+
+    ($comment, $inputfile) = ($_[0],$_[1]);
+    @inputfile = split(/\n/, $inputfile,-1);
+    for($i = 0; $i <= $#inputfile; $i++){
+        if ($inputfile[$i] =~ /^[ \t]*-*\+*[ \t]*[0-9]{1,2}[ \t]*\+*[ \t]*[0-9]{1,2}[ \t]*$/){
+            $inputfile[$i-2] = $comment;
+        }
+    }
+    $inputfile = join("\n",@inputfile);
+    return $inputfile;
+
+
+}
+
+sub check_geometry_type{
+# check_geometry_type("stripped_geometry") : checks to see if a stripped
+#geometry is xyz or zmat.
+
+    my($stripped_geometry,@stripped_geometry, $i, $temp2, $temp, @temp, $iszmat);
+
+    $stripped_geometry = $_[0];
+
+    @stripped_geometry = split(/\n/,$stripped_geometry);
+
+
+    for($i = 0; $i <= $#stripped_geometry; $i++){
+        if ($stripped_geometry[$i] =~/^[ \t]*-*\+*[ \t]*[0-9]{1,2}[ \t]*\+*[ \t]*[0-9]{1,2}[ \t]*$/){
+            $temp2 = $stripped_geometry[$i+1];                          #get next line
+            $temp2 =~ s/^[ \t]*//;                         #strip leading whitespace
+            $temp2 =~s/[ \t]*$//;                          #strip trailing whitespace
+            @temp = split(/[ \t]+/,$temp2);                #split
+
+            if ($temp[0] =~ /\b[a-z]{1,2}\b/i){            #see if zmat
+                if (@temp == 1 ){
+                    $iszmat = 1;
+                }else{
+                    if (@temp == 4){
+                        $iszmat = 0;
+                    }else{
+                        die "$temp2 : Not xyz or zmat!\n";
+                    }
+                }
+            }
+            else{
+                die "$temp[0] : not an atom!!\n";
+            }
+        }
+    }
+    return $iszmat;
+}
+
+sub molpro_cartesian {
+#addzero("stripped_geometry") puts a column of zeroes after the atom
+#specification line (for molpro). rejoins as comma delimeted lines, and
+#removes the charge/multiplicity section.
+    my(@atom_list,@atomic_no,%atomic_no,$stripped_geometry, @stripped_geometry);
+    my($nelec,$i, $temp2, $temp, $temp3, @temp,@uniqatom,@atomset,%tmp);
+
+    @atom_list = ("H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si",
+        "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd",
+        "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",
+        "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt",
+        "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu",
+        "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg");
+
+
+    for ($i = 0;$i <= 110; $i++){
+        $atomic_no[2*$i] = $atom_list[$i];
+        $atomic_no[2*$i+1]= $i+1;
+    }
+    %atomic_no = @atomic_no;
+
+
+    $stripped_geometry = $_[0];
+    @stripped_geometry = split(/\n/,$stripped_geometry);
+
+    $nelec = 0;
+    @atomset=();
+
+    for($i = 1; $i <= $#stripped_geometry; $i++){
+        $temp2 = $stripped_geometry[$i];                          #get next line
+        $temp2 =~ s/^[ \t]*//;                         #strip leading whitespace
+        $temp2 =~s/[ \t]*$//;                          #strip trailing whitespace
+        $temp2 =~s/^\s+$//;                          #strip trailing whitespace
+        @temp = split(/[ \t]+/,$temp2);                #split
+        if ($i != 0){
+            $nelec += $atomic_no{$temp[0]};
+            push(@atomset,$temp[0]);
+        }
+        $temp3 = shift(@temp);
+        unshift(@temp,$temp3, "0");
+    }
+    $stripped_geometry = "Symmetry,nosym\ngeometry={\n ".$#stripped_geometry."\n".$stripped_geometry."}";
+    return ($stripped_geometry, $nelec);
+}
+
+
+sub molpro_zmat{
+#puts geometry={  } around the zmat bit, then puts the variables below the geom
+#section. Removes the cm line. Returns ("stripped_geometry", nelec), where
+#$nelec is the # of electrons in a neutral species having the same molecular
+#formula as the compound in the zmat.(add charge to get true # of electrons).
+
+    my(@atom_list, @atomic_no, %atomic_no, $stripped_geometry,@stripped_geometry,$i,$bk,$temp);
+    my(@temp, $zmat,@zmat,$temp2,@temp2,$vars,@vars,$bk_lineno, $nelec);
+
+    @atom_list = ("H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si",
+        "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd",
+        "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm",
+        "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt",
+        "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu",
+        "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg");
+
+
+    for ($i = 0;$i <= 110; $i++){
+        $atomic_no[2*$i] = $atom_list[$i];
+        $atomic_no[2*$i+1]= $i+1;
+    }
+    %atomic_no = @atomic_no;
+
+    $stripped_geometry = $_[0];
+    @stripped_geometry = split(/\n/,$stripped_geometry);
+    $bk = 0;
+    $bk_lineno = 9999999;
+    $nelec = 0;
+
+    for($i = 0; $i <= $#stripped_geometry; $i++){
+        if ($stripped_geometry[$i]=~ /^[ \t]*$/){
+            $bk +=1;
+            $bk_lineno = $i;
+        }
+        if($bk == 0){
+            $temp = $stripped_geometry[$i];
+            $temp =~ s/^[ \t]*//;
+            $temp =~s/[ \t]*$//;
+            @temp = split(/[ \t]+/,$temp);
+            if ($i != 0){
+                $nelec += $atomic_no{$temp[0]};
+            }
+            $zmat[$i] = join(",",@temp);
+        }elsif($bk == 1 && $i > $bk_lineno){
+            $temp2 = $stripped_geometry[$i];
+            $temp2 =~ s/^[ \t]*//;
+            $temp2 =~s/[ \t]*$//;
+            @temp2 = split(/[= \t]+/,$temp2,-1);
+#      $vars[0] = join("=",@temp2);
+            $vars[$i- $bk_lineno] = join("=",@temp2);   # $i needs to be from 0 to whatever
+        }
+
+    }
+    $vars[0] = "\n";
+    shift(@zmat); #get rid of cm line.
+    $zmat = join("\n",@zmat);
+    chomp $zmat;
+    $zmat = "geometry={\nzmat,angstrom;\n".$zmat."}";
+    $vars = join("\n",@vars);
+    chomp $vars;
+    $stripped_geometry = $zmat.$vars;
+    return ($stripped_geometry, $nelec);
+}
+
+#############################################################################
+#                                   promptUser                              #
+#############################################################################   
+
+#----------------------------(  promptUser  )-----------------------------#
+#                                                                         #
+#  FUNCTION:    promptUser                                                #
+#                                                                         #
+#  PURPOSE: Prompt the user for some type of input, and return the        #
+#       input back to the calling program.                                #
+#                                                                         #
+#  ARGS:    $promptString - what you want to prompt the user with         #
+#       $defaultValue - (optional) a default value for the prompt         #
+#                                                                         #
+#-------------------------------------------------------------------------#
+
+sub promptUser {
+
+    #-------------------------------------------------------------------#
+    #  two possible input arguments - $promptString, and $defaultValue  #
+    #  make the input arguments local variables.                        #
+    #-------------------------------------------------------------------#
+
+    local($promptString,$defaultValue) = @_;
+
+    #-------------------------------------------------------------------#
+    #  if there is a default value, use the first print statement; if   #
+    #  no default is provided, print the second string.                 #
+    #-------------------------------------------------------------------#
+
+    print $promptString, "[", $defaultValue, "]: ";
+
+    $| = 1;               # force a flush after our print
+    $_ = <STDIN>;         # get the input from STDIN (presumably the keyboard)
+
+
+    #------------------------------------------------------------------#
+    # remove the newline character from the end of the input the user  #
+    # gave us.                                                         #
+    #------------------------------------------------------------------#
+
+    chomp;
+
+    #-----------------------------------------------------------------#
+    #  if we had a $default value, and the user gave us input, then   #
+    #  return the input; if we had a default, and they gave us no     #
+    #  no input, return the $defaultValue.                            #
+    #                                                                 # 
+    #  if we did not have a default value, then just return whatever  #
+    #  the user gave us.  if they just hit the <enter> key,           #
+    #  the calling routine will have to deal with that.               #
+    #-----------------------------------------------------------------#
+
+    return $_ ? $_ : $defaultValue;    # return $_ if it has a value
+}
+
+__END__
