@@ -1,5 +1,5 @@
 !Put Keywords Here, check Charge and Multiplicity.
-#m062X/6-31+G(d) OPT Freq=noraman
+#m062X/Def2SVP OPT Freq=noraman
 
  diiodomethane
 
