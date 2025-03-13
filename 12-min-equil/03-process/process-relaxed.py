@@ -27,18 +27,15 @@ mobley_9073553
 
 
 for index, prefix in enumerate(prefix_list):
-    if (
-        prefix
-        in "ParseFEP_2146331.log  ParseFEP_4434915.log  ParseFEP_6091882.log  ParseFEP_7015518.log  ParseFEP_8260524.log  ParseFEP_9029594.log  relaxed ParseFEP_4364398.log  ParseFEP_525934.log   ParseFEP_6474572.log  ParseFEP_7532833.log  ParseFEP_8983100.log"
-    ):
-        continue
 
-    print(index, prefix)
+    print(index, prefix, end=" ", flush=True)
 
-    subprocess.run(
-        ["xvfb-run", "vmd"],
-        input=f"parsefep -forward relaxed/{index}/mobley_{prefix}_{index}.fepout -backward relaxed/{index + len(prefix_list)}/mobley_{prefix}_{index + len(prefix_list)}.fepout -bar".encode(
-            "utf-8"
-        ),
-    )
-    os.system(f"mv ParseFEP.log ParseFEP_{prefix}.log")
+    # subprocess.run(
+    #     ["xvfb-run", "vmd"],
+    #     input=f"parsefep -forward relaxed/{index}/mobley_{prefix}_{index}.fepout -backward relaxed/{index + len(prefix_list)}/mobley_{prefix}_{index + len(prefix_list)}.fepout -bar".encode(
+    #         "utf-8"
+    #     ),
+    # )
+    # os.system(f"mv ParseFEP.log ParseFEP_{prefix}.log")
+
+    os.system(f"grep error ParseFEP_{prefix}.log")
