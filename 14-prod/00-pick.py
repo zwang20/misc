@@ -6,15 +6,13 @@ picks molecules that may be intresting from database.txt
 
 # pylint: disable=C0103,I1101,E1101
 import subprocess
+
 import rdkit.Chem  # type: ignore[import-untyped]
 import rdkit.Chem.Lipinski  # type: ignore[import-untyped]
 
-previous_files = (
-    subprocess.run(["ls", "batch"], capture_output=True, check=True)
-    .stdout.decode("utf-8")
-    .strip()
-    .split()
-)
+from common import get_previous_files
+
+previous_files = get_previous_files()
 
 skip_prefix_list = []
 
