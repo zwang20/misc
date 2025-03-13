@@ -22,7 +22,7 @@ for previous_file in previous_files:
     with open(f"batch/{previous_file}", encoding="utf-8") as f:
         for line in f:
             if line:
-                skip_prefix_list.append(line)
+                skip_prefix_list.append(line.strip())
 
 intresting_molecules: list[tuple[str, str, int, int]] = []
 
@@ -55,7 +55,7 @@ while True:
     if f"{i}.txt" in previous_files:
         i += 1
         continue
-    with open(f"{i}.txt", "w", encoding="utf-8") as f:
+    with open(f"batch/{i}.txt", "w", encoding="utf-8") as f:
         c = 0
         for prefix, iupac, _1, _2 in intresting_molecules:
             f.write(f"{prefix}\n")
