@@ -11,12 +11,18 @@ import subprocess
 
 from common import get_prefix_list, get_batch_number
 from common import tleap_template
+from common import generic_template
+from common import min_run, min_io
+from common import equil_run, equil_io
+from common import constraint_frozen
+from common import qsub_min_equil
 
 batch = get_batch_number()
 prefix_list = get_prefix_list(batch)
 
-for prefix in prefix_list:
-    print(prefix)
+for index, prefix in enumerate(prefix_list):
+    print(index, prefix)
+    index_1 = index + len(prefix_list)
 
     # 0. check for fake frequencies
     # os.system("grep ' Frequencies --' */*.log")
@@ -125,6 +131,11 @@ for prefix in prefix_list:
             check=True,
         )
 
+        # get size
+        with open(f"mobley_{prefix}.pdb", encoding="utf-8") as f:
+            x, y, z = map(float, f.readline().split(maxsplit=4)[1:4])
+            print(x, y, z)
+
         num_atoms = int(
             subprocess.run(
                 [f"cat mobley_{prefix}.pdb | grep ATOM | wc -l"],
@@ -146,7 +157,91 @@ for prefix in prefix_list:
         assert abs(high - low) > 1e-06, "Does not converge"
 
     subprocess.run(["rm", f"qm_{prefix}.mol2"], check=True)
-    os.makedirs(f"aa-prep/{batch}")
-    subprocess.run(["mv", f"mobley_{prefix}.inpcrd", f"aa-prep/{batch}/"], check=True)
-    subprocess.run(["mv", f"mobley_{prefix}.pdb", f"aa-prep/{batch}/"], check=True)
-    subprocess.run(["mv", f"mobley_{prefix}.prmtop", f"aa-prep/{batch}/"], check=True)
+    os.makedirs(f"aa-prep/{batch}/{index}", exist_ok=True)
+    os.makedirs(f"aa-prep/{batch}/{index_1}", exist_ok=True)
+    for suffix in ("inpcrd", "pdb", "prmtop"):
+        subprocess.run(
+            ["cp", f"mobley_{prefix}.{suffix}", f"aa-prep/{batch}/{index}/"], check=True
+        )
+        subprocess.run(
+            ["mv", f"mobley_{prefix}.{suffix}", f"aa-prep/{batch}/{index_1}/"],
+            check=True,
+        )
+
+    # write input files
+    # normal
+    with open(f"aa-prep/{batch}/{index}/min.namd", "w", encoding="utf-8") as f:
+        f.write(
+            generic_template.format(
+                io=min_io.format(prefix=prefix),
+                x=x,
+                y=y,
+                z=z,
+                run=min_run,
+                prefix=prefix,
+                margin=8.0,
+                constraints="",
+            )
+        )
+
+    with open(f"aa-prep/{batch}/{index}/equil.namd", "w", encoding="utf-8") as f:
+        f.write(
+            generic_template.format(
+                io=equil_io.format(prefix=prefix),
+                run=equil_run,
+                x=x,
+                y=y,
+                z=z,
+                prefix=prefix,
+                margin=8.0,
+                constraints="",
+            )
+        )
+
+    # frozen
+    with open(f"aa-prep/{batch}/{index_1}/min.namd", "w", encoding="utf-8") as f:
+        f.write(
+            generic_template.format(
+                io=min_io.format(prefix=prefix),
+                x=x,
+                y=y,
+                z=z,
+                run=min_run,
+                prefix=prefix,
+                margin=8.0,
+                constraints=constraint_frozen.format(prefix=prefix),
+            )
+        )
+
+    with open(f"aa-prep/{batch}/{index_1}/equil.namd", "w", encoding="utf-8") as f:
+        f.write(
+            generic_template.format(
+                io=equil_io.format(prefix=prefix),
+                run=equil_run,
+                x=x,
+                y=y,
+                z=z,
+                prefix=prefix,
+                margin=8.0,
+                constraints=constraint_frozen.format(prefix=prefix),
+            )
+        )
+
+# write qsub file
+with open(f"aa-prep/{batch}/{batch}.prep", "w", encoding="utf-8") as f:
+    f.write(qsub_min_equil.format(length=len(prefix_list) * 2 - 1))
+
+# copy files
+subprocess.run(
+    ["scp", "-r", f"aa-prep/{batch}", "kdm:/srv/scratch/z5358697/aa-prep/"], check=True
+)
+
+# qsub
+subprocess.run(
+    [
+        "ssh",
+        "katana",
+        f"{{ cd /srv/scratch/z5358697/aa-prep/{batch}; qsub {batch}.prep || qsub {batch}.prep ; }}",  # pylint: disable=C0301
+    ],
+    check=True,
+)
