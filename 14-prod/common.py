@@ -10,8 +10,8 @@ def get_previous_files():
     )
 
 
-def get_batch_number() -> int:
-    return int(get_previous_files()[-1].split(".")[0])
+def get_batch_number():
+    return get_previous_files()[-1].split(".")[0]
 
 
 def get_prefix_list(batch):
