@@ -93,6 +93,29 @@ langevinPistonTemp    $temperature
 exit
 """
 
+
+min_io = """
+coordinates         mobley_{prefix}.pdb
+outputName          mobley_{prefix}_min
+temperature 300
+"""
+
+equil_io = """
+coordinates         mobley_{prefix}.pdb
+bincoordinates      mobley_{prefix}_min.coor
+outputName          mobley_{prefix}_equil
+temperature 300
+"""
+
+prod_io = """
+coordinates         mobley_{prefix}.pdb
+bincoordinates      mobley_{prefix}_equil.coor
+binvelocities       mobley_{prefix}_equil.vel
+extendedsystem      mobley_{prefix}_equil.xsc
+outputName          mobley_{prefix}_prod
+"""
+
+
 min_run = """
 langevinTemp $temperature
 
@@ -107,18 +130,29 @@ foreach temp {30 60 90 120 150 180 210 240 270 300} dur {100000 100000 100000 10
 }
 """
 
-min_io = """
-coordinates         mobley_{prefix}.pdb
-outputName          mobley_{prefix}_min
-temperature 300
+prod_run = """
+langevinTemp $temperature
+
+source               fep.tcl
+
+alch                 on
+alchType             fep
+alchFile             mobley_{prefix}.pdb
+alchCol              B
+alchOutFreq          50
+alchOutFile          mobley_{prefix}_{mode}.fepout
+
+alchVdwLambdaEnd     1.0
+alchElecLambdaStart  0.5
+alchVdWShiftCoeff    5.0
+alchDecouple         ON
+
+alchEquilSteps       100000
+set nSteps           1500000
+
+runFEP         {start} {end} {step}      $nSteps
 """
 
-equil_io = """
-coordinates         mobley_{prefix}.pdb
-bincoordinates      mobley_{prefix}_min.coor
-outputName          mobley_{prefix}_equil
-temperature 300
-"""
 
 tleap_template = """
 source leaprc.gaff2
@@ -163,4 +197,42 @@ echo
 
 PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" min.namd > min.log
 PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" equil.namd > equil.log
+"""
+
+qsub_gpu = """#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=16
+#PBS -l ngpus=1
+#PBS -j oe
+#PBS -J {start}-{end}
+set -e
+
+cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+echo
+
+PATH="/srv/scratch/z5358697/namd_cuda:$PATH" namd3 "+p$(nproc)" prod.namd > prod.log
+"""
+
+qsub_frozen = """#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=16
+#PBS -l select=cputype=sapphirerapids
+#PBS -j oe
+#PBS -J {start}-{end}
+set -e
+
+cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+echo
+
+PATH="/srv/scratch/z5358697/namd_avx512:$PATH" namd3 "+p$(nproc)" prod.namd > prod.log
 """
