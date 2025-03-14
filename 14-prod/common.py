@@ -93,6 +93,12 @@ langevinPistonTemp    $temperature
 exit
 """
 
+min_run = """
+langevinTemp $temperature
+
+minimize 100000
+"""
+
 equil_run = """
 foreach temp {30 60 90 120 150 180 210 240 270 300} dur {100000 100000 100000 100000 100000 100000 100000 100000 100000 1000000} {
     print "Running $dur steps at $temp kelvin."
@@ -124,4 +130,37 @@ check mol
 savepdb mol mobley_{prefix}.pdb
 saveamberparm mol mobley_{prefix}.prmtop mobley_{prefix}.inpcrd
 quit
+"""
+
+constraint_frozen = """
+# CONSTRAINTS
+fixedAtoms          on
+fixedAtomsFile      mobley_{prefix}.pdb
+fixedAtomsCol       B
+"""
+
+constraint_gpu = """
+GPUresident on
+# GPUAtomMigration on
+GPUForceTable on
+"""
+
+qsub_min_equil = """#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=16
+#PBS -l select=cpuflags=avx512f
+#PBS -j oe
+#PBS -J 0-{length}
+set -e
+
+cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+echo
+
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" min.namd > min.log
+PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" equil.namd > equil.log
 """
