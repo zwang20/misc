@@ -25,6 +25,8 @@ def get_files():
     return output
 
 
+subprocess.run(['git', 'pull'], check=True)
+
 for filename in get_files():
     print(filename)
     subprocess.run(["git", "add", filename]).check_returncode()
