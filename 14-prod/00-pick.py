@@ -21,6 +21,11 @@ for previous_file in previous_files:
             if line:
                 skip_prefix_list.append(line.strip())
 
+with open('bad.txt', encoding='utf-8') as f:
+    for line in f:
+        if line.strip():
+            skip_prefix_list.append(line.split()[0])
+
 intresting_molecules: list[tuple[str, str, int, int]] = []
 
 with open("database.txt", encoding="utf-8") as f:
