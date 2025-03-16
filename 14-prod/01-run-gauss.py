@@ -76,7 +76,7 @@ for prefix, host in zip(prefix_list, itertools.cycle(hosts)):
         [
             "ssh",
             host,
-            f"{{ cd /srv/scratch/z5358697/gauss; module load gaussian/09-D.01; g09 < {prefix}.com > {prefix}.log || g09 < {prefix}.com > {prefix}.log; }}",  # pylint: disable=C0301
+            f"{{ cd /srv/scratch/z5358697/gauss; module load gaussian/09-D.01; g09 < {prefix}.com | tee {prefix}.log || g09 < {prefix}.com | tee {prefix}.log; }}",  # pylint: disable=C0301
         ],
         check=True,
     )
