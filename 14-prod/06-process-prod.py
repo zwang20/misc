@@ -57,8 +57,8 @@ for index, prefix in enumerate(prefix_list):
         check=True,
     )
 
-    relaxed_input = f"parsefep -forward ac-fep/{batch}/{index}/{prefix}_relaxed_forward.fepout -backward ac-fep/{batch}/{index}/{prefix}_relaxed_backward.fepout -bar"
-    frozen_input = f"parsefep -forward ac-fep/{batch}/{index}/{prefix}_frozen_forward.fepout -backward ac-fep/{batch}/{index}/{prefix}_frozen_backward.fepout -bar"
+    relaxed_input = f"parsefep -forward ac-fep/{batch}/{index}/{prefix}_relaxed_forward.fepout -backward ac-fep/{batch}/{index}/{prefix}_relaxed_backward.fepout -bar"  # pylint: disable=C0301
+    frozen_input = f"parsefep -forward ac-fep/{batch}/{index}/{prefix}_frozen_forward.fepout -backward ac-fep/{batch}/{index}/{prefix}_frozen_backward.fepout -bar"  # pylint: disable=C0301
 
     # calculate bar
     subprocess.run(
