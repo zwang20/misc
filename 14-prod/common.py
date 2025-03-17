@@ -200,7 +200,7 @@ PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" equil.namd > equil.lo
 """
 
 qsub_gpu = """#!/usr/bin/bash
-#PBS -l walltime=12:00:00
+#PBS -l walltime=6:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
 #PBS -l ngpus=1
@@ -219,7 +219,7 @@ PATH="/srv/scratch/z5358697/namd_cuda:$PATH" namd3 "+p$(nproc)" prod.namd > prod
 """
 
 qsub_frozen = """#!/usr/bin/bash
-#PBS -l walltime=12:00:00
+#PBS -l walltime=9:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
 #PBS -l select=cputype=sapphirerapids
