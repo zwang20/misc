@@ -19,7 +19,7 @@ from common import qsub_min_equil
 
 batch = get_batch_number()
 prefix_list = get_prefix_list(batch)
-
+print(batch)
 for index, prefix in enumerate(prefix_list):
     print(index, prefix)
     index_1 = index + len(prefix_list)
