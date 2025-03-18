@@ -9,9 +9,10 @@ processes results of production run
 import os
 import subprocess
 
-from common import get_prefix_list, get_batch_number
+# from common import get_batch_number
+from common import get_prefix_list
 
-batch = get_batch_number()
+batch = input("Batch number: ")
 prefix_list = get_prefix_list(batch)
 
 for index, prefix in enumerate(prefix_list):
