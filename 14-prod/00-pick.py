@@ -21,7 +21,7 @@ for previous_file in previous_files:
             if line:
                 skip_prefix_list.append(line.strip())
 
-with open('bad.txt', encoding='utf-8') as f:
+with open("bad.txt", encoding="utf-8") as f:
     for line in f:
         if line.strip():
             skip_prefix_list.append(line.split()[0])
@@ -42,9 +42,9 @@ with open("database.txt", encoding="utf-8") as f:
         iupac = line_list[2].strip()
 
         mol = rdkit.Chem.rdmolfiles.MolFromSmiles(smiles)
+        num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
         mol = rdkit.Chem.AddHs(mol)
         num_atoms = len(mol.GetAtoms())
-        num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
         intresting_molecules.append((prefix, iupac, num_atoms, num_rotatable_bonds))
 
 intresting_molecules.sort(key=lambda x: x[2] + x[3] * 10)
