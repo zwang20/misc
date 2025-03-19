@@ -10,13 +10,13 @@ runs prod
 import os
 import subprocess
 
-from common import get_prefix_list, get_batch_number
+from common import get_prefix_list
 from common import generic_template
 from common import prod_io, prod_run
 from common import constraint_frozen, constraint_gpu
 from common import qsub_frozen, qsub_gpu
 
-batch = get_batch_number()
+batch = input("Batch number:")
 prefix_list = get_prefix_list(batch)
 
 for index, prefix in enumerate(prefix_list):
