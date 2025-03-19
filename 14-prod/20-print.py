@@ -24,12 +24,15 @@ with open("database.txt", encoding="utf-8") as f:
             print(prefix, iupac)
             prefix_list.append(prefix)
 
+done_prefixes = []
+
 for i in range(1, 8):
     # print(f"{i:02}")
     with open(f"batch/{i:02}.txt", encoding="utf-8") as f:
         for index, line in enumerate(f):
             prefix = line.strip()
             if prefix in prefix_list:
+                done_prefixes.append(prefix)
                 iupac = (
                     subprocess.run(
                         ["grep", prefix, "database.txt"],
@@ -128,6 +131,7 @@ for i in range(1, 8):
                     frozen_forward,
                     frozen_backward,
                     frozen_bar,
-                    sep=';'
+                    sep=";",
                 )
-                # assert False
+
+print(set(prefix_list) - set(done_prefixes))
