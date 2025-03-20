@@ -180,7 +180,7 @@ GPUForceTable on
 """
 
 qsub_min_equil = """#!/usr/bin/bash
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
 #PBS -l select=cpuflags=avx512f
