@@ -49,7 +49,7 @@ with open("database.txt", encoding="utf-8") as f:
         num_atoms = len(mol.GetAtoms())
         intresting_molecules.append((prefix, iupac, num_atoms, num_rotatable_bonds))
 
-intresting_molecules.sort(key=lambda x: x[2] + x[3] * 10)
+intresting_molecules.sort(key=lambda x: x[2] + x[3] * 100)
 
 length = len(intresting_molecules)
 print(length, "molecules found")
