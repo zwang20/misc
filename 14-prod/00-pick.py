@@ -43,6 +43,8 @@ with open("database.txt", encoding="utf-8") as f:
 
         mol = rdkit.Chem.rdmolfiles.MolFromSmiles(smiles)
         num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
+        if num_rotatable_bonds:
+            continue
         mol = rdkit.Chem.AddHs(mol)
         num_atoms = len(mol.GetAtoms())
         intresting_molecules.append((prefix, iupac, num_atoms, num_rotatable_bonds))
