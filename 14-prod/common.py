@@ -222,12 +222,13 @@ qsub_frozen = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
-#PBS -l select=cpuflags=avx512_vpopcntdq
+#PBS -l select=cputype=sapphirerapids
 #PBS -j oe
 #PBS -J {start}-{end}
 set -e
 
-#select=cputype=sapphirerapids
+# skylake is really not fast enough
+# even with 12 hour walltime
 
 cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
 
