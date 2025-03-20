@@ -1,13 +1,13 @@
 #!/usr/bin/bash
-#PBS -l walltime=9:00:00
+#PBS -l walltime=12:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
 #PBS -l select=cputype=sapphirerapids
 #PBS -j oe
-#PBS -J 20-39
+##PBS -J 21
 set -e
 
-cd "${PBS_O_WORKDIR}/${PBS_ARRAY_INDEX}"
+cd "${PBS_O_WORKDIR}/21"
 
 echo hostname "$(hostname)"
 echo nproc "$(nproc)"
