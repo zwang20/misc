@@ -18,15 +18,20 @@ with open("database.txt", encoding="utf-8") as f:
         iupac = line_list[2].strip()
 
         mol = rdkit.Chem.rdmolfiles.MolFromSmiles(smiles)
-        num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
+        # num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
+        mol = rdkit.Chem.AddHs(mol)
+        num_rotatable_bonds = rdkit.Chem.rdMolDescriptors.CalcNumRotatableBonds(
+            mol, strict=0
+        )
 
         if num_rotatable_bonds == 0:
             print(prefix, iupac)
             prefix_list.append(prefix)
-
+print(len(prefix_list))
+assert False
 done_prefixes = []
 
-for i in range(1, 8):
+for i in range(1, 12):
     # print(f"{i:02}")
     with open(f"batch/{i:02}.txt", encoding="utf-8") as f:
         for index, line in enumerate(f):
@@ -127,10 +132,16 @@ for i in range(1, 8):
                     iupac,
                     relaxed_forward,
                     relaxed_backward,
+                    "",
+                    "",
                     relaxed_bar,
+                    "",
                     frozen_forward,
                     frozen_backward,
+                    "",
+                    "",
                     frozen_bar,
+                    "",
                     sep=";",
                 )
 
