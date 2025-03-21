@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+plt.rcParams.update({"font.size": 16})
 data = """
 -1.416159876	-1.313915917
 -3.698046307	-2.927024945
@@ -73,8 +74,8 @@ plt.scatter(
     marker="x",
 )
 plt.axis("square")
-plt.title("Figure 7: Relaxed vs Frozen Hydration Free Energy")
-plt.xlabel("Relaxed Hydration Free Energy (kcal/mol)")
-plt.ylabel("Frozen Hydration Free Energy (kcal/mol)")
+plt.title("Figure 8: Relaxed vs Frozen $\Delta G_{solv}$")
+plt.xlabel("Relaxed $\\Delta G_{solv}$ (kcal/mol)\n")
+plt.ylabel("Frozen $\\Delta G_{solv}$ (kcal/mol)")
 plt.legend()
 plt.show()
