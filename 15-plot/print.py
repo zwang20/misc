@@ -34,3 +34,16 @@ with open("database.txt", encoding="utf-8") as f:
 
         if num_atoms >= 40:
             print(num_rotatable_bonds, num_atoms, prefix, iupac)
+
+"""
+
+mostly herbicides
+6 40 1944394 [2-benzhydryloxyethyl]-dimethyl-amine
+7 40 2501588 profluralin
+8 40 2518989 dialifor
+8 42 2725215 nitralin
+3 44 5282042 Amitriptyline
+7 40 5393242 diazinon
+12 41 7754849 ethion
+
+"""
