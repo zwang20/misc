@@ -21,14 +21,14 @@ with open("database.txt", encoding="utf-8") as f:
         # num_rotatable_bonds = rdkit.Chem.Lipinski.NumRotatableBonds(mol)
         mol = rdkit.Chem.AddHs(mol)
         num_rotatable_bonds = rdkit.Chem.rdMolDescriptors.CalcNumRotatableBonds(
-            mol, strict=0
+            mol, strict=True
         )
 
         if num_rotatable_bonds == 0:
             print(prefix, iupac)
             prefix_list.append(prefix)
 print(len(prefix_list))
-assert False
+# assert False
 done_prefixes = []
 
 for i in range(1, 12):
@@ -126,6 +126,24 @@ for i in range(1, 12):
                     .stdout.decode("utf-8")
                     .split()[6]
                 )
+                mobley = (
+                    subprocess.run(
+                        ["grep", prefix, "database.txt"],
+                        capture_output=True,
+                        check=True,
+                    )
+                    .stdout.decode("utf-8")
+                    .split("; ")[5]
+                )
+                e = (
+                    subprocess.run(
+                        ["grep", prefix, "database.txt"],
+                        capture_output=True,
+                        check=True,
+                    )
+                    .stdout.decode("utf-8")
+                    .split("; ")[3]
+                )
                 print(
                     i,
                     prefix,
@@ -141,7 +159,8 @@ for i in range(1, 12):
                     "",
                     "",
                     frozen_bar,
-                    "",
+                    mobley,
+                    e,
                     sep=";",
                 )
 
