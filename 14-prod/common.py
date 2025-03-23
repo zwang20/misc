@@ -148,14 +148,15 @@ alchVdWShiftCoeff    5.0
 alchDecouple         ON
 
 alchEquilSteps       100000
-set nSteps           1500000
+# set nSteps           1500000
+set nSteps           2500000
 
-runFEP         {start} {end} {step}      $nSteps
+runFEP         {start:.2f} {end:.2f} {step:.2f}      $nSteps
 """
 
 
 tleap_template = """
-source leaprc.gaff2
+source leaprc.gaff
 source leaprc.water.tip3p
 mol = loadMol2 qm_{prefix}.mol2
 check mol
@@ -215,20 +216,17 @@ echo nproc "$(nproc)"
 lscpu | grep "Model name"
 echo
 
-PATH="/srv/scratch/z5358697/namd_cuda:$PATH" namd3 "+p$(nproc)" prod.namd > prod.log
+/srv/scratch/z5358697/namd_cuda/namd3 "+p$(nproc)" prod.namd > prod.log
 """
 
 qsub_frozen = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=1Gb
 #PBS -l ncpus=16
-#PBS -l select=cputype=sapphirerapids
+#PBS -l select=cpuflags=avx512_vpopcntdq
 #PBS -j oe
 #PBS -J {start}-{end}
 set -e
-
-# skylake is really not fast enough
-# even with 12 hour walltime
 
 cd "${{PBS_O_WORKDIR}}/${{PBS_ARRAY_INDEX}}"
 
@@ -237,5 +235,5 @@ echo nproc "$(nproc)"
 lscpu | grep "Model name"
 echo
 
-PATH="/srv/scratch/z5358697/namd_avx512:$PATH" namd3 "+p$(nproc)" prod.namd > prod.log
+/srv/scratch/z5358697/namd_avx512/namd3 "+p$(nproc)" prod.namd > prod.log
 """
