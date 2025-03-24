@@ -25,7 +25,6 @@ for index, prefix in enumerate(prefix_list):
     index_1 = index + len(prefix_list)
 
     # 0. check for fake frequencies
-    # os.system("grep ' Frequencies --' */*.log")
     assert (
         subprocess.run(
             ["grep ' Frequencies --' */*.log | grep '  -'"], shell=True, check=False
@@ -227,21 +226,21 @@ for index, prefix in enumerate(prefix_list):
             )
         )
 
-# write qsub file
-with open(f"aa-prep/{batch}/{batch}.prep", "w", encoding="utf-8") as f:
-    f.write(qsub_min_equil.format(length=len(prefix_list) * 2 - 1))
-
-# copy files
-subprocess.run(
-    ["scp", "-r", f"aa-prep/{batch}", "kdm:/srv/scratch/z5358697/aa-prep/"], check=True
-)
-
-# qsub
-subprocess.run(
-    [
-        "ssh",
-        "katana",
-        f"{{ cd /srv/scratch/z5358697/aa-prep/{batch}; qsub {batch}.prep || qsub {batch}.prep ; }}",  # pylint: disable=C0301
-    ],
-    check=True,
-)
+# # write qsub file
+# with open(f"aa-prep/{batch}/{batch}.prep", "w", encoding="utf-8") as f:
+#     f.write(qsub_min_equil.format(length=len(prefix_list) * 2 - 1))
+#
+# # copy files
+# subprocess.run(
+#     ["scp", "-r", f"aa-prep/{batch}", "kdm:/srv/scratch/z5358697/aa-prep/"], check=True
+# )
+#
+# # qsub
+# subprocess.run(
+#     [
+#         "ssh",
+#         "katana",
+#         f"{{ cd /srv/scratch/z5358697/aa-prep/{batch}; qsub {batch}.prep || qsub {batch}.prep ; }}",  # pylint: disable=C0301
+#     ],
+#     check=True,
+# )
