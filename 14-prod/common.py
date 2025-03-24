@@ -196,8 +196,8 @@ echo nproc "$(nproc)"
 lscpu | grep "Model name"
 echo
 
-PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" min.namd > min.log
-PATH="/srv/scratch/z5358697/namd:$PATH" namd3 "+p$(nproc)" equil.namd > equil.log
+/srv/scratch/${{USER}}/.namd/namd3 "+p$(nproc)" min.namd > min.log
+/srv/scratch/${{USER}}/.namd/namd3 "+p$(nproc)" equil.namd > equil.log
 """
 
 qsub_gpu = """#!/usr/bin/bash
@@ -216,7 +216,7 @@ echo nproc "$(nproc)"
 lscpu | grep "Model name"
 echo
 
-/srv/scratch/z5358697/namd_cuda/namd3 "+p$(nproc)" prod.namd > prod.log
+/srv/scratch/${{USER}}/namd_cuda/namd3 "+p$(nproc)" prod.namd > prod.log
 """
 
 qsub_frozen = """#!/usr/bin/bash
@@ -235,5 +235,5 @@ echo nproc "$(nproc)"
 lscpu | grep "Model name"
 echo
 
-/srv/scratch/z5358697/namd_avx512/namd3 "+p$(nproc)" prod.namd > prod.log
+/srv/scratch/${{USER}}/namd_avx512/namd3 "+p$(nproc)" prod.namd > prod.log
 """
