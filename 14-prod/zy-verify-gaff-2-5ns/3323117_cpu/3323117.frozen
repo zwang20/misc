@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=16
+#PBS -l select=cpuflags=avx512_vpopcntdq
+#PBS -j oe
+#PBS -J 40-79
+set -e
+
+cd "${PBS_O_WORKDIR}/${PBS_ARRAY_INDEX}"
+
+echo hostname "$(hostname)"
+echo nproc "$(nproc)"
+lscpu | grep "Model name"
+echo
+
+/srv/scratch/z5358697/namd_avx512/namd3 "+p$(nproc)" prod.namd > prod.log
