@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+#PBS -l walltime=02:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=1
+#PBS -l select=cpuflags=avx512f
+#PBS -j oe
+set -e
+
+lscpu
+
+cd "${{PBS_O_WORKDIR}}"
+
+/srv/scratch/${{USER}}/.namd/namd3 "+p$(nproc)" f.namd > f.log
