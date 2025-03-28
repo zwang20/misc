@@ -1,0 +1,101 @@
+
+
+coordinates         mobley_6239320.pdb
+bincoordinates      mobley_6239320_equil.coor
+binvelocities       mobley_6239320_equil.vel
+extendedsystem      mobley_6239320_equil.xsc
+outputName          mobley_6239320_prod
+
+
+set temperature     300  ;# target temperature used several times below
+
+restartfreq         100000     ;# 1000 steps = every 1ps
+dcdfreq             100000
+
+outputEnergies      100000       ;# 100 steps = every 0.2 ps
+outputpressure      100000
+XSTFreq             100000
+
+# Force-Field Parameters
+amber               on
+parmfile            mobley_6239320.prmtop
+
+
+# system dimensions
+cellBasisVector1                34.207     0.000   0.000
+cellBasisVector2                0.000   35.847     0.000
+cellBasisVector3                0.000   0.000   36.199
+cellOrigin                      0.000   0.000   0.000
+
+wrapAll             on
+wrapWater           on
+
+# PME (for full-system periodic electrostatics)
+PME                 yes
+PMEGridSpacing      1.0
+
+# These are specified by AMBER
+readexclusions      yes      # from Sergey?
+exclude             scaled1-4
+1-4scaling          0.833333   # for Amber
+scnb                2.0     # for Amber
+cutoff              9.0
+switching           off
+switchdist          8.0     # from Sergey mdin_namd
+pairlistdist        11.0    # from Sergey mdin_namd
+
+stepspercycle       10   ;# redo pairlists every ten steps
+margin              2.0
+
+# Integrator Parameters
+timestep            2.0  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1    ;# nonbonded forces every step
+fullElectFrequency  2    ;# PME only every other step
+
+# Constant Temperature Control
+langevin            on            ;# langevin dynamics
+langevinDamping     1.0            ;# damping coefficient of 1/ps
+
+# Constant Pressure Control (variable volume)
+useGroupPressure      yes ;# needed for rigidBonds
+useFlexibleCell       no
+useConstantArea       no
+
+langevinPiston        on
+langevinPistonTarget  1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod  50.0
+langevinPistonDecay   25.0
+langevinPistonTemp    $temperature
+
+
+GPUresident on
+# GPUAtomMigration on
+GPUForceTable on
+
+
+
+langevinTemp $temperature
+
+source               fep.tcl
+
+alch                 on
+alchType             fep
+alchFile             mobley_6239320.pdb
+alchCol              B
+alchOutFreq          50
+alchOutFile          mobley_6239320_9.fepout
+
+alchVdwLambdaEnd     1.0
+alchElecLambdaStart  0.5
+alchVdWShiftCoeff    5.0
+alchDecouple         ON
+
+alchEquilSteps       100000
+# set nSteps           1500000
+set nSteps           2500000
+
+runFEP         0.45 0.50 0.05      $nSteps
+
+
+exit
