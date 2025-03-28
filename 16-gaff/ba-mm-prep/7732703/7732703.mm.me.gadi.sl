@@ -1,0 +1,24 @@
+#!/usr/bin/bash
+#PBS -l walltime=48:00:00
+#PBS -l ncpus=1
+#PBS -l mem=4Gb
+#PBS -j oe
+#PBS -P cw7
+#PBS -q normalsl
+#PBS -l storage=scratch/cw7
+#PBS -l wd
+
+# https://opus.nci.org.au/spaces/Help/pages/236880320
+
+set -e
+
+lscpu
+
+#module load openmpi
+#module load namd/3.0
+
+#mpirun -np $PBS_NCPUS namd3 min.namd > min.log
+#mpirun -np $PBS_NCPUS namd3 equil.namd > equil.log
+
+/scratch/cw7/mw7780/namd/namd3 min.namd > min.log
+/scratch/cw7/mw7780/namd/namd3 equil.namd > equil.log
