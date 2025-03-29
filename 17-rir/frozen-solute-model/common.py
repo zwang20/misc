@@ -211,8 +211,8 @@ lscpu
 #mpirun -np $PBS_NCPUS namd3 min.namd > min.log
 #mpirun -np $PBS_NCPUS namd3 equil.namd > equil.log
 
-/scratch/cw7/mw7780/namd/namd3 "+p$(nproc)" min.namd > min.log
-/scratch/cw7/mw7780/namd/namd3 "+p$(nproc)" equil.namd > equil.log
+/scratch/cw7/mw7780/namd/namd3 +p "$PBS_NCPUS" min.namd > min.log
+/scratch/cw7/mw7780/namd/namd3 +p "$PBS_NCPUS" equil.namd > equil.log
 """
 
 katana_gpu_batch = """#!/usr/bin/bash
