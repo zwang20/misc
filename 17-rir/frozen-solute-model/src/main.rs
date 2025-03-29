@@ -42,6 +42,26 @@ struct QuantumMechanicsType {
 // rsync -r data/16/ gadi:/scratch/cw7/mw7780/.automated/16/
 // UPDATE runs SET status = 'Running' WHERE local_path = 16;
 
+// INSERT INTO runs VALUES ('mobley_1075836', 'RelaxedMinEquilGAFF', 'Received', 21, 'gadi', '/scratch/cw7/mw7780/.automated/21/');
+// python prep.py mobley_1075836 21 gadi
+// rsync -r data/21/ gadi:/scratch/cw7/mw7780/.automated/21/
+// UPDATE runs SET status = 'Running' WHERE local_path = 21;
+
+// INSERT INTO runs VALUES ('mobley_4193752', 'RelaxedMinEquilGAFF', 'Received', 33, 'gadi', '/scratch/cw7/mw7780/.automated/33/');
+// python prep.py mobley_4193752 33 gadi
+// rsync -r data/33/ gadi:/scratch/cw7/mw7780/.automated/33/
+// UPDATE runs SET status = 'Running' WHERE local_path = 33;
+
+// INSERT INTO runs VALUES ('mobley_1903702', 'RelaxedMinEquilGAFF', 'Received', 310, 'gadi', '/scratch/cw7/mw7780/.automated/310/');
+// python prep.py mobley_1903702 310 gadi
+// rsync -r data/310/ gadi:/scratch/cw7/mw7780/.automated/310/
+// UPDATE runs SET status = 'Running' WHERE local_path = 310;
+
+// INSERT INTO runs VALUES ('mobley_5816127', 'RelaxedMinEquilGAFF', 'Received', 302, 'gadi', '/scratch/cw7/mw7780/.automated/302/');
+// python prep.py mobley_5816127 302 gadi
+// rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
+// UPDATE runs SET status = 'Running' WHERE local_path = 302;
+
 // Deleting entries
 // DELETE FROM runs WHERE local_path=13;
 
@@ -252,84 +272,91 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match &run.status {
             StatusType::Planned => 'match_status: {
                 planned += 1;
-                // just do katana for now
+                match &run.run_type {
+                    MolecularDynamicsRunType::RelaxedMinEquilGAFF => {
+                        // just do katana for now
 
-                if run.remote_host == RemoteHostType::localhost {
-                    if katana_queue_length < 3 {
-                        let output = connection.execute(
-                            // TODO: do something other than katana
-                            &format!(
-                                "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
-                                run.local_path, run.local_path
-                            ),
-                            [],
+                        if run.remote_host == RemoteHostType::localhost {
+                            if katana_queue_length < 5 {
+                                let output = connection.execute(
+                                    // TODO: do something other than katana
+                                    &format!(
+                                        "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                        run.local_path, run.local_path
+                                    ),
+                                    [],
+                                );
+                                println!("pick remote host {:?}", output);
+                                katana_queue_length += 1;
+
+                                break 'match_status;
+                            } else {
+                                println!("katana busy, skipping");
+                                break 'match_status;
+                            }
+                        }
+
+                        let output = std::process::Command::new("python")
+                            .arg("prep.py")
+                            .arg(&run.compound_id)
+                            .arg(run.local_path.to_string())
+                            .output();
+                        println!("python prep.py {:?}", output);
+                        if output.is_err() {
+                            break 'match_status;
+                        } else if !output?.status.success() {
+                            break 'match_status;
+                        }
+
+                        let output = std::process::Command::new("rsync")
+                            .arg("-r")
+                            .arg(format!("data/{}/", run.local_path))
+                            .arg(format!("{:?}:{}", run.remote_host, run.remote_path))
+                            .output();
+                        println!("rsync copy to server {:?}", output);
+                        if output.is_err() {
+                            break 'match_status;
+                        } else if !output?.status.success() {
+                            break 'match_status;
+                        }
+
+                        let output = std::process::Command::new("ssh")
+                            .arg(format!("{:?}", run.remote_host))
+                            .arg(format!("cd {}; qsub {}", run.remote_path, run.local_path))
+                            .output();
+                        println!("ssh start remote job {:?}", output);
+                        if output.is_err() {
+                            break 'match_status;
+                        }
+
+                        println!(
+                            "{:?}",
+                            update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-                        println!("pick remote host {:?}", output);
-
                         katana_queue_length += 1;
-                        break 'match_status;
-                    } else {
-                        println!("katana busy, skipping");
-                        break 'match_status;
                     }
+                    _ => {}
                 }
-
-                let output = std::process::Command::new("python")
-                    .arg("prep.py")
-                    .arg(&run.compound_id)
-                    .arg(run.local_path.to_string())
-                    .output();
-                println!("python prep.py {:?}", output);
-                if output.is_err() {
-                    break 'match_status;
-                } else if !output?.status.success() {
-                    break 'match_status;
-                }
-
-                let output = std::process::Command::new("rsync")
-                    .arg("-r")
-                    .arg(format!("data/{}/", run.local_path))
-                    .arg(format!("{:?}:{}", run.remote_host, run.remote_path))
-                    .output();
-                println!("rsync copy to server {:?}", output);
-                if output.is_err() {
-                    break 'match_status;
-                } else if !output?.status.success() {
-                    break 'match_status;
-                }
-
-                let output = std::process::Command::new("ssh")
-                    .arg(format!("{:?}", run.remote_host))
-                    .arg(format!("cd {}; qsub {}", run.remote_path, run.local_path))
-                    .output();
-                println!("ssh start remote job {:?}", output);
-                if output.is_err() {
-                    break 'match_status;
-                }
-
-                println!(
-                    "{:?}",
-                    update_run_status(run.local_path, StatusType::Running, &connection)
-                )
             }
             StatusType::Running => {
                 if !jobs.iter().any(|name| name == &run.local_path) {
                     receive_files(run, &connection);
                 }
             }
-            StatusType::Received => {}
+            StatusType::Received => match &run.run_type {
+                MolecularDynamicsRunType::RelaxedMinEquilGAFF => {}
+                _ => {}
+            }
             StatusType::Finished => {}
         }
     }
 
-    // jobs are running, no need to do anything
-    // TODO: check queue status
-    if planned != 0 {
+
+    if planned >= 5 {
         return Ok(());
     }
-
-    println!("No planned jobs, generating");
-    for _ in 0..3 {
+    println!("Generating Jobs");
+    for _ in 0..(5 - planned) {
         let mut statement = connection
             .prepare("SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs) ORDER BY rotatable_bonds ASC, num_atoms ASC")?;
         let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
