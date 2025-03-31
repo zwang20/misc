@@ -481,20 +481,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     MolecularDynamicsRunType::RelaxedForwardGAFF => {
                         if run.remote_host == RemoteHostType::localhost {
                             if katana_queue_length < 1 {
-                                // connection.execute(
-                                //     &format!(
-                                //         "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
-                                //         run.local_path, run.local_path
-                                //     ),
-                                //     [],
-                                // )?;
                                 connection.execute(
                                     &format!(
-                                        "UPDATE runs SET remote_path = '/home/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                        "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
                                         run.local_path, run.local_path
                                     ),
                                     [],
                                 )?;
+                                // connection.execute(
+                                //     &format!(
+                                //         "UPDATE runs SET remote_path = '/home/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                //         run.local_path, run.local_path
+                                //     ),
+                                //     [],
+                                // )?;
                                 katana_queue_length += 1;
                             } else if setonix_queue_length < 1 {
                                 connection.execute(
