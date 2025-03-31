@@ -63,7 +63,7 @@ struct QuantumMechanicsType {
 // UPDATE runs SET status = 'Running' WHERE local_path = 302;
 
 // Deleting entries
-// DELETE FROM runs WHERE local_path=13;
+// DELETE FROM runs WHERE local_path=-1;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct Molecule {
@@ -129,6 +129,17 @@ struct GadiJob {
     job_state: char,
 }
 
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+enum SetonixJobState {
+    PENDING,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct SetonixJob {
+    name: String,
+    job_state: SetonixJobState,
+}
+
 fn update_run_status(
     local_path: u16,
     new_status: StatusType,
@@ -173,9 +184,74 @@ fn receive_files(
     }
 }
 
+fn submit_job(
+    Run {
+        compound_id: _,
+        run_type: _,
+        status,
+        local_path,
+        remote_host,
+        remote_path,
+    }: &Run,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!(
+        "submit job {}, {:?}, {}",
+        local_path, remote_host, remote_path
+    );
+
+    if status != &StatusType::Planned {
+        println!("invalid status {:?}", status);
+        Err("Invalid status")?
+    }
+
+    match remote_host {
+        RemoteHostType::localhost => Err("invalid target localhost")?,
+        RemoteHostType::setonix => run_program(vec![
+            "ssh",
+            &format!("{:?}", remote_host),
+            &format!("cd {}; sbatch {}", remote_path, local_path),
+        ]),
+        RemoteHostType::katana | RemoteHostType::gadi => run_program(vec![
+            "ssh",
+            &format!("{:?}", remote_host),
+            &format!("cd {}; qsub {}", remote_path, local_path),
+        ]),
+    }?;
+
+    Ok(())
+}
+
+fn copy(source: &str, dest: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("copying from {} to {}", source, dest);
+    std::fs::copy(source, dest)?;
+    Ok(())
+}
+
+fn create_dir_if(dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+    println!("creating directory if not exists {}", dir);
+    if !std::path::Path::new(&dir).exists() {
+        std::fs::create_dir(dir)?;
+    }
+    Ok(())
+}
+
+fn run_program(args: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
+    println!("running program with args {:?}", args);
+    let mut args = args.into_iter();
+    let mut process = std::process::Command::new(args.next().ok_or("No command found")?);
+    for arg in args {
+        process.arg(arg);
+    }
+    let output = process.output()?;
+    println!("{:#?}", output);
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err("program exit unsuccessful")?
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("Sleeping for 30");
-    std::thread::sleep(std::time::Duration::from_secs(30));
     println!("Loading database");
     let connection = rusqlite::Connection::open("frozen_solute_model.db")?;
     let mut statement = connection.prepare("SELECT * FROM molecules")?;
@@ -189,6 +265,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for run in runs {
         run?;
     }
+
+    let modified = std::fs::metadata("server/gadi.json")?
+        .modified()?
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)?
+        + std::time::Duration::from_secs(30);
+    let now = std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH)?;
+
+    if modified < now {
+        println!("File Older than 30 Seconds, Not sleeping")
+    } else {
+        let sleep = modified - now;
+        println!("Sleeping for {:?}", sleep);
+        std::thread::sleep(sleep);
+    }
+
+    // assert!(false);
+    // println!("Sleeping for 30");
+    // std::thread::sleep(std::time::Duration::from_secs(30));
 
     println!("Getting run data");
     let mut jobs: Vec<u16> = vec![];
@@ -219,11 +313,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(output?.status.success());
 
         jobs.append(
-            &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
+                "server/katana.json",
+            )?)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
     }
 
@@ -248,21 +344,72 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(output?.status.success());
 
         jobs.append(
-            &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string("server/gadi.json")?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
+            &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
+                "server/gadi.json",
+            )?)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
+        );
+    }
+
+    // setonix
+    {
+        println!("Updating setonix");
+        let setonix_raw_json = std::fs::File::create("server/setonix_raw.json")?;
+        let output = std::process::Command::new("ssh")
+            .arg("setonix")
+            .arg("squeue --user mwang1 --json")
+            .stdout(setonix_raw_json)
+            .output();
+        assert!(output.is_ok(), "{output:?}");
+        assert!(output?.status.success());
+        let setonix = std::fs::File::create("server/setonix.json")?;
+        let output = std::process::Command::new("jq")
+            .arg("[.jobs[] | {name: .name, job_state: .job_state[0]}]")
+            .arg("server/setonix_raw.json")
+            .stdout(setonix)
+            .output();
+        assert!(output.is_ok(), "{output:?}");
+        assert!(output?.status.success());
+
+        jobs.append(
+            &mut serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string(
+                "server/setonix.json",
+            )?)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
         );
     }
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
+    assert!(jobs.len() <= 10);
 
-    let mut katana_queue_length: u8 = serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?).unwrap_or_default().into_iter().fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
-    let mut gadi_queue_length: u8 = serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string("server/gadi.json")?).unwrap_or_default().into_iter().fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
+    let mut katana_queue_length: u8 =
+        serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
+    let mut gadi_queue_length: u8 =
+        serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string("server/gadi.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
+    let mut setonix_queue_length: u8 =
+        serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string("server/setonix.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| {
+                acc + (x.job_state == SetonixJobState::PENDING) as u8
+            });
+
     gadi_queue_length += 0;
     println!("gadi queue length: {}", gadi_queue_length);
+    println!("setonix queue length: {}", setonix_queue_length);
 
     let mut planned: u8 = 0;
     let mut statement = connection.prepare("SELECT * FROM runs")?;
@@ -277,7 +424,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // just do katana for now
 
                         if run.remote_host == RemoteHostType::localhost {
-                            if katana_queue_length < 5 {
+                            if katana_queue_length < 3 {
                                 let output = connection.execute(
                                     // TODO: do something other than katana
                                     &format!(
@@ -300,11 +447,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .arg("prep.py")
                             .arg(&run.compound_id)
                             .arg(run.local_path.to_string())
-                            .output();
+                            .output()?;
                         println!("python prep.py {:?}", output);
-                        if output.is_err() {
-                            break 'match_status;
-                        } else if !output?.status.success() {
+                        if !output.status.success() {
                             break 'match_status;
                         }
 
@@ -312,20 +457,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .arg("-r")
                             .arg(format!("data/{}/", run.local_path))
                             .arg(format!("{:?}:{}", run.remote_host, run.remote_path))
-                            .output();
+                            .output()?;
                         println!("rsync copy to server {:?}", output);
-                        if output.is_err() {
-                            break 'match_status;
-                        } else if !output?.status.success() {
+                        if !output.status.success() {
                             break 'match_status;
                         }
 
                         let output = std::process::Command::new("ssh")
                             .arg(format!("{:?}", run.remote_host))
                             .arg(format!("cd {}; qsub {}", run.remote_path, run.local_path))
-                            .output();
+                            .output()?;
                         println!("ssh start remote job {:?}", output);
-                        if output.is_err() {
+                        if !output.status.success() {
                             break 'match_status;
                         }
 
@@ -334,6 +477,87 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
                         katana_queue_length += 1;
+                    }
+                    MolecularDynamicsRunType::RelaxedForwardGAFF => {
+                        if run.remote_host == RemoteHostType::localhost {
+                            if katana_queue_length < 1 {
+                                // connection.execute(
+                                //     &format!(
+                                //         "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                //         run.local_path, run.local_path
+                                //     ),
+                                //     [],
+                                // )?;
+                                connection.execute(
+                                    &format!(
+                                        "UPDATE runs SET remote_path = '/home/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                        run.local_path, run.local_path
+                                    ),
+                                    [],
+                                )?;
+                                katana_queue_length += 1;
+                            } else if setonix_queue_length < 1 {
+                                connection.execute(
+                                    &format!(
+                                        "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
+                                        run.local_path, run.local_path
+                                    ),
+                                    [],
+                                )?;
+                                setonix_queue_length += 1;
+                            }
+                            break 'match_status;
+                        }
+
+                        let mut statement = connection.prepare(&format!("SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'RelaxedMinEquilGAFF'", run.compound_id))?;
+                        let min_equil_path = serde_rusqlite::from_rows::<Run>(statement.query([])?)
+                            .next()
+                            .ok_or("No prep found")??
+                            .local_path;
+
+                        create_dir_if(&format!("data/{}", run.local_path))?;
+
+                        for suffix in [".prmtop", ".pdb", "_equil.coor", "_equil.vel", "_equil.xsc"]
+                        {
+                            let source =
+                                format!("data/{}/{}{}", min_equil_path, run.compound_id, suffix);
+                            let dest =
+                                format!("data/{}/{}{}", run.local_path, run.compound_id, suffix);
+                            copy(&source, &dest)?;
+                        }
+
+                        copy("fep.tcl", &format!("data/{}/fep.tcl", run.local_path))?;
+
+                        // run prod script
+                        run_program(vec![
+                            "python",
+                            "prod.forward.py",
+                            &run.compound_id,
+                            &run.local_path.to_string(),
+                        ])?;
+
+                        // copy to server
+                        run_program(vec![
+                            "rsync",
+                            "-r",
+                            &format!("data/{}/", run.local_path),
+                            &format!("{:?}:{}", run.remote_host, run.remote_path),
+                        ])?;
+
+                        // start remote job
+                        submit_job(&run)?;
+
+                        println!(
+                            "{:?}",
+                            update_run_status(run.local_path, StatusType::Running, &connection)
+                        );
+
+                        match run.remote_host {
+                            RemoteHostType::localhost => {}
+                            RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::gadi => gadi_queue_length += 1,
+                            RemoteHostType::setonix => setonix_queue_length += 1,
+                        }
                     }
                     _ => {}
                 }
@@ -346,25 +570,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             StatusType::Received => match &run.run_type {
                 MolecularDynamicsRunType::RelaxedMinEquilGAFF => {}
                 _ => {}
-            }
+            },
             StatusType::Finished => {}
         }
     }
 
-
-    if planned >= 5 {
+    if planned >= 1 {
         return Ok(());
     }
     println!("Generating Jobs");
-    for _ in 0..(5 - planned) {
-        let mut statement = connection
-            .prepare("SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs) ORDER BY rotatable_bonds ASC, num_atoms ASC")?;
-        let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-            .next()
-            .ok_or("All done!")??;
-        println!("{:?}", molecule);
-        connection
-            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, MolecularDynamicsRunType::RelaxedMinEquilGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
-    }
+    // for _ in 0..(5 - planned) {
+    //     let mut statement = connection
+    //         .prepare("SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs) ORDER BY rotatable_bonds ASC, num_atoms ASC")?;
+    //     let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+    //         .next()
+    //         .ok_or("All done!")??;
+    //     println!("{:?}", molecule);
+    //     connection
+    //         .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, MolecularDynamicsRunType::RelaxedMinEquilGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+    // }
+
+    // Find compound_id where RelaxedMinEquilGAFF has been run but not RelaxedForwardGAFF
+    // SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
+    // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
+    // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF');
+    let mut statement = connection.prepare("\
+        SELECT * FROM molecules \
+        WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
+        AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF' AND status == 'Received') \
+        ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 5\
+    ")?;
+    let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+        .next()
+        .ok_or("All done!")??;
+    println!("{:?}", molecule);
+    connection
+            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, MolecularDynamicsRunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
     Ok(())
 }
