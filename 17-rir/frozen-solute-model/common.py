@@ -116,7 +116,7 @@ alchType             fep
 alchFile             {mobley_id}.pdb
 alchCol              B
 alchOutFreq          50
-alchOutFile          {mobley_id}_{mode}.fepout
+alchOutFile          {mode}.fepout
 
 alchVdwLambdaEnd     1.0
 alchElecLambdaStart  0.5
@@ -215,6 +215,32 @@ lscpu
 /scratch/cw7/mw7780/namd/namd3 +p "$PBS_NCPUS" equil.namd > equil.log
 """
 
+katana_gpu = """#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -j oe
+set -e
+
+lscpu
+
+cd "${{PBS_O_WORKDIR}}"
+
+/srv/scratch/${{USER}}/.namd_cuda/namd3 "+p$(nproc)" prod.namd > prod.log
+"""
+
+setonix_prod = """#!/usr/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=2G
+#SBATCH --time=24:00:00
+
+set -e
+
+/scratch/pawsey0265/mwang1/.namd_avx512 +p16 prod.namd > prod.log
+"""
 katana_gpu_batch = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=1Gb
