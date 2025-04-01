@@ -99,7 +99,7 @@ enum RemoteHostType {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-enum MolecularDynamicsRunType {
+enum RunType {
     RelaxedMinEquilGAFF,
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
@@ -109,7 +109,7 @@ enum MolecularDynamicsRunType {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct Run {
     compound_id: String,
-    run_type: MolecularDynamicsRunType,
+    run_type: RunType,
     status: StatusType,
     local_path: u16,
     remote_host: RemoteHostType,
@@ -447,7 +447,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 match &run.run_type {
-                    MolecularDynamicsRunType::RelaxedMinEquilGAFF => {
+                    RunType::RelaxedMinEquilGAFF => {
                         let output = std::process::Command::new("python")
                             .arg("prep.py")
                             .arg(&run.compound_id)
@@ -483,8 +483,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         katana_queue_length += 1;
                     }
-                    MolecularDynamicsRunType::RelaxedForwardGAFF
-                    | MolecularDynamicsRunType::RelaxedReversedGAFF => {
+                    RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
                         let mut statement = connection.prepare(&format!(
                             "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'RelaxedMinEquilGAFF'",
                             run.compound_id,
@@ -509,13 +508,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         // run prod script
                         match &run.run_type {
-                            MolecularDynamicsRunType::RelaxedForwardGAFF => run_program(vec![
+                            RunType::RelaxedForwardGAFF => run_program(vec![
                                 "python",
                                 "prod.forward.py",
                                 &run.compound_id,
                                 &run.local_path.to_string(),
                             ])?,
-                            MolecularDynamicsRunType::RelaxedReversedGAFF => run_program(vec![
+                            RunType::RelaxedReversedGAFF => run_program(vec![
                                 "python",
                                 "prod.reversed.py",
                                 &run.compound_id,
@@ -547,7 +546,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
-                    MolecularDynamicsRunType::CREST => {
+                    RunType::CREST => {
                         // TODO: do something
                     }
                 }
@@ -558,7 +557,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             StatusType::Received => match &run.run_type {
-                MolecularDynamicsRunType::RelaxedMinEquilGAFF => {}
+                RunType::RelaxedMinEquilGAFF => {}
                 _ => {}
             },
             StatusType::Finished => {}
@@ -577,7 +576,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         .ok_or("All done!")??;
     //     println!("{:?}", molecule);
     //     connection
-    //         .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, MolecularDynamicsRunType::RelaxedMinEquilGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+    //         .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedMinEquilGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
     // }
 
     // Find compound_id where RelaxedMinEquilGAFF has been run but not RelaxedForwardGAFF
@@ -599,7 +598,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         Ok(molecule) => {
             connection
-            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule?.compound_id, MolecularDynamicsRunType::RelaxedReversedGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule?.compound_id, RunType::RelaxedReversedGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
         }
         Err(_) => {}
     }
@@ -615,6 +614,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("All done!")??;
     println!("{:?}", molecule);
     connection
-            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, MolecularDynamicsRunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
     Ok(())
 }
