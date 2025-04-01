@@ -62,6 +62,11 @@ struct QuantumMechanicsType {
 // rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
 // UPDATE runs SET status = 'Running' WHERE local_path = 302;
 
+// INSERT INTO runs VALUES ('mobley_1929982', 'CREST', 'Running', 303, 'katana', '/srv/scratch/z5358697/.automated/303');
+// python prep.py mobley_5816127 302 gadi
+// rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
+// UPDATE runs SET status = 'Running' WHERE local_path = 302;
+
 // Deleting entries
 // DELETE FROM runs WHERE local_path=-1;
 
@@ -384,7 +389,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
-    assert!(jobs.len() < 10);
+    // assert!(jobs.len() < 10);
 
     let mut katana_queue_length: u8 =
         serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
@@ -548,6 +553,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     RunType::CREST => {
                         // TODO: do something
+                        todo!()
                     }
                 }
             }
@@ -568,21 +574,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
     println!("Generating Jobs");
-    // for _ in 0..(5 - planned) {
-    //     let mut statement = connection
-    //         .prepare("SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs) ORDER BY rotatable_bonds ASC, num_atoms ASC")?;
-    //     let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-    //         .next()
-    //         .ok_or("All done!")??;
-    //     println!("{:?}", molecule);
-    //     connection
-    //         .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedMinEquilGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
-    // }
 
-    // Find compound_id where RelaxedMinEquilGAFF has been run but not RelaxedForwardGAFF
-    // SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
-    // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
-    // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF');
+    let mut statement = connection.prepare(
+        "\
+            SELECT * FROM molecules \
+            WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+            ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1\
+        ",
+    )?;
+
+    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+        .next()
+        .ok_or(())
+    {
+        Ok(molecule) => {
+            let query = format!(
+                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                molecule?.compound_id,
+                RunType::CREST,
+                StatusType::Planned,
+                RemoteHostType::localhost,
+                "/dev/null/"
+            );
+            println!("{}", query);
+            connection.execute(&query, [])?;
+        }
+        Err(_) => {}
+    }
 
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
@@ -597,8 +615,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or(())
     {
         Ok(molecule) => {
-            connection
-            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule?.compound_id, RunType::RelaxedReversedGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+            let query = format!(
+                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                molecule?.compound_id,
+                RunType::RelaxedReversedGAFF,
+                StatusType::Planned,
+                RemoteHostType::localhost,
+                "/dev/null/"
+            );
+            println!("{}", query);
+            connection.execute(&query, [])?;
         }
         Err(_) => {}
     }
