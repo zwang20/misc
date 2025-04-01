@@ -67,6 +67,19 @@ struct QuantumMechanicsType {
 // rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
 // UPDATE runs SET status = 'Running' WHERE local_path = 302;
 
+// SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1;
+// SELECT MIN(local_path + 1) FROM runs WHERE (local_path + 1) NOT IN (SELECT local_path FROM runs);
+
+// INSERT INTO runs VALUES ('mobley_664966', 'CREST', 'Received', 701, 'localhost', '/data/michael/misc/17-rir/frozen-solute-model/data/701/');
+// mkdir -p data/701
+// python mol2-to-xyz.py FreeSolv/mol2files_gaff/mobley_664966.mol2 data/701/mobley_664966.xyz
+// crest mobley_664966.xyz --alpb water --chrg 0 --uhf 0 -T 4 --noreftopo > crest.log
+
+// INSERT INTO runs VALUES ('mobley_676247', 'CREST', 'Received', 304, 'localhost', '/data/michael/misc/17-rir/frozen-solute-model/data/304/');
+// mkdir -p data/304
+// python mol2-to-xyz.py FreeSolv/mol2files_gaff/mobley_676247.mol2 data/304/mobley_676247.xyz
+// crest mobley_676247.xyz --alpb water --chrg 0 --uhf 0 -T 4 --noreftopo > crest.log
+
 // Deleting entries
 // DELETE FROM runs WHERE local_path=-1;
 
@@ -99,11 +112,13 @@ enum StatusType {
 enum RemoteHostType {
     localhost,
     katana,
+    katana2,
     gadi,
     setonix,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[allow(clippy::upper_case_acronyms)]
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum RunType {
     RelaxedMinEquilGAFF,
     RelaxedForwardGAFF,
@@ -135,6 +150,7 @@ struct GadiJob {
     job_state: char,
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum SetonixJobState {
     PENDING,
@@ -217,11 +233,13 @@ fn submit_job(
             &format!("{:?}", remote_host),
             &format!("cd {}; sbatch {}", remote_path, local_path),
         ]),
-        RemoteHostType::katana | RemoteHostType::gadi => run_program(vec![
-            "ssh",
-            &format!("{:?}", remote_host),
-            &format!("cd {}; qsub {}", remote_path, local_path),
-        ]),
+        RemoteHostType::katana | RemoteHostType::katana2 | RemoteHostType::gadi => {
+            run_program(vec![
+                "ssh",
+                &format!("{:?}", remote_host),
+                &format!("cd {}; qsub {}", remote_path, local_path),
+            ])
+        }
     }?;
 
     Ok(())
@@ -291,7 +309,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // katana
     {
-        println!("Updating Katana");
+        println!("Updating katana");
         let katana_raw_json = std::fs::File::create("server/katana_raw.json")?;
         let output = std::process::Command::new("ssh")
             .arg("katana")
@@ -302,10 +320,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(output?.status.success());
         let katana_json = std::fs::File::create("server/katana.json")?;
         let output = std::process::Command::new("jq")
-            .arg("[.Jobs | to_entries[] | select((.value.Job_Owner | startswith(\"z5358697\")) or (.value.Job_Owner | startswith(\"z5382435\"))) | .value]")
+            .arg("[.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"z5358697\")) | .value]")
             .arg("server/katana_raw.json")
             .stdout(katana_json)
             .output();
+        assert!(output.is_ok(), "{output:?}");
+        assert!(output?.status.success());
+        let katana2_json = std::fs::File::create("server/katana2.json")?;
+        let output = std::process::Command::new("jq")
+        .arg("[.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"z5382435\")) | .value]")
+        .arg("server/katana_raw.json")
+        .stdout(katana2_json)
+        .output();
         assert!(output.is_ok(), "{output:?}");
         assert!(output?.status.success());
         let output = std::process::Command::new("rm")
@@ -313,6 +339,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .output();
         assert!(output.is_ok(), "{output:?}");
         assert!(output?.status.success());
+
+        jobs.append(
+            &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
+                "server/katana2.json",
+            )?)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
+        );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
@@ -396,6 +432,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or_default()
             .into_iter()
             .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
+    let mut katana2_queue_length: u8 =
+        serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana2.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
     let mut gadi_queue_length: u8 =
         serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string("server/gadi.json")?)
             .unwrap_or_default()
@@ -409,7 +450,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 acc + (x.job_state == SetonixJobState::PENDING) as u8
             });
 
-    gadi_queue_length += 0;
+    println!("katana queue length: {}", katana_queue_length);
+    println!("katana2 queue length: {}", katana2_queue_length);
     println!("gadi queue length: {}", gadi_queue_length);
     println!("setonix queue length: {}", setonix_queue_length);
 
@@ -423,7 +465,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 planned += 1;
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if katana_queue_length < 3 {
+                    if katana_queue_length < 5 {
                         let output = connection.execute(
                             // TODO: do something other than katana
                             &format!(
@@ -434,6 +476,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
+                    } else if (katana2_queue_length < 2)
+                        && ((run.run_type == RunType::RelaxedForwardGAFF)
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                    {
+                        let query = format!(
+                            "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
+                            run.local_path, run.local_path
+                        );
+                        connection.execute(
+                            // TODO: do something other than katana
+                            &query,
+                            [],
+                        )?;
+                        println!("pick remote host {:?}", query);
+                        katana2_queue_length += 1;
                     }
                     /*else if setonix_queue_length < 0 {
                         connection.execute(
@@ -547,6 +604,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         match run.remote_host {
                             RemoteHostType::localhost => {}
                             RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_queue_length += 1,
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -588,6 +646,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         match run.remote_host {
                             RemoteHostType::localhost => {}
                             RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_queue_length += 1,
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -607,41 +666,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    if planned >= 3 {
+    if planned > 3 {
         return Ok(());
     }
     println!("Generating Jobs");
 
-    let mut statement = connection.prepare(
-        "\
-            SELECT * FROM molecules \
-            WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
-            ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1\
-        ",
-    )?;
-
-    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-        .next()
-        .ok_or(())
-    {
-        Ok(molecule) => {
-            let query = format!(
-                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
-                molecule?.compound_id,
-                RunType::CREST,
-                StatusType::Planned,
-                RemoteHostType::localhost,
-                "/dev/null/"
-            );
-            println!("{}", query);
-            connection.execute(&query, [])?;
-        }
-        Err(_) => {}
-    }
-
-    if planned >= 2 {
-        return Ok(());
-    }
+    // let mut statement = connection.prepare(
+    //     "\
+    //         SELECT * FROM molecules \
+    //         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+    //         ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
+    //     ",
+    // )?;
+    //
+    // match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+    //     .next()
+    //     .ok_or(())
+    // {
+    //     Ok(molecule) => {
+    //         let query = format!(
+    //             "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+    //             molecule?.compound_id,
+    //             RunType::CREST,
+    //             StatusType::Planned,
+    //             RemoteHostType::localhost,
+    //             "/dev/null/"
+    //         );
+    //         println!("{}", query);
+    //         connection.execute(&query, [])?;
+    //     }
+    //     Err(_) => {}
+    // }
 
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
@@ -668,10 +723,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             connection.execute(&query, [])?;
         }
         Err(_) => {}
-    }
-
-    if planned >= 1 {
-        return Ok(());
     }
 
     let mut statement = connection.prepare("\
