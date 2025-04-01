@@ -277,7 +277,7 @@ fn run_program(args: Vec<&str>) -> Result<(), Box<dyn std::error::Error>> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Loading database");
-    let connection = rusqlite::Connection::open("frozen_solute_model.db")?;
+    let connection = rusqlite::Connection::open("frozen_solute_model_new.db")?;
     let mut statement = connection.prepare("SELECT * FROM molecules")?;
     let molecules = serde_rusqlite::from_rows::<Molecule>(statement.query([])?);
     for molecule in molecules {
