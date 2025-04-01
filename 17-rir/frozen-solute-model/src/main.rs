@@ -328,10 +328,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         assert!(output?.status.success());
         let katana2_json = std::fs::File::create("server/katana2.json")?;
         let output = std::process::Command::new("jq")
-        .arg("[.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"z5382435\")) | .value]")
-        .arg("server/katana_raw.json")
-        .stdout(katana2_json)
-        .output();
+            .arg("[.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"z5382435\")) | .value]")
+            .arg("server/katana_raw.json")
+            .stdout(katana2_json)
+            .output();
         assert!(output.is_ok(), "{output:?}");
         assert!(output?.status.success());
         let output = std::process::Command::new("rm")
@@ -344,20 +344,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
     }
 
@@ -385,10 +385,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name.parse::<u16>().unwrap())
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name.parse::<u16>().unwrap())
+                .collect::<Vec<u16>>(),
         );
     }
 
@@ -416,10 +416,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string(
                 "server/setonix.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.name.parse::<u16>().unwrap())
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.name.parse::<u16>().unwrap())
+                .collect::<Vec<u16>>(),
         );
     }
 
@@ -465,9 +465,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 planned += 1;
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if katana_queue_length < 5 {
+                    if (katana_queue_length < 6) && (run.run_type == RunType::CREST) {
                         let output = connection.execute(
-                            // TODO: do something other than katana
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
                                 run.local_path, run.local_path
@@ -476,9 +475,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
-                    } else if (katana2_queue_length < 2)
+                    } else if katana_queue_length < 3 {
+                        let output = connection.execute(
+                            &format!(
+                                "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                run.local_path, run.local_path
+                            ),
+                            [],
+                        );
+                        println!("pick remote host {:?}", output);
+                        katana_queue_length += 1;
+                    } else if (katana2_queue_length < 3)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -666,37 +675,37 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    if planned > 3 {
+    if planned > 10 {
         return Ok(());
     }
     println!("Generating Jobs");
 
-    // let mut statement = connection.prepare(
-    //     "\
-    //         SELECT * FROM molecules \
-    //         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
-    //         ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
-    //     ",
-    // )?;
-    //
-    // match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-    //     .next()
-    //     .ok_or(())
-    // {
-    //     Ok(molecule) => {
-    //         let query = format!(
-    //             "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
-    //             molecule?.compound_id,
-    //             RunType::CREST,
-    //             StatusType::Planned,
-    //             RemoteHostType::localhost,
-    //             "/dev/null/"
-    //         );
-    //         println!("{}", query);
-    //         connection.execute(&query, [])?;
-    //     }
-    //     Err(_) => {}
-    // }
+    let mut statement = connection.prepare(
+        "\
+            SELECT * FROM molecules \
+            WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+            ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
+        ",
+    )?;
+
+    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+        .next()
+        .ok_or(())
+    {
+        Ok(molecule) => {
+            let query = format!(
+                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                molecule?.compound_id,
+                RunType::CREST,
+                StatusType::Planned,
+                RemoteHostType::localhost,
+                "/dev/null/"
+            );
+            println!("{}", query);
+            connection.execute(&query, [])?;
+        }
+        Err(_) => {}
+    }
 
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
@@ -736,6 +745,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("All done!")??;
     println!("{:?}", molecule);
     connection
-            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+        .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
     Ok(())
 }
