@@ -242,11 +242,12 @@ set -e
 /scratch/pawsey0265/mwang1/.namd_avx512 +p16 prod.namd > prod.log
 """
 
+# select=cputype=sapphirerapids
 katana_crest = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=16Gb
 #PBS -l ncpus=16
-#PBS -l select=cputype=sapphirerapids
+#PBS -l select=cpuflags=avx512_vpopcntdq
 #PBS -j oe
 set -e
 
