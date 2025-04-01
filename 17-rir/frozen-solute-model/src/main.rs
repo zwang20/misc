@@ -455,14 +455,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("gadi queue length: {}", gadi_queue_length);
     println!("setonix queue length: {}", setonix_queue_length);
 
-    let mut planned: u8 = 0;
+    let mut planned_cpu: u8 = 0;
+    let mut planned_gpu: u8 = 0;
     let mut statement = connection.prepare("SELECT * FROM runs")?;
     let runs = serde_rusqlite::from_rows::<Run>(statement.query([])?);
     for run in runs {
         let run = run?;
         match &run.status {
             StatusType::Planned => 'match_status: {
-                planned += 1;
+                match &run.run_type {
+                    RunType::CREST | RunType::RelaxedMinEquilGAFF => {
+                        planned_cpu += 1;
+                    }
+                    RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
+                        planned_gpu += 1;
+                    }
+                }
 
                 if run.remote_host == RemoteHostType::localhost {
                     if (katana_queue_length <= 7) && (run.run_type == RunType::CREST) {
@@ -684,40 +692,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    if planned > 10 {
-        return Ok(());
-    }
     println!("Generating Jobs");
 
-    for _ in 0..6 {
-        let mut statement = connection.prepare(
-            "\
+    if planned_cpu < 10 {
+        for _ in 0..10 {
+            let mut statement = connection.prepare(
+                "\
             SELECT * FROM molecules \
             WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
             ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
         ",
-        )?;
+            )?;
 
-        match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-            .next()
-            .ok_or(())
-        {
-            Ok(molecule) => {
-                let query = format!(
-                    "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
-                    molecule?.compound_id,
-                    RunType::CREST,
-                    StatusType::Planned,
-                    RemoteHostType::localhost,
-                    "/dev/null/"
-                );
-                println!("{}", query);
-                connection.execute(&query, [])?;
+            match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+                .next()
+                .ok_or(())
+            {
+                Ok(molecule) => {
+                    let query = format!(
+                        "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                        molecule?.compound_id,
+                        RunType::CREST,
+                        StatusType::Planned,
+                        RemoteHostType::localhost,
+                        "/dev/null/"
+                    );
+                    println!("{}", query);
+                    connection.execute(&query, [])?;
+                }
+                Err(_) => {}
             }
-            Err(_) => {}
         }
     }
 
+    if planned_gpu > 10 {
+        return Ok(());
+    }
 
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
