@@ -465,7 +465,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 planned += 1;
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if (katana_queue_length < 6) && (run.run_type == RunType::CREST) {
+                    if (katana_queue_length <= 7) && (run.run_type == RunType::CREST) {
                         let output = connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
@@ -475,7 +475,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
-                    } else if katana_queue_length < 3 {
+                    } else if katana_queue_length <= 3 {
                         let output = connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
@@ -485,7 +485,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
-                    } else if (katana2_queue_length < 3)
+                    } else if (katana2_queue_length <= 3)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
                         || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
@@ -494,11 +494,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             run.local_path, run.local_path
                         );
                         connection.execute(
-                            // TODO: do something other than katana
                             &query,
                             [],
                         )?;
                         println!("pick remote host {:?}", query);
+                        katana2_queue_length += 1;
+                    } else if (katana2_queue_length <= 7) && (run.run_type == RunType::CREST) {
+                        let output = connection.execute(
+                            &format!(
+                                "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
+                                run.local_path, run.local_path
+                            ),
+                            [],
+                        );
+                        println!("pick remote host {:?}", output);
                         katana2_queue_length += 1;
                     }
                     /*else if setonix_queue_length < 0 {
@@ -680,32 +689,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("Generating Jobs");
 
-    let mut statement = connection.prepare(
-        "\
+    for _ in 0..6 {
+        let mut statement = connection.prepare(
+            "\
             SELECT * FROM molecules \
             WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
             ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
         ",
-    )?;
+        )?;
 
-    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-        .next()
-        .ok_or(())
-    {
-        Ok(molecule) => {
-            let query = format!(
-                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
-                molecule?.compound_id,
-                RunType::CREST,
-                StatusType::Planned,
-                RemoteHostType::localhost,
-                "/dev/null/"
-            );
-            println!("{}", query);
-            connection.execute(&query, [])?;
+        match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+            .next()
+            .ok_or(())
+        {
+            Ok(molecule) => {
+                let query = format!(
+                    "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                    molecule?.compound_id,
+                    RunType::CREST,
+                    StatusType::Planned,
+                    RemoteHostType::localhost,
+                    "/dev/null/"
+                );
+                println!("{}", query);
+                connection.execute(&query, [])?;
+            }
+            Err(_) => {}
         }
-        Err(_) => {}
     }
+
 
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
