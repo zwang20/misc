@@ -124,6 +124,7 @@ enum RunType {
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
     CREST,
+    CENSO,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -344,20 +345,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
     }
 
@@ -385,10 +386,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
         );
     }
 
@@ -416,10 +417,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string(
                 "server/setonix.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
         );
     }
 
@@ -464,7 +465,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match &run.status {
             StatusType::Planned => 'match_status: {
                 match &run.run_type {
-                    RunType::CREST | RunType::RelaxedMinEquilGAFF => {
+                    RunType::CREST | RunType::CENSO | RunType::RelaxedMinEquilGAFF => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -473,7 +474,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if (katana_queue_length <= 7) && (run.run_type == RunType::CREST) {
+                    if (katana_queue_length <= 7)
+                        && ((run.run_type == RunType::CREST) || (run.run_type == RunType::CENSO))
+                    {
                         let output = connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
@@ -495,16 +498,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_queue_length += 1;
                     } else if (katana2_queue_length <= 3)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
                             run.local_path, run.local_path
                         );
-                        connection.execute(
-                            &query,
-                            [],
-                        )?;
+                        connection.execute(&query, [])?;
                         println!("pick remote host {:?}", query);
                         katana2_queue_length += 1;
                     } else if (katana2_queue_length <= 7) && (run.run_type == RunType::CREST) {
@@ -636,8 +636,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     RunType::CREST => {
-                        // TODO: do something
-
                         create_dir_if(&format!("data/{}", run.local_path))?;
 
                         run_program(vec![
@@ -652,6 +650,52 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "crest.py",
                             &format!("data/{}/{}", run.local_path, run.local_path),
                             &run.compound_id,
+                        ])?;
+
+                        run_program(vec![
+                            "rsync",
+                            "-r",
+                            &format!("data/{}/", run.local_path),
+                            &format!("{:?}:{}", run.remote_host, run.remote_path),
+                        ])?;
+
+                        // start remote job
+                        submit_job(&run)?;
+
+                        println!(
+                            "{:?}",
+                            update_run_status(run.local_path, StatusType::Running, &connection)
+                        );
+
+                        match run.remote_host {
+                            RemoteHostType::localhost => {}
+                            RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::gadi => gadi_queue_length += 1,
+                            RemoteHostType::setonix => setonix_queue_length += 1,
+                        }
+                    }
+                    RunType::CENSO => {
+                        create_dir_if(&format!("data/{}", run.local_path))?;
+
+                        let mut statement = connection.prepare(&format!(
+                            "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'CREST'",
+                            run.compound_id,
+                        ))?;
+                        let crest_path = serde_rusqlite::from_rows::<Run>(statement.query([])?)
+                            .next()
+                            .ok_or("No prep found")??
+                            .local_path;
+
+                        copy(
+                            &format!("data/{}/crest_conformers.xyz", crest_path),
+                            &format!("data/{}/crest_conformers.xyz", run.local_path),
+                        )?;
+
+                        run_program(vec![
+                            "python",
+                            "censo.py",
+                            &format!("data/{}/{}", run.local_path, run.local_path),
                         ])?;
 
                         run_program(vec![
@@ -695,13 +739,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Generating Jobs");
 
     if planned_cpu < 10 {
-        for _ in 0..10 {
+        {
             let mut statement = connection.prepare(
                 "\
-            SELECT * FROM molecules \
-            WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
-            ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
-        ",
+                    SELECT * FROM molecules \
+                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+                    ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
+                ",
             )?;
 
             match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
@@ -723,9 +767,40 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
+        {
+            let mut statement = connection.prepare(
+                "\
+                    SELECT * FROM molecules \
+                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CENSO') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
+                    ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
+                ",
+            )?;
+
+            match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+                .next()
+                .ok_or(())
+            {
+                Ok(molecule) => {
+                    let query = format!(
+                        "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                        molecule?.compound_id,
+                        RunType::CENSO,
+                        StatusType::Planned,
+                        RemoteHostType::localhost,
+                        "/dev/null/"
+                    );
+                    println!("{}", query);
+                    connection.execute(&query, [])?;
+                }
+                Err(_) => {}
+            }
+        }
     }
 
-    if planned_gpu > 10 {
+    if planned_gpu > 4 {
         return Ok(());
     }
 
