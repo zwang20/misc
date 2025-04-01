@@ -103,6 +103,7 @@ enum MolecularDynamicsRunType {
     RelaxedMinEquilGAFF,
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
+    CREST,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -280,10 +281,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         std::thread::sleep(sleep);
     }
 
-    // assert!(false);
-    // println!("Sleeping for 30");
-    // std::thread::sleep(std::time::Duration::from_secs(30));
-
     println!("Getting run data");
     let mut jobs: Vec<u16> = vec![];
 
@@ -387,7 +384,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
-    assert!(jobs.len() <= 10);
+    assert!(jobs.len() < 10);
 
     let mut katana_queue_length: u8 =
         serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
@@ -419,30 +416,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match &run.status {
             StatusType::Planned => 'match_status: {
                 planned += 1;
+
+                if run.remote_host == RemoteHostType::localhost {
+                    if katana_queue_length < 3 {
+                        let output = connection.execute(
+                            // TODO: do something other than katana
+                            &format!(
+                                "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
+                                run.local_path, run.local_path
+                            ),
+                            [],
+                        );
+                        println!("pick remote host {:?}", output);
+                        katana_queue_length += 1;
+                    }
+                    /*else if setonix_queue_length < 0 {
+                        connection.execute(
+                            &format!(
+                                "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
+                                run.local_path, run.local_path
+                            ),
+                            [],
+                        )?;
+                        setonix_queue_length += 1;
+                    } */
+                    else {
+                        println!("all queues busy, skipping");
+                    }
+                    break 'match_status;
+                }
+
                 match &run.run_type {
                     MolecularDynamicsRunType::RelaxedMinEquilGAFF => {
-                        // just do katana for now
-
-                        if run.remote_host == RemoteHostType::localhost {
-                            if katana_queue_length < 3 {
-                                let output = connection.execute(
-                                    // TODO: do something other than katana
-                                    &format!(
-                                        "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
-                                        run.local_path, run.local_path
-                                    ),
-                                    [],
-                                );
-                                println!("pick remote host {:?}", output);
-                                katana_queue_length += 1;
-
-                                break 'match_status;
-                            } else {
-                                println!("katana busy, skipping");
-                                break 'match_status;
-                            }
-                        }
-
                         let output = std::process::Command::new("python")
                             .arg("prep.py")
                             .arg(&run.compound_id)
@@ -478,38 +483,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         katana_queue_length += 1;
                     }
-                    MolecularDynamicsRunType::RelaxedForwardGAFF => {
-                        if run.remote_host == RemoteHostType::localhost {
-                            if katana_queue_length < 1 {
-                                connection.execute(
-                                    &format!(
-                                        "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
-                                        run.local_path, run.local_path
-                                    ),
-                                    [],
-                                )?;
-                                // connection.execute(
-                                //     &format!(
-                                //         "UPDATE runs SET remote_path = '/home/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
-                                //         run.local_path, run.local_path
-                                //     ),
-                                //     [],
-                                // )?;
-                                katana_queue_length += 1;
-                            } else if setonix_queue_length < 1 {
-                                connection.execute(
-                                    &format!(
-                                        "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
-                                        run.local_path, run.local_path
-                                    ),
-                                    [],
-                                )?;
-                                setonix_queue_length += 1;
-                            }
-                            break 'match_status;
-                        }
-
-                        let mut statement = connection.prepare(&format!("SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'RelaxedMinEquilGAFF'", run.compound_id))?;
+                    MolecularDynamicsRunType::RelaxedForwardGAFF
+                    | MolecularDynamicsRunType::RelaxedReversedGAFF => {
+                        let mut statement = connection.prepare(&format!(
+                            "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'RelaxedMinEquilGAFF'",
+                            run.compound_id,
+                        ))?;
                         let min_equil_path = serde_rusqlite::from_rows::<Run>(statement.query([])?)
                             .next()
                             .ok_or("No prep found")??
@@ -529,12 +508,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         copy("fep.tcl", &format!("data/{}/fep.tcl", run.local_path))?;
 
                         // run prod script
-                        run_program(vec![
-                            "python",
-                            "prod.forward.py",
-                            &run.compound_id,
-                            &run.local_path.to_string(),
-                        ])?;
+                        match &run.run_type {
+                            MolecularDynamicsRunType::RelaxedForwardGAFF => run_program(vec![
+                                "python",
+                                "prod.forward.py",
+                                &run.compound_id,
+                                &run.local_path.to_string(),
+                            ])?,
+                            MolecularDynamicsRunType::RelaxedReversedGAFF => run_program(vec![
+                                "python",
+                                "prod.reversed.py",
+                                &run.compound_id,
+                                &run.local_path.to_string(),
+                            ])?,
+                            _ => panic!(),
+                        }
 
                         // copy to server
                         run_program(vec![
@@ -559,7 +547,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
-                    _ => {}
+                    MolecularDynamicsRunType::CREST => {
+                        // TODO: do something
+                    }
                 }
             }
             StatusType::Running => {
@@ -594,6 +584,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
     // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF');
     // SELECT COUNT(*) FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF') AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF');
+
+    let mut statement = connection.prepare("\
+        SELECT * FROM molecules \
+        WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
+        AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
+        AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF' AND status == 'Received') \
+        ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1\
+    ")?;
+
+    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+        .next()
+        .ok_or(())
+    {
+        Ok(molecule) => {
+            connection
+            .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule?.compound_id, MolecularDynamicsRunType::RelaxedReversedGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+        }
+        Err(_) => {}
+    }
+
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
