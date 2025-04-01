@@ -256,7 +256,7 @@ cd "${{PBS_O_WORKDIR}}"
 
 module add crest
 
-crest {mobley_id}.xyz --alpb water --chrg 0 --uhf 0 -T 16 > crest.log
+crest {mobley_id}.xyz --alpb water --chrg 0 --uhf 0 -T 16 --noreftopo > crest.log
 """
 
 katana_gpu_batch = """#!/usr/bin/bash
