@@ -553,7 +553,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     RunType::CREST => {
                         // TODO: do something
-                        todo!()
+
+                        create_dir_if(&format!("data/{}", run.local_path))?;
+
+                        run_program(vec![
+                            "python",
+                            "mol2-to-xyz.py",
+                            &format!("FreeSolv/mol2files_gaff/{}.mol2", run.compound_id),
+                            &format!("data/{}/{}.xyz", run.local_path, run.compound_id),
+                        ])?;
+
+                        run_program(vec![
+                            "python",
+                            "crest.py",
+                            &format!("data/{}/{}", run.local_path, run.local_path),
+                            &run.compound_id,
+                        ])?;
+
+                        run_program(vec![
+                            "rsync",
+                            "-r",
+                            &format!("data/{}/", run.local_path),
+                            &format!("{:?}:{}", run.remote_host, run.remote_path),
+                        ])?;
+
+                        // start remote job
+                        submit_job(&run)?;
+
+                        println!(
+                            "{:?}",
+                            update_run_status(run.local_path, StatusType::Running, &connection)
+                        );
+
+                        match run.remote_host {
+                            RemoteHostType::localhost => {}
+                            RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::gadi => gadi_queue_length += 1,
+                            RemoteHostType::setonix => setonix_queue_length += 1,
+                        }
                     }
                 }
             }
@@ -570,7 +607,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    if planned >= 1 {
+    if planned >= 3 {
         return Ok(());
     }
     println!("Generating Jobs");
@@ -602,6 +639,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(_) => {}
     }
 
+    if planned >= 2 {
+        return Ok(());
+    }
+
     let mut statement = connection.prepare("\
         SELECT * FROM molecules \
         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
@@ -627,6 +668,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             connection.execute(&query, [])?;
         }
         Err(_) => {}
+    }
+
+    if planned >= 1 {
+        return Ok(());
     }
 
     let mut statement = connection.prepare("\
