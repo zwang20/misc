@@ -20,7 +20,7 @@ with (
     while not (input_line := input_file.readline().strip()).startswith("@<TRIPOS>BOND"):
         line = input_line.split()
         x, y, z = map(float, line[2:5])
-        output_line = f"{re.sub(r'\d+$', '', line[1]).strip(): <2}    {x: 2f}    {y: 2f}    {z: 2f}\n"
+        output_line = f"{re.sub(r'\d+$', '', line[1]).strip(): <2} {x: > 12.6f} {y: > 12.6f} {z: > 12.6f}\n"
         assert len(output_line) == 42, (output_line, len(output_line))
         output_file.write(output_line)
         atom_count += 1
