@@ -273,9 +273,10 @@ lscpu
 cd "${{PBS_O_WORKDIR}}"
 
 module add crest
-module add censo
+module add openmpi
 
-censo -inp crest_conformers.xyz -chrg 1 -u 0 -P 4 -O 4 > censo.log
+yes | /srv/scratch/${{USER}}/.censo/bin/censo --cleanup_all
+/srv/scratch/${{USER}}/.censo/bin/censo -i crest_conformers.xyz --maxcores 4 -O 4 > censo.log
 """
 
 katana_gpu_batch = """#!/usr/bin/bash
