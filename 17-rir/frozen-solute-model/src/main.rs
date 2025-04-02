@@ -291,7 +291,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         run?;
     }
 
-    let modified = std::fs::metadata("server/gadi.json")?
+    let modified = std::fs::metadata("server/katana.json")?
         .modified()?
         .duration_since(std::time::SystemTime::UNIX_EPOCH)?
         + std::time::Duration::from_secs(30);
@@ -363,7 +363,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // gadi
-    {
+    /*{
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -391,10 +391,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|i| i.Job_Name.parse::<u16>().unwrap())
             .collect::<Vec<u16>>(),
         );
-    }
+    }*/
 
     // setonix
-    {
+    /*{
         println!("Updating setonix");
         let setonix_raw_json = std::fs::File::create("server/setonix_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -422,7 +422,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|i| i.name.parse::<u16>().unwrap())
             .collect::<Vec<u16>>(),
         );
-    }
+    }*/
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
@@ -767,7 +767,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        {
+        /*{
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -775,7 +775,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
                     AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
                     AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
-                    ORDER BY rotatable_bonds DESC, num_atoms DESC LIMIT 1\
+                    ORDER BY rotatable_bonds DESC LIMIT 1\
                 ",
             )?;
 
@@ -797,7 +797,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }
+        }*/
     }
 
     if planned_gpu > 4 {
