@@ -191,7 +191,7 @@ cd "${{PBS_O_WORKDIR}}"
 
 gadi_min_equil = """#!/usr/bin/bash
 #PBS -l walltime=10:00:00
-#PBS -l ncpus=2
+#PBS -l ncpus=4
 #PBS -l mem=8Gb
 #PBS -j oe
 #PBS -P cw7
@@ -262,8 +262,8 @@ crest {mobley_id}.xyz --alpb water --chrg 0 --uhf 0 -T 16 --noreftopo > crest.lo
 
 katana_censo = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
-#PBS -l mem=32Gb
-#PBS -l ncpus=16
+#PBS -l mem={mem}Gb
+#PBS -l ncpus={ncpus}
 #PBS -l select=cpuflags=avx512_vpopcntdq
 #PBS -j oe
 set -e
@@ -273,10 +273,10 @@ lscpu
 cd "${{PBS_O_WORKDIR}}"
 
 module add crest
-module add openmpi
+module add orca
 
-yes | /srv/scratch/${{USER}}/.censo/bin/censo --cleanup_all
-/srv/scratch/${{USER}}/.censo/bin/censo -i crest_conformers.xyz --maxcores 4 -O 4 > censo.log
+yes | /srv/scratch/${{USER}}/.censo/bin/censo --cleanup_all > censo_cleanup.out
+/srv/scratch/${{USER}}/.censo/bin/censo -i crest_conformers.xyz --maxcores {ncpus} -O 1 --loglevel DEBUG > censo.out
 """
 
 katana_gpu_batch = """#!/usr/bin/bash
