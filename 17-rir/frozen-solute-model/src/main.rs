@@ -80,6 +80,14 @@ struct QuantumMechanicsType {
 // python mol2-to-xyz.py FreeSolv/mol2files_gaff/mobley_676247.mol2 data/304/mobley_676247.xyz
 // crest mobley_676247.xyz --alpb water --chrg 0 --uhf 0 -T 4 --noreftopo > crest.log
 
+// SELECT * FROM molecules WHERE compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CENSO' AND status = 'Received') ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1;
+// SELECT MIN(local_path + 1) FROM runs WHERE (local_path + 1) NOT IN (SELECT local_path FROM runs);
+
+// INSERT INTO runs VALUES ('mobley_1079207', 'CREST', 'Running', 987, 'katana', '/srv/scratch/z5358697/.automated/987');
+// python prep.frozen.py mobley_1079207 987 gadi
+// rsync -r data/987/ gadi:/scratch/cw7/mw7780/.automated/987/
+// UPDATE runs SET status = 'Running' WHERE local_path = 987;
+
 // Deleting entries
 // DELETE FROM runs WHERE local_path=-1;
 
@@ -105,6 +113,7 @@ enum StatusType {
     Running,
     Received,
     Finished,
+    Failed,
 }
 
 #[allow(non_camel_case_types)]
@@ -123,6 +132,7 @@ enum RunType {
     RelaxedMinEquilGAFF,
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
+    FrozenMinEquilCENSO,
     CREST,
     CENSO,
 }
@@ -188,23 +198,22 @@ fn receive_files(
         remote_path,
     }: Run,
     connection: &rusqlite::Connection,
-) {
+) -> Result<(), Box<dyn std::error::Error>> {
     // check if status is correct
     if status != StatusType::Running {
-        return;
+        Err("Invalid status")?;
     }
-    match std::process::Command::new("rsync")
-        .arg("-r")
-        .arg(format!("{:?}:{}", remote_host, remote_path))
-        .arg(format!("data/{}", local_path))
-        .output()
-    {
-        Ok(_) => println!(
-            "{:?}",
-            update_run_status(local_path, StatusType::Received, connection)
-        ),
-        Err(e) => println!("{:?}", e),
-    }
+    run_program(vec![
+        "rsync",
+        "-r",
+        &format!("{:?}:{}", remote_host, remote_path),
+        &format!("data/{}", local_path),
+    ])?;
+    println!(
+        "{:?}",
+        update_run_status(local_path, StatusType::Received, connection)
+    );
+    Ok(())
 }
 
 fn submit_job(
@@ -345,25 +354,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
     }
 
     // gadi
-    /*{
+    {
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -386,12 +395,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name.parse::<u16>().unwrap())
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name.parse::<u16>().unwrap())
+                .collect::<Vec<u16>>(),
         );
-    }*/
+    }
 
     // setonix
     /*{
@@ -465,7 +474,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match &run.status {
             StatusType::Planned => 'match_status: {
                 match &run.run_type {
-                    RunType::CREST | RunType::CENSO | RunType::RelaxedMinEquilGAFF => {
+                    RunType::CREST | RunType::CENSO | RunType::RelaxedMinEquilGAFF | RunType::FrozenMinEquilCENSO => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -498,7 +507,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_queue_length += 1;
                     } else if (katana2_queue_length <= 3)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -547,7 +556,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
 
                         let output = std::process::Command::new("rsync")
-                            .arg("-r")
+                            .arg("-rv")
                             .arg(format!("data/{}/", run.local_path))
                             .arg(format!("{:?}:{}", run.remote_host, run.remote_path))
                             .output()?;
@@ -614,7 +623,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // copy to server
                         run_program(vec![
                             "rsync",
-                            "-r",
+                            "-rv",
                             &format!("data/{}/", run.local_path),
                             &format!("{:?}:{}", run.remote_host, run.remote_path),
                         ])?;
@@ -654,7 +663,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         run_program(vec![
                             "rsync",
-                            "-r",
+                            "-rv",
                             &format!("data/{}/", run.local_path),
                             &format!("{:?}:{}", run.remote_host, run.remote_path),
                         ])?;
@@ -700,7 +709,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         run_program(vec![
                             "rsync",
-                            "-r",
+                            "-rv",
                             &format!("data/{}/", run.local_path),
                             &format!("{:?}:{}", run.remote_host, run.remote_path),
                         ])?;
@@ -721,11 +730,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
+                    RunType::FrozenMinEquilCENSO => todo!()
                 }
             }
             StatusType::Running => {
                 if !jobs.iter().any(|name| name == &run.local_path) {
-                    receive_files(run, &connection);
+                    receive_files(run, &connection)?;
                 }
             }
             StatusType::Received => match &run.run_type {
@@ -733,6 +743,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 _ => {}
             },
             StatusType::Finished => {}
+            StatusType::Failed => {}
         }
     }
 
@@ -767,14 +778,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        /*{
+        for _ in 0..10 {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
                     WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CENSO') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CREST' AND status == 'Received') \
                     AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
                     ORDER BY rotatable_bonds DESC LIMIT 1\
                 ",
             )?;
@@ -797,14 +807,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }*/
+        }
     }
 
     if planned_gpu > 4 {
         return Ok(());
     }
 
-    let mut statement = connection.prepare("\
+    for _ in 0..2 {
+        let mut statement = connection.prepare("\
         SELECT * FROM molecules \
         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
         AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
@@ -812,36 +823,52 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1\
     ")?;
 
-    match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-        .next()
-        .ok_or(())
-    {
-        Ok(molecule) => {
-            let query = format!(
-                "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
-                molecule?.compound_id,
-                RunType::RelaxedReversedGAFF,
-                StatusType::Planned,
-                RemoteHostType::localhost,
-                "/dev/null/"
-            );
-            println!("{}", query);
-            connection.execute(&query, [])?;
+        match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+            .next()
+            .ok_or(())
+        {
+            Ok(molecule) => {
+                let query = format!(
+                    "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                    molecule?.compound_id,
+                    RunType::RelaxedReversedGAFF,
+                    StatusType::Planned,
+                    RemoteHostType::localhost,
+                    "/dev/null/"
+                );
+                println!("{}", query);
+                connection.execute(&query, [])?;
+            }
+            Err(_) => {}
         }
-        Err(_) => {}
     }
 
-    let mut statement = connection.prepare("\
-        SELECT * FROM molecules \
-        WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
-        AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF' AND status == 'Received') \
-        ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 5\
-    ")?;
-    let molecule = serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
-        .next()
-        .ok_or("All done!")??;
-    println!("{:?}", molecule);
-    connection
-        .execute(&format!("INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')", molecule.compound_id, RunType::RelaxedForwardGAFF, StatusType::Planned, RemoteHostType::localhost, "/dev/null/"), [])?;
+    {
+        let mut statement = connection.prepare("\
+            SELECT * FROM molecules \
+            WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
+            AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedMinEquilGAFF' AND status == 'Received') \
+            ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 5\
+        ")?;
+        match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+            .next()
+            .ok_or(())
+        {
+            Ok(molecule) => {
+                let query = format!(
+                    "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                    molecule?.compound_id,
+                    RunType::RelaxedForwardGAFF,
+                    StatusType::Planned,
+                    RemoteHostType::localhost,
+                    "/dev/null/"
+                );
+                println!("{}", query);
+                connection.execute(&query, [])?;
+            }
+            Err(_) => {}
+        }
+    }
+
     Ok(())
 }
