@@ -1,3 +1,4 @@
+import math
 import sys
 
 from common import katana_censo
@@ -5,5 +6,30 @@ from common import katana_censo
 assert len(sys.argv) == 2, (sys.argv, len(sys.argv))
 assert sys.argv[1].startswith("data/"), sys.argv[1]
 
+file_name = f"{'/'.join(sys.argv[1].split('/')[:-1])}/crest_conformers.xyz"
+
+print(file_name)
+
+with open(file_name) as f:
+    a = int(f.readline().strip())
+
+assert a > 0
+a += 2
+
+with open(file_name) as f:
+    l = len(f.read().splitlines())
+
+assert l % a == 0, (l, a)
+ncpus = l // a
+if ncpus > 16:
+    ncpus = 16
+
+ncpus = int(ncpus)
+assert ncpus <= 16, ncpus
+
+mem = math.ceil(ncpus * 7.75)
+mem = int(mem)
+assert mem <= 124
+
 with open(f"{sys.argv[1]}", "w") as f:
-    f.write(katana_censo.format())
+    f.write(katana_censo.format(ncpus=ncpus, mem=mem))
