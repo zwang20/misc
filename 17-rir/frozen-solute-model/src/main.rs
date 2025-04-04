@@ -133,6 +133,8 @@ enum RunType {
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
     FrozenMinEquilCENSO,
+    FrozenForwardCENSO,
+    FrozenReversedCENSO,
     CREST,
     CENSO,
 }
@@ -205,7 +207,7 @@ fn receive_files(
     }
     run_program(vec![
         "rsync",
-        "-r",
+        "-rz",
         &format!("{:?}:{}", remote_host, remote_path),
         &format!("data/{}", local_path),
     ])?;
@@ -354,25 +356,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
     }
 
     // gadi
-    {
+    /*{
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -400,7 +402,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map(|i| i.Job_Name.parse::<u16>().unwrap())
                 .collect::<Vec<u16>>(),
         );
-    }
+    }*/
 
     // setonix
     /*{
@@ -474,7 +476,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match &run.status {
             StatusType::Planned => 'match_status: {
                 match &run.run_type {
-                    RunType::CREST | RunType::CENSO | RunType::RelaxedMinEquilGAFF | RunType::FrozenMinEquilCENSO => {
+                    RunType::CREST
+                    | RunType::CENSO
+                    | RunType::RelaxedMinEquilGAFF
+                    | RunType::FrozenMinEquilCENSO
+                    | RunType::FrozenForwardCENSO
+                    | RunType::FrozenReversedCENSO => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -483,8 +490,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if (katana_queue_length <= 7)
-                        && ((run.run_type == RunType::CREST) || (run.run_type == RunType::CENSO))
+                    if (katana_queue_length <= 5)
+                        && ((run.run_type == RunType::CREST)
+                            || (run.run_type == RunType::CENSO)
+                            || (run.run_type == RunType::FrozenForwardCENSO))
                     {
                         let output = connection.execute(
                             &format!(
@@ -495,7 +504,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
-                    } else if katana_queue_length <= 3 {
+                    } else if (katana_queue_length <= 10)
+                        && ((run.run_type == RunType::RelaxedForwardGAFF)
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                    {
                         let output = connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5358697/.automated/{}/', remote_host = 'katana' WHERE local_path = {}",
@@ -505,9 +517,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_queue_length += 1;
-                    } else if (katana2_queue_length <= 3)
+                    } else if (katana2_queue_length <= 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -516,7 +528,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         connection.execute(&query, [])?;
                         println!("pick remote host {:?}", query);
                         katana2_queue_length += 1;
-                    } else if (katana2_queue_length <= 7) && (run.run_type == RunType::CREST) {
+                    } else if (katana2_queue_length <= 10)
+                        && (run.run_type == RunType::FrozenForwardCENSO)
+                    {
                         let output = connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -730,7 +744,71 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
-                    RunType::FrozenMinEquilCENSO => todo!()
+                    RunType::FrozenMinEquilCENSO => todo!(),
+                    RunType::FrozenForwardCENSO | RunType::FrozenReversedCENSO => {
+                        let mut statement = connection.prepare(&format!(
+                            "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'FrozenMinEquilCENSO'",
+                            run.compound_id,
+                        ))?;
+                        let min_equil_path = serde_rusqlite::from_rows::<Run>(statement.query([])?)
+                            .next()
+                            .ok_or("No prep found")??
+                            .local_path;
+
+                        create_dir_if(&format!("data/{}", run.local_path))?;
+
+                        for suffix in [".prmtop", ".pdb", "_equil.coor", "_equil.vel", "_equil.xsc"]
+                        {
+                            let source =
+                                format!("data/{}/{}{}", min_equil_path, run.compound_id, suffix);
+                            let dest =
+                                format!("data/{}/{}{}", run.local_path, run.compound_id, suffix);
+                            copy(&source, &dest)?;
+                        }
+
+                        copy("fep.tcl", &format!("data/{}/fep.tcl", run.local_path))?;
+
+                        // run prod script
+                        match &run.run_type {
+                            RunType::FrozenForwardCENSO => run_program(vec![
+                                "python",
+                                "prod.frozen.forward.py",
+                                &run.compound_id,
+                                &run.local_path.to_string(),
+                            ])?,
+                            RunType::FrozenReversedCENSO => run_program(vec![
+                                "python",
+                                "prod.frozen.reversed.py",
+                                &run.compound_id,
+                                &run.local_path.to_string(),
+                            ])?,
+                            _ => panic!(),
+                        }
+
+                        // copy to server
+                        run_program(vec![
+                            "rsync",
+                            "-rv",
+                            &format!("data/{}/", run.local_path),
+                            &format!("{:?}:{}", run.remote_host, run.remote_path),
+                        ])?;
+
+                        // start remote job
+                        submit_job(&run)?;
+
+                        println!(
+                            "{:?}",
+                            update_run_status(run.local_path, StatusType::Running, &connection)
+                        );
+
+                        match run.remote_host {
+                            RemoteHostType::localhost => {}
+                            RemoteHostType::katana => katana_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::gadi => gadi_queue_length += 1,
+                            RemoteHostType::setonix => setonix_queue_length += 1,
+                        }
+                    }
                 }
             }
             StatusType::Running => {
@@ -778,7 +856,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        for _ in 0..10 {
+        for _ in 0..20 {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -808,13 +886,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
+        for _ in 0..2 {
+            let mut statement = connection.prepare(
+                "\
+                    SELECT * FROM molecules \
+                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenMinEquilCENSO' AND status == 'Received') \
+                    ORDER BY rotatable_bonds DESC LIMIT 1\
+                ",
+            )?;
+
+            match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+                .next()
+                .ok_or(())
+            {
+                Ok(molecule) => {
+                    let query = format!(
+                        "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                        molecule?.compound_id,
+                        RunType::FrozenForwardCENSO,
+                        StatusType::Planned,
+                        RemoteHostType::localhost,
+                        "/dev/null/"
+                    );
+                    println!("{}", query);
+                    connection.execute(&query, [])?;
+                }
+                Err(_) => {}
+            }
+        }
     }
 
-    if planned_gpu > 4 {
+    if planned_gpu >= 5 {
         return Ok(());
     }
 
-    for _ in 0..2 {
+    for _ in 0..5 {
         let mut statement = connection.prepare("\
         SELECT * FROM molecules \
         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
@@ -843,7 +950,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    {
+    for _ in 0..3 {
         let mut statement = connection.prepare("\
             SELECT * FROM molecules \
             WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
