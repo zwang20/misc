@@ -374,7 +374,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // gadi
-    /*{
+    {
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -397,12 +397,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
         );
-    }*/
+    }
 
     // setonix
     /*{
@@ -437,18 +437,43 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
-    // assert!(jobs.len() < 10);
 
-    let mut katana_queue_length: u8 =
+    // get gpu jobs
+    let mut statement = connection.prepare("SELECT * FROM runs WHERE run_type = 'RelaxedForwardGAFF' OR run_type = 'RelaxedReversedGAFF'")?;
+    let runs = serde_rusqlite::from_rows::<Run>(statement.query([])?);
+    let mut gpu_jobs = vec![];
+    for run in runs {
+        gpu_jobs.push(run?.local_path);
+    }
+
+    let mut katana_cpu_queue_length: u8 =
         serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
             .unwrap_or_default()
             .into_iter()
-            .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
-    let mut katana2_queue_length: u8 =
+            .fold(0, |acc, x| {
+                acc + (x.job_state == 'Q' && !gpu_jobs.contains(&x.Job_Name)) as u8
+            });
+    let mut katana2_cpu_queue_length: u8 =
         serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana2.json")?)
             .unwrap_or_default()
             .into_iter()
-            .fold(0, |acc, x| acc + (x.job_state == 'Q') as u8);
+            .fold(0, |acc, x| {
+                acc + (x.job_state == 'Q' && !gpu_jobs.contains(&x.Job_Name)) as u8
+            });
+    let mut katana_gpu_queue_length: u8 =
+        serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| {
+                acc + (x.job_state == 'Q' && gpu_jobs.contains(&x.Job_Name)) as u8
+            });
+    let mut katana2_gpu_queue_length: u8 =
+        serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string("server/katana2.json")?)
+            .unwrap_or_default()
+            .into_iter()
+            .fold(0, |acc, x| {
+                acc + (x.job_state == 'Q' && gpu_jobs.contains(&x.Job_Name)) as u8
+            });
     let mut gadi_queue_length: u8 =
         serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string("server/gadi.json")?)
             .unwrap_or_default()
@@ -462,8 +487,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 acc + (x.job_state == SetonixJobState::PENDING) as u8
             });
 
-    println!("katana queue length: {}", katana_queue_length);
-    println!("katana2 queue length: {}", katana2_queue_length);
+    println!("katana cpu queue length: {}", katana_cpu_queue_length);
+    println!("katana2 cpu queue length: {}", katana2_cpu_queue_length);
+    println!("katana gpu queue length: {}", katana_gpu_queue_length);
+    println!("katana2 gpu queue length: {}", katana2_gpu_queue_length);
     println!("gadi queue length: {}", gadi_queue_length);
     println!("setonix queue length: {}", setonix_queue_length);
 
@@ -490,10 +517,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if (katana_queue_length <= 5)
+                    if ((katana_cpu_queue_length < 5)
                         && ((run.run_type == RunType::CREST)
-                            || (run.run_type == RunType::CENSO)
-                            || (run.run_type == RunType::FrozenForwardCENSO))
+                            || (run.run_type == RunType::FrozenForwardCENSO)))
+                        || ((katana_cpu_queue_length < 10) && (run.run_type == RunType::CENSO))
                     {
                         let output = connection.execute(
                             &format!(
@@ -503,8 +530,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         );
                         println!("pick remote host {:?}", output);
-                        katana_queue_length += 1;
-                    } else if (katana_queue_length <= 10)
+                        katana_cpu_queue_length += 1;
+                    } else if (katana_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
                             || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
@@ -516,8 +543,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         );
                         println!("pick remote host {:?}", output);
-                        katana_queue_length += 1;
-                    } else if (katana2_queue_length <= 5)
+                        katana_gpu_queue_length += 1;
+                    } else if (katana2_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
                             || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
@@ -527,8 +554,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         connection.execute(&query, [])?;
                         println!("pick remote host {:?}", query);
-                        katana2_queue_length += 1;
-                    } else if (katana2_queue_length <= 10)
+                        katana2_gpu_queue_length += 1;
+                    } else if (katana2_cpu_queue_length < 5)
                         && (run.run_type == RunType::FrozenForwardCENSO)
                     {
                         let output = connection.execute(
@@ -539,7 +566,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         );
                         println!("pick remote host {:?}", output);
-                        katana2_queue_length += 1;
+                        katana2_cpu_queue_length += 1;
                     }
                     /*else if setonix_queue_length < 0 {
                         connection.execute(
@@ -592,7 +619,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-                        katana_queue_length += 1;
+                        katana_cpu_queue_length += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
                         let mut statement = connection.prepare(&format!(
@@ -652,8 +679,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         match run.remote_host {
                             RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::katana => katana_gpu_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_gpu_queue_length += 1,
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -692,8 +719,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         match run.remote_host {
                             RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::katana => katana_cpu_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_cpu_queue_length += 1,
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -738,8 +765,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         match run.remote_host {
                             RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::katana => katana_cpu_queue_length += 1,
+                            RemoteHostType::katana2 => panic!(),
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -803,8 +830,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         match run.remote_host {
                             RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_queue_length += 1,
+                            RemoteHostType::katana => katana_cpu_queue_length += 1,
+                            RemoteHostType::katana2 => katana2_cpu_queue_length += 1,
                             RemoteHostType::gadi => gadi_queue_length += 1,
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
@@ -886,7 +913,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        for _ in 0..2 {
+        for _ in 0..3 {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -921,7 +948,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    for _ in 0..5 {
+    for _ in 0..2 {
         let mut statement = connection.prepare("\
         SELECT * FROM molecules \
         WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedReversedGAFF') \
@@ -950,7 +977,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    for _ in 0..3 {
+    {
         let mut statement = connection.prepare("\
             SELECT * FROM molecules \
             WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
