@@ -190,7 +190,7 @@ cd "${{PBS_O_WORKDIR}}"
 """
 
 gadi_min_equil = """#!/usr/bin/bash
-#PBS -l walltime=10:00:00
+#PBS -l walltime=5:00:00
 #PBS -l ncpus=1
 #PBS -l mem=4Gb
 #PBS -j oe
