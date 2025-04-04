@@ -191,8 +191,8 @@ cd "${{PBS_O_WORKDIR}}"
 
 gadi_min_equil = """#!/usr/bin/bash
 #PBS -l walltime=10:00:00
-#PBS -l ncpus=4
-#PBS -l mem=8Gb
+#PBS -l ncpus=1
+#PBS -l mem=4Gb
 #PBS -j oe
 #PBS -P cw7
 #PBS -q {queue}
@@ -239,7 +239,22 @@ setonix_prod = """#!/usr/bin/bash
 
 set -e
 
-/scratch/pawsey0265/mwang1/.namd_avx512 +p16 prod.namd > prod.log
+/scratch/pawsey0265/mwang1/.namd_avx512/namd3 +p16 prod.namd > prod.log
+"""
+
+katana_prod = """#!/usr/bin/bash
+#PBS -l walltime=12:00:00
+#PBS -l mem=1Gb
+#PBS -l ncpus=16
+#PBS -l select=cputype=sapphirerapids
+#PBS -j oe
+set -e
+
+lscpu
+
+cd "${{PBS_O_WORKDIR}}"
+
+/srv/scratch/${{USER}}/.namd_avx512/namd3 "+p$(nproc)" prod.namd > prod.log
 """
 
 # select=cputype=sapphirerapids
