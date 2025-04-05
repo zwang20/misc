@@ -374,7 +374,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // gadi
-    {
+    /*{
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -402,7 +402,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .map(|i| i.Job_Name.parse::<u16>().unwrap())
                 .collect::<Vec<u16>>(),
         );
-    }
+    }*/
 
     // setonix
     /*{
@@ -519,7 +519,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if run.remote_host == RemoteHostType::localhost {
                     if ((katana_cpu_queue_length < 5)
                         && ((run.run_type == RunType::CREST)
-                        || (run.run_type == RunType::FrozenForwardCENSO)))
+                        || (run.run_type == RunType::FrozenForwardCENSO) || (run.run_type == RunType::FrozenReversedCENSO)))
                         || ((katana_cpu_queue_length < 10) && (run.run_type == RunType::CENSO))
                     {
                         let output = connection.execute(
@@ -556,7 +556,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         println!("pick remote host {:?}", query);
                         katana2_gpu_queue_length += 1;
                     } else if (katana2_cpu_queue_length < 5)
-                        && (run.run_type == RunType::FrozenForwardCENSO)
+                        && ((run.run_type == RunType::FrozenForwardCENSO) || (run.run_type == RunType::FrozenReversedCENSO))
                     {
                         let output = connection.execute(
                             &format!(
@@ -883,7 +883,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        for _ in 0..20 {
+        {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
