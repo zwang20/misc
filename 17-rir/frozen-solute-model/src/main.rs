@@ -21,73 +21,6 @@ struct QuantumMechanicsType {
 // SELECT MIN(local_path + 1) FROM runs WHERE (local_path + 1) NOT IN (SELECT local_path FROM runs);
 // SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs) ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 5;
 
-// INSERT INTO runs VALUES ('mobley_6714389', 'RelaxedMinEquilGAFF', 'Received', 12, 'gadi', '/scratch/cw7/mw7780/.automated/12/');
-// INSERT INTO runs VALUES ('mobley_303222', 'RelaxedMinEquilGAFF', 'Received', 13, 'gadi', '/scratch/cw7/mw7780/.automated/13/');
-// python prep.py mobley_303222 13 gadi
-// rsync -r data/13/ gadi:/scratch/cw7/mw7780/.automated/13/
-// UPDATE runs SET status = 'Running' WHERE local_path = 13;
-
-// INSERT INTO runs VALUES ('mobley_3867265', 'RelaxedMinEquilGAFF', 'Received', 14, 'gadi', '/scratch/cw7/mw7780/.automated/14/');
-// python prep.py mobley_3867265 14 gadi
-// rsync -r data/14/ gadi:/scratch/cw7/mw7780/.automated/14/
-// UPDATE runs SET status = 'Running' WHERE local_path = 14;
-
-// INSERT INTO runs VALUES ('mobley_9121449', 'RelaxedMinEquilGAFF', 'Received', 15, 'gadi', '/scratch/cw7/mw7780/.automated/15/');
-// python prep.py mobley_9121449 15 gadi
-// rsync -r data/15/ gadi:/scratch/cw7/mw7780/.automated/15/
-// UPDATE runs SET status = 'Running' WHERE local_path = 15;
-
-// INSERT INTO runs VALUES ('mobley_3982371', 'RelaxedMinEquilGAFF', 'Received', 16, 'gadi', '/scratch/cw7/mw7780/.automated/16/');
-// python prep.py mobley_3982371 16 gadi
-// rsync -r data/16/ gadi:/scratch/cw7/mw7780/.automated/16/
-// UPDATE runs SET status = 'Running' WHERE local_path = 16;
-
-// INSERT INTO runs VALUES ('mobley_1075836', 'RelaxedMinEquilGAFF', 'Received', 21, 'gadi', '/scratch/cw7/mw7780/.automated/21/');
-// python prep.py mobley_1075836 21 gadi
-// rsync -r data/21/ gadi:/scratch/cw7/mw7780/.automated/21/
-// UPDATE runs SET status = 'Running' WHERE local_path = 21;
-
-// INSERT INTO runs VALUES ('mobley_4193752', 'RelaxedMinEquilGAFF', 'Received', 33, 'gadi', '/scratch/cw7/mw7780/.automated/33/');
-// python prep.py mobley_4193752 33 gadi
-// rsync -r data/33/ gadi:/scratch/cw7/mw7780/.automated/33/
-// UPDATE runs SET status = 'Running' WHERE local_path = 33;
-
-// INSERT INTO runs VALUES ('mobley_1903702', 'RelaxedMinEquilGAFF', 'Received', 310, 'gadi', '/scratch/cw7/mw7780/.automated/310/');
-// python prep.py mobley_1903702 310 gadi
-// rsync -r data/310/ gadi:/scratch/cw7/mw7780/.automated/310/
-// UPDATE runs SET status = 'Running' WHERE local_path = 310;
-
-// INSERT INTO runs VALUES ('mobley_5816127', 'RelaxedMinEquilGAFF', 'Received', 302, 'gadi', '/scratch/cw7/mw7780/.automated/302/');
-// python prep.py mobley_5816127 302 gadi
-// rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
-// UPDATE runs SET status = 'Running' WHERE local_path = 302;
-
-// INSERT INTO runs VALUES ('mobley_1929982', 'CREST', 'Running', 303, 'katana', '/srv/scratch/z5358697/.automated/303');
-// python prep.py mobley_5816127 302 gadi
-// rsync -r data/302/ gadi:/scratch/cw7/mw7780/.automated/302/
-// UPDATE runs SET status = 'Running' WHERE local_path = 302;
-
-// SELECT * FROM molecules WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CREST') ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1;
-// SELECT MIN(local_path + 1) FROM runs WHERE (local_path + 1) NOT IN (SELECT local_path FROM runs);
-
-// INSERT INTO runs VALUES ('mobley_664966', 'CREST', 'Received', 701, 'localhost', '/data/michael/misc/17-rir/frozen-solute-model/data/701/');
-// mkdir -p data/701
-// python mol2-to-xyz.py FreeSolv/mol2files_gaff/mobley_664966.mol2 data/701/mobley_664966.xyz
-// crest mobley_664966.xyz --alpb water --chrg 0 --uhf 0 -T 4 --noreftopo > crest.log
-
-// INSERT INTO runs VALUES ('mobley_676247', 'CREST', 'Received', 304, 'localhost', '/data/michael/misc/17-rir/frozen-solute-model/data/304/');
-// mkdir -p data/304
-// python mol2-to-xyz.py FreeSolv/mol2files_gaff/mobley_676247.mol2 data/304/mobley_676247.xyz
-// crest mobley_676247.xyz --alpb water --chrg 0 --uhf 0 -T 4 --noreftopo > crest.log
-
-// SELECT * FROM molecules WHERE compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CENSO' AND status = 'Received') ORDER BY rotatable_bonds ASC, num_atoms ASC LIMIT 1;
-// SELECT MIN(local_path + 1) FROM runs WHERE (local_path + 1) NOT IN (SELECT local_path FROM runs);
-
-// INSERT INTO runs VALUES ('mobley_1079207', 'CREST', 'Running', 987, 'katana', '/srv/scratch/z5358697/.automated/987');
-// python prep.frozen.py mobley_1079207 987 gadi
-// rsync -r data/987/ gadi:/scratch/cw7/mw7780/.automated/987/
-// UPDATE runs SET status = 'Running' WHERE local_path = 987;
-
 // Deleting entries
 // DELETE FROM runs WHERE local_path=-1;
 
@@ -116,6 +49,7 @@ enum StatusType {
     Failed,
 }
 
+// temporarily suspend katana
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum RemoteHostType {
@@ -132,11 +66,14 @@ enum RunType {
     RelaxedMinEquilGAFF,
     RelaxedForwardGAFF,
     RelaxedReversedGAFF,
+    RelaxedBarGAFF,
     FrozenMinEquilCENSO,
     FrozenForwardCENSO,
     FrozenReversedCENSO,
+    FrozenBarCENSO,
     CREST,
     CENSO,
+    VacuumCREST,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -205,6 +142,13 @@ fn receive_files(
     if status != StatusType::Running {
         Err("Invalid status")?;
     }
+
+    // FIXME: reenable katana
+    if remote_host == RemoteHostType::katana {
+        println!("katana temporarily disabled due to stupidity");
+        return Ok(());
+    }
+
     run_program(vec![
         "rsync",
         "-rz",
@@ -245,13 +189,12 @@ fn submit_job(
             &format!("{:?}", remote_host),
             &format!("cd {}; sbatch {}", remote_path, local_path),
         ]),
-        RemoteHostType::katana | RemoteHostType::katana2 | RemoteHostType::gadi => {
-            run_program(vec![
-                "ssh",
-                &format!("{:?}", remote_host),
-                &format!("cd {}; qsub {}", remote_path, local_path),
-            ])
-        }
+        RemoteHostType::katana2 | RemoteHostType::gadi => run_program(vec![
+            "ssh",
+            &format!("{:?}", remote_host),
+            &format!("cd {}; qsub {}", remote_path, local_path),
+        ]),
+        RemoteHostType::katana => panic!(),
     }?;
 
     Ok(())
@@ -324,7 +267,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Updating katana");
         let katana_raw_json = std::fs::File::create("server/katana_raw.json")?;
         let output = std::process::Command::new("ssh")
-            .arg("katana")
+            .arg("katana2")
             .arg("qstat -f -F json")
             .stdout(katana_raw_json)
             .output();
@@ -356,20 +299,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u16>>(),
         );
     }
 
@@ -508,7 +451,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     | RunType::RelaxedMinEquilGAFF
                     | RunType::FrozenMinEquilCENSO
                     | RunType::FrozenForwardCENSO
-                    | RunType::FrozenReversedCENSO => {
+                    | RunType::FrozenReversedCENSO
+                    | RunType::RelaxedBarGAFF
+                    | RunType::FrozenBarCENSO
+                    | RunType::VacuumCREST => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -517,10 +463,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 5)
+                    if ((katana_cpu_queue_length < 0)
                         && ((run.run_type == RunType::CREST)
-                        || (run.run_type == RunType::FrozenForwardCENSO) || (run.run_type == RunType::FrozenReversedCENSO)))
-                        || ((katana_cpu_queue_length < 10) && (run.run_type == RunType::CENSO))
+                            || (run.run_type == RunType::FrozenForwardCENSO)
+                            || (run.run_type == RunType::FrozenReversedCENSO)))
+                        || ((katana_cpu_queue_length < 0) && (run.run_type == RunType::CENSO))
                     {
                         let output = connection.execute(
                             &format!(
@@ -531,9 +478,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_cpu_queue_length += 1;
-                    } else if (katana_gpu_queue_length < 5)
+                    } else if (katana_gpu_queue_length < 0)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let output = connection.execute(
                             &format!(
@@ -546,7 +493,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_gpu_queue_length += 1;
                     } else if (katana2_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -556,7 +503,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         println!("pick remote host {:?}", query);
                         katana2_gpu_queue_length += 1;
                     } else if (katana2_cpu_queue_length < 5)
-                        && ((run.run_type == RunType::FrozenForwardCENSO) || (run.run_type == RunType::FrozenReversedCENSO))
+                        && ((run.run_type == RunType::FrozenForwardCENSO)
+                            || (run.run_type == RunType::FrozenReversedCENSO))
                     {
                         let output = connection.execute(
                             &format!(
@@ -685,7 +633,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
-                    RunType::CREST => {
+                    RunType::RelaxedBarGAFF => todo!(),
+                    RunType::CREST | RunType::VacuumCREST => {
                         create_dir_if(&format!("data/{}", run.local_path))?;
 
                         run_program(vec![
@@ -695,12 +644,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             &format!("data/{}/{}.xyz", run.local_path, run.compound_id),
                         ])?;
 
-                        run_program(vec![
-                            "python",
-                            "crest.py",
-                            &format!("data/{}/{}", run.local_path, run.local_path),
-                            &run.compound_id,
-                        ])?;
+                        if run.run_type == RunType::CREST {
+                            run_program(vec![
+                                "python",
+                                "crest.py",
+                                &format!("data/{}/{}", run.local_path, run.local_path),
+                                &run.compound_id,
+                            ])?;
+                        } else if run.run_type == RunType::VacuumCREST {
+                            run_program(vec![
+                                "python",
+                                "vacuum-crest.py",
+                                &format!("data/{}/{}", run.local_path, run.local_path),
+                                &run.compound_id,
+                            ])?;
+                        } else {
+                            panic!()
+                        }
 
                         run_program(vec![
                             "rsync",
@@ -836,6 +796,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             RemoteHostType::setonix => setonix_queue_length += 1,
                         }
                     }
+                    RunType::FrozenBarCENSO => todo!(),
                 }
             }
             StatusType::Running => {
@@ -883,7 +844,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        {
+        /*{
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -912,7 +873,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }
+        }*/
         {
             let mut statement = connection.prepare(
                 "\
