@@ -239,7 +239,7 @@ setonix_prod = """#!/usr/bin/bash
 
 set -e
 
-/scratch/pawsey0265/mwang1/.namd_avx512/namd3 +p16 prod.namd > prod.log
+/software/projects/pawsey0265/mwang1/namd/namd3 +p16 prod.namd > prod.log
 """
 
 katana_prod = """#!/usr/bin/bash
