@@ -74,6 +74,7 @@ enum RunType {
     CREST,
     CENSO,
     VacuumCREST,
+    VacuumCENSO,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -312,35 +313,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // gadi
-    {
-        println!("Updating gadi");
-        let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
-        let output = std::process::Command::new("ssh")
-            .arg("gadi")
-            .arg("qstat -f -F json")
-            .stdout(gadi_raw_json)
-            .output();
-        assert!(output.is_ok(), "{output:?}");
-        assert!(output?.status.success());
-        let gadi_json = std::fs::File::create("server/gadi.json")?;
-        let output = std::process::Command::new("jq")
-            .arg("try([.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"mw7780\")) | .value]) // []")
-            .arg("server/gadi_raw.json")
-            .stdout(gadi_json)
-            .output();
-        assert!(output.is_ok(), "{output:?}");
-        assert!(output?.status.success());
+    /* {
+         println!("Updating gadi");
+         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
+         let output = std::process::Command::new("ssh")
+             .arg("gadi")
+             .arg("qstat -f -F json")
+             .stdout(gadi_raw_json)
+             .output();
+         assert!(output.is_ok(), "{output:?}");
+         assert!(output?.status.success());
+         let gadi_json = std::fs::File::create("server/gadi.json")?;
+         let output = std::process::Command::new("jq")
+             .arg("try([.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"mw7780\")) | .value]) // []")
+             .arg("server/gadi_raw.json")
+             .stdout(gadi_json)
+             .output();
+         assert!(output.is_ok(), "{output:?}");
+         assert!(output?.status.success());
 
-        jobs.append(
-            &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
-                "server/gadi.json",
-            )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
-        );
-    }
+         jobs.append(
+             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
+                 "server/gadi.json",
+             )?)
+                 .unwrap_or_default()
+                 .into_iter()
+                 .map(|i| i.Job_Name.parse::<u16>().unwrap())
+                 .collect::<Vec<u16>>(),
+         );
+     }*/
 
     // setonix
     /*{
@@ -449,7 +450,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     | RunType::FrozenReversedCENSO
                     | RunType::RelaxedBarGAFF
                     | RunType::FrozenBarCENSO
-                    | RunType::VacuumCREST => {
+                    | RunType::VacuumCREST | RunType::VacuumCENSO => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -797,6 +798,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     RunType::FrozenBarCENSO => todo!(),
+                    RunType::VacuumCENSO => todo!(),
                 }
             }
             StatusType::Running => {
