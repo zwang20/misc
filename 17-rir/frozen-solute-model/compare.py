@@ -12,8 +12,8 @@ cur = con.cursor()
 
 molecules = cur.execute(
     "SELECT * FROM molecules \
-    WHERE compound_id in (SELECT compound_id FROM runs WHERE run_type = 'RelaxedBarGAFF') \
-    AND compound_id in (SELECT compound_id FROM runs WHERE run_type = 'FrozenBarCENSO')"
+    WHERE compound_id in (SELECT compound_id FROM runs WHERE run_type = 'RelaxedBarGAFF' AND status = 'Received') \
+    AND compound_id in (SELECT compound_id FROM runs WHERE run_type = 'FrozenBarCENSO' AND status = 'Received')"
 ).fetchall()
 # print(molecules[1])
 d = dict()
