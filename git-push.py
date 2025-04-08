@@ -36,6 +36,7 @@ def chunks(lst, n):
 
 
 subprocess.run(["git", "pull"], check=True)
+subprocess.run(["git", "reset"], check=True)
 
 deleted, output = get_files()
 
