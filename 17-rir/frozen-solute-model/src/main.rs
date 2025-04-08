@@ -143,12 +143,6 @@ fn receive_files(
         Err("Invalid status")?;
     }
 
-    // FIXME: reenable katana
-    if remote_host == RemoteHostType::katana {
-        println!("katana temporarily disabled due to stupidity");
-        return Ok(());
-    }
-
     run_program(vec![
         "rsync",
         "-rz",
@@ -189,12 +183,13 @@ fn submit_job(
             &format!("{:?}", remote_host),
             &format!("cd {}; sbatch {}", remote_path, local_path),
         ]),
-        RemoteHostType::katana2 | RemoteHostType::gadi => run_program(vec![
-            "ssh",
-            &format!("{:?}", remote_host),
-            &format!("cd {}; qsub {}", remote_path, local_path),
-        ]),
-        RemoteHostType::katana => panic!(),
+        RemoteHostType::katana | RemoteHostType::katana2 | RemoteHostType::gadi => {
+            run_program(vec![
+                "ssh",
+                &format!("{:?}", remote_host),
+                &format!("cd {}; qsub {}", remote_path, local_path),
+            ])
+        }
     }?;
 
     Ok(())
@@ -317,7 +312,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // gadi
-    /*{
+    {
         println!("Updating gadi");
         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -340,12 +335,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name.parse::<u16>().unwrap())
+            .collect::<Vec<u16>>(),
         );
-    }*/
+    }
 
     // setonix
     /*{
@@ -463,11 +458,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 0)
-                        && ((run.run_type == RunType::CREST)
-                            || (run.run_type == RunType::FrozenForwardCENSO)
+                    if ((katana_cpu_queue_length < 1)
+                        && ((run.run_type == RunType::FrozenForwardCENSO)
                             || (run.run_type == RunType::FrozenReversedCENSO)))
-                        || ((katana_cpu_queue_length < 0) && (run.run_type == RunType::CENSO))
+                        || ((katana_cpu_queue_length < 5)
+                            && ((run.run_type == RunType::CREST)
+                                || (run.run_type == RunType::CENSO)
+                                || (run.run_type == RunType::VacuumCREST)))
                     {
                         let output = connection.execute(
                             &format!(
@@ -478,7 +475,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana_cpu_queue_length += 1;
-                    } else if (katana_gpu_queue_length < 0)
+                    } else if (katana_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
                             || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
@@ -817,6 +814,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if planned_cpu < 10 {
         {
+            // CREST
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -844,6 +842,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
+
         /*{
             let mut statement = connection.prepare(
                 "\
@@ -933,7 +932,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    {
+        // VacuumCREST
+        let mut statement = connection.prepare(
+            "\
+                SELECT * FROM molecules \
+                WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'VacuumCREST') \
+                ORDER BY rotatable_bonds ASC LIMIT 1\
+            ",
+        )?;
 
+        match serde_rusqlite::from_rows::<Molecule>(statement.query([])?)
+            .next()
+            .ok_or(())
+        {
+            Ok(molecule) => {
+                let query = format!(
+                    "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
+                    molecule?.compound_id,
+                    RunType::VacuumCREST,
+                    StatusType::Planned,
+                    RemoteHostType::localhost,
+                    "/dev/null/"
+                );
+                println!("{}", query);
+                connection.execute(&query, [])?;
+            }
+            Err(_) => {}
+        }
+    }
     if planned_gpu >= 5 {
         return Ok(());
     }
