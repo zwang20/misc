@@ -262,7 +262,7 @@ katana_crest = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=16Gb
 #PBS -l ncpus=16
-#PBS -l select=cpuflags=avx512_vpopcntdq
+#PBS -l select=cputype=cascadelake
 #PBS -j oe
 set -e
 
@@ -279,7 +279,7 @@ katana_vacuum_crest = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem=16Gb
 #PBS -l ncpus=16
-#PBS -l select=cpuflags=avx512_vpopcntdq
+#PBS -l select=cputype=cascadelake
 #PBS -j oe
 set -e
 
@@ -296,7 +296,7 @@ katana_censo = """#!/usr/bin/bash
 #PBS -l walltime=12:00:00
 #PBS -l mem={mem}Gb
 #PBS -l ncpus={ncpus}
-#PBS -l select=cpuflags=avx512_vpopcntdq
+#PBS -l select=cputype=cascadelake
 #PBS -j oe
 set -e
 
