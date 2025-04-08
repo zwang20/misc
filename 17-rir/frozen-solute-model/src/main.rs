@@ -294,20 +294,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u16>>(),
         );
     }
 
@@ -335,10 +335,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
                 "server/gadi.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name.parse::<u16>().unwrap())
-            .collect::<Vec<u16>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name.parse::<u16>().unwrap())
+                .collect::<Vec<u16>>(),
         );
     }
 
@@ -458,14 +458,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 1)
+                    if ((katana_cpu_queue_length < 2)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO)
-                            || (run.run_type == RunType::RelaxedMinEquilGAFF)))
+                        || (run.run_type == RunType::FrozenReversedCENSO)
+                        || (run.run_type == RunType::RelaxedMinEquilGAFF)))
                         || ((katana_cpu_queue_length < 10)
-                            && ((run.run_type == RunType::CREST)
-                                || (run.run_type == RunType::CENSO)
-                                || (run.run_type == RunType::VacuumCREST)))
+                        && ((run.run_type == RunType::CREST)
+                        || (run.run_type == RunType::CENSO)
+                        || (run.run_type == RunType::VacuumCREST)))
                     {
                         let output = connection.execute(
                             &format!(
@@ -478,7 +478,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_cpu_queue_length += 1;
                     } else if (katana_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let output = connection.execute(
                             &format!(
@@ -491,7 +491,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_gpu_queue_length += 1;
                     } else if (katana2_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -502,9 +502,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana2_gpu_queue_length += 1;
                     } else if ((katana2_cpu_queue_length < 5)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO)))
+                        || (run.run_type == RunType::FrozenReversedCENSO)))
                         || ((katana2_cpu_queue_length < 10)
-                            && (run.run_type == RunType::VacuumCREST))
+                        && (run.run_type == RunType::VacuumCREST))
                     {
                         let output = connection.execute(
                             &format!(
