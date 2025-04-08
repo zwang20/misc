@@ -935,7 +935,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    for _ in 0..3 {
+    for _ in 0..2 {
         // VacuumCREST
         let mut statement = connection.prepare(
             "\
