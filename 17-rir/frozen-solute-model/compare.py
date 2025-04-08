@@ -56,8 +56,10 @@ for compound_id, smiles, iupac, experimental, _, mobley, _, _, _, _, _, _ in mol
 
     d[compound_id] = (smiles, iupac, experimental, mobley, relaxed_bar, frozen_bar)
 
-print("id;smiles;iupac;experimental;mobley;relaxed;frozen;ad(em);ad(mr);ad(rf);ad(ef)")
+print(
+    "id;smiles;iupac;experimental;mobley;relaxed;frozen;ad(em);ad(mr);ad(rf);ad(ef);d(ad(em)ad(ef))"
+)
 for k, v in d.items():
     print(
-        f"{k};{v[0]};{v[1]};{v[2]};{v[3]};{v[4]};{v[5]};{abs(v[2]-v[3])};{abs(v[3]-v[4])};{abs(v[4]-v[5])};{abs(v[5]-v[2])}"
+        f"{k};{v[0]};{v[1]};{v[2]};{v[3]};{v[4]};{v[5]};{abs(v[2]-v[3])};{abs(v[3]-v[4])};{abs(v[4]-v[5])};{abs(v[5]-v[2])};{abs(v[2]-v[3])-abs(v[5]-v[2])}"
     )

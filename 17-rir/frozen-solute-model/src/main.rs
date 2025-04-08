@@ -460,8 +460,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if run.remote_host == RemoteHostType::localhost {
                     if ((katana_cpu_queue_length < 1)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO)))
-                        || ((katana_cpu_queue_length < 5)
+                            || (run.run_type == RunType::FrozenReversedCENSO)
+                            || (run.run_type == RunType::RelaxedMinEquilGAFF)))
+                        || ((katana_cpu_queue_length < 10)
                             && ((run.run_type == RunType::CREST)
                                 || (run.run_type == RunType::CENSO)
                                 || (run.run_type == RunType::VacuumCREST)))
@@ -499,9 +500,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         connection.execute(&query, [])?;
                         println!("pick remote host {:?}", query);
                         katana2_gpu_queue_length += 1;
-                    } else if (katana2_cpu_queue_length < 5)
+                    } else if ((katana2_cpu_queue_length < 5)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO))
+                            || (run.run_type == RunType::FrozenReversedCENSO)))
+                        || ((katana2_cpu_queue_length < 10)
+                            && (run.run_type == RunType::VacuumCREST))
                     {
                         let output = connection.execute(
                             &format!(
@@ -932,7 +935,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
-    {
+    for _ in 0..3 {
         // VacuumCREST
         let mut statement = connection.prepare(
             "\
