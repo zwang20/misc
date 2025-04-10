@@ -68,9 +68,13 @@ enum RunType {
     RelaxedReversedGAFF,
     RelaxedBarGAFF,
     FrozenMinEquilCENSO,
+    FrozenMinEquilCENSO3,
     FrozenForwardCENSO,
+    FrozenForwardCENSO3,
     FrozenReversedCENSO,
+    FrozenReversedCENSO3,
     FrozenBarCENSO,
+    FrozenBarCENSO3,
     CREST,
     CENSO,
     VacuumCREST,
@@ -82,7 +86,7 @@ struct Run {
     compound_id: String,
     run_type: RunType,
     status: StatusType,
-    local_path: u16,
+    local_path: u32,
     remote_host: RemoteHostType,
     remote_path: String,
 }
@@ -90,7 +94,7 @@ struct Run {
 #[allow(non_snake_case)]
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct KatanaJob {
-    Job_Name: u16,
+    Job_Name: u32,
     job_state: char,
 }
 
@@ -114,10 +118,10 @@ struct SetonixJob {
 }
 
 fn update_run_status(
-    local_path: u16,
+    local_path: u32,
     new_status: StatusType,
     connection: &rusqlite::Connection,
-) -> Result<(u16, StatusType), Box<dyn std::error::Error>> {
+) -> Result<(u32, StatusType), Box<dyn std::error::Error>> {
     connection.execute(
         &format!(
             "UPDATE runs SET status = '{:?}' WHERE local_path = {}",
@@ -256,7 +260,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!("Getting run data");
-    let mut jobs: Vec<u16> = vec![];
+    let mut jobs: Vec<u32> = vec![];
 
     // katana
     {
@@ -295,53 +299,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u32>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-                .unwrap_or_default()
-                .into_iter()
-                .map(|i| i.Job_Name)
-                .collect::<Vec<u16>>(),
+            .unwrap_or_default()
+            .into_iter()
+            .map(|i| i.Job_Name)
+            .collect::<Vec<u32>>(),
         );
     }
 
     // gadi
     /* {
-         println!("Updating gadi");
-         let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
-         let output = std::process::Command::new("ssh")
-             .arg("gadi")
-             .arg("qstat -f -F json")
-             .stdout(gadi_raw_json)
-             .output();
-         assert!(output.is_ok(), "{output:?}");
-         assert!(output?.status.success());
-         let gadi_json = std::fs::File::create("server/gadi.json")?;
-         let output = std::process::Command::new("jq")
-             .arg("try([.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"mw7780\")) | .value]) // []")
-             .arg("server/gadi_raw.json")
-             .stdout(gadi_json)
-             .output();
-         assert!(output.is_ok(), "{output:?}");
-         assert!(output?.status.success());
+        println!("Updating gadi");
+        let gadi_raw_json = std::fs::File::create("server/gadi_raw.json")?;
+        let output = std::process::Command::new("ssh")
+            .arg("gadi")
+            .arg("qstat -f -F json")
+            .stdout(gadi_raw_json)
+            .output();
+        assert!(output.is_ok(), "{output:?}");
+        assert!(output?.status.success());
+        let gadi_json = std::fs::File::create("server/gadi.json")?;
+        let output = std::process::Command::new("jq")
+            .arg("try([.Jobs | to_entries[] | select(.value.Job_Owner | startswith(\"mw7780\")) | .value]) // []")
+            .arg("server/gadi_raw.json")
+            .stdout(gadi_json)
+            .output();
+        assert!(output.is_ok(), "{output:?}");
+        assert!(output?.status.success());
 
-         jobs.append(
-             &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
-                 "server/gadi.json",
-             )?)
-                 .unwrap_or_default()
-                 .into_iter()
-                 .map(|i| i.Job_Name.parse::<u16>().unwrap())
-                 .collect::<Vec<u16>>(),
-         );
-     }*/
+        jobs.append(
+            &mut serde_json::from_str::<Vec<GadiJob>>(&std::fs::read_to_string(
+                "server/gadi.json",
+            )?)
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name.parse::<u32>().unwrap())
+                .collect::<Vec<u32>>(),
+        );
+    }*/
 
     // setonix
     /*{
@@ -369,8 +373,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             )?)
             .unwrap_or_default()
             .into_iter()
-            .map(|i| i.name.parse::<u16>().unwrap())
-            .collect::<Vec<u16>>(),
+            .map(|i| i.name.parse::<u32>().unwrap())
+            .collect::<Vec<u32>>(),
         );
     }*/
 
@@ -446,11 +450,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     | RunType::CENSO
                     | RunType::RelaxedMinEquilGAFF
                     | RunType::FrozenMinEquilCENSO
+                    | RunType::FrozenMinEquilCENSO3
                     | RunType::FrozenForwardCENSO
+                    | RunType::FrozenForwardCENSO3
                     | RunType::FrozenReversedCENSO
+                    | RunType::FrozenReversedCENSO3
                     | RunType::RelaxedBarGAFF
                     | RunType::FrozenBarCENSO
-                    | RunType::VacuumCREST | RunType::VacuumCENSO => {
+                    | RunType::FrozenBarCENSO3
+                    | RunType::VacuumCREST
+                    | RunType::VacuumCENSO => {
                         planned_cpu += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
@@ -459,14 +468,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 2)
+                    if ((katana_cpu_queue_length < 5)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                        || (run.run_type == RunType::FrozenReversedCENSO)
-                        || (run.run_type == RunType::RelaxedMinEquilGAFF)))
+                            || (run.run_type == RunType::FrozenReversedCENSO)
+                            || (run.run_type == RunType::RelaxedMinEquilGAFF)))
                         || ((katana_cpu_queue_length < 10)
-                        && ((run.run_type == RunType::CREST)
-                        || (run.run_type == RunType::CENSO)
-                        || (run.run_type == RunType::VacuumCREST)))
+                            && ((run.run_type == RunType::CREST)
+                                || (run.run_type == RunType::CENSO)
+                                || (run.run_type == RunType::VacuumCREST)))
                     {
                         let output = connection.execute(
                             &format!(
@@ -479,7 +488,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_cpu_queue_length += 1;
                     } else if (katana_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let output = connection.execute(
                             &format!(
@@ -492,7 +501,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_gpu_queue_length += 1;
                     } else if (katana2_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                        || (run.run_type == RunType::RelaxedReversedGAFF))
+                            || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -503,9 +512,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana2_gpu_queue_length += 1;
                     } else if ((katana2_cpu_queue_length < 5)
                         && ((run.run_type == RunType::FrozenForwardCENSO)
-                        || (run.run_type == RunType::FrozenReversedCENSO)))
+                            || (run.run_type == RunType::FrozenReversedCENSO)))
                         || ((katana2_cpu_queue_length < 10)
-                        && (run.run_type == RunType::VacuumCREST))
+                            && (run.run_type == RunType::VacuumCREST))
                     {
                         let output = connection.execute(
                             &format!(
@@ -799,6 +808,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     RunType::FrozenBarCENSO => todo!(),
                     RunType::VacuumCENSO => todo!(),
+                    _ => todo!(),
                 }
             }
             StatusType::Running => {
@@ -817,8 +827,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Generating Jobs");
 
-    if planned_cpu < 10 {
-        {
+    if planned_cpu > 1 {
+        /*{
             // CREST
             let mut statement = connection.prepare(
                 "\
@@ -846,7 +856,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }
+        }*/
 
         /*{
             let mut statement = connection.prepare(
@@ -878,7 +888,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }*/
-        {
+        /*{
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -906,13 +916,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }
-        for _ in 0..3 {
+        }*/
+        /* {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
                     WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenReversedCENSO') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO' AND status == 'Received') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO') \
                     ORDER BY rotatable_bonds DESC LIMIT 1\
                 ",
             )?;
@@ -935,7 +945,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }
+        }*/
     }
     for _ in 0..2 {
         // VacuumCREST
