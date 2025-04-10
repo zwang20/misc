@@ -183,7 +183,7 @@ set -e
 
 lscpu
 
-cd "${{PBS_O_WORKDIR}}"
+cd "$PBS_O_WORKDIR"
 
 /srv/scratch/${{USER}}/.namd/namd3 "+p$(nproc)" min.namd > min.log
 /srv/scratch/${{USER}}/.namd/namd3 "+p$(nproc)" equil.namd > equil.log
