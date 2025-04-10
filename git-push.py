@@ -45,10 +45,10 @@ for files in chunks(deleted, 128):
     subprocess.run(["git", "add"] + files, check=True)
     subprocess.run(["git", "commit", "-m", "remove files"]).check_returncode()
     subprocess.run(["git", "push"]).check_returncode()
-    time.sleep(10)
+    time.sleep(5)
 
 for files in chunks(output, 8):
     subprocess.run(["git", "add"] + files, check=True)
     subprocess.run(["git", "commit", "-m", "add files"]).check_returncode()
     subprocess.run(["git", "push"]).check_returncode()
-    time.sleep(10)
+    time.sleep(5)
