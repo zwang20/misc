@@ -42,13 +42,20 @@ subprocess.run(["git", "push"], check=True)
 deleted, output = get_files()
 
 for files in chunks(deleted, 128):
+    start = time.perf_counter()
     subprocess.run(["git", "add"] + files, check=True)
     subprocess.run(["git", "commit", "-m", "remove files"]).check_returncode()
     subprocess.run(["git", "push"]).check_returncode()
-    time.sleep(5)
+    duration = time.perf_counter() - start
+    if duration < 5:
+        time.sleep(5 - duration)
 
 for files in chunks(output, 8):
+    start = time.perf_counter()
     subprocess.run(["git", "add"] + files, check=True)
     subprocess.run(["git", "commit", "-m", "add files"]).check_returncode()
     subprocess.run(["git", "push"]).check_returncode()
-    time.sleep(5)
+    duration = time.perf_counter() - start
+    if duration < 5:
+        time.sleep(5 - duration)
+
