@@ -1,7 +1,7 @@
 import math
 import sys
 
-from common import katana_censo
+from common import katana_censo, setonix_censo
 
 assert len(sys.argv) == 3, (sys.argv, len(sys.argv))
 assert sys.argv[1].startswith("data/"), sys.argv[1]

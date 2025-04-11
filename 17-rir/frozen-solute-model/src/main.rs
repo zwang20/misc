@@ -560,7 +560,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         )?;
                         setonix_queue_length += 1;
-                        panic!();
                     } else {
                         println!("all queues busy, skipping");
                     }
