@@ -24,17 +24,12 @@ assert l % a == 0, (l, a)
 ncpus = l // a
 ncpus = int(ncpus)
 
-mem = math.ceil(ncpus * 4)
-mem = int(mem)
-assert mem <= 124
-
 if remote_host == "katana":
     if ncpus > 16:
         ncpus = 16
     assert ncpus <= 16, ncpus
-    mem = math.ceil(ncpus * 4)
-    mem = int(mem)
-    assert mem <= 124
+    mem = ncpus * 4
+    assert mem <= 124, mem
     with open(f"{sys.argv[1]}", "w") as f:
         f.write(katana_censo.format(ncpus=ncpus, mem=mem))
 elif remote_host == "setonix":
@@ -43,3 +38,5 @@ elif remote_host == "setonix":
     assert ncpus <= 32, ncpus
     mem = ncpus * 4
     assert mem <= 128
+    with open(f"{sys.argv[1]}", "w") as f:
+        f.write(setonix_censo.format(ncpus=ncpus, mem=mem))

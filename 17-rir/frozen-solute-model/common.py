@@ -306,7 +306,20 @@ module add crest
 module add orca
 
 yes | /srv/scratch/${{USER}}/.censo/bin/censo --cleanup_all > censo_cleanup.out
-/srv/scratch/${{USER}}/.censo/bin/censo -i crest_conformers.xyz --maxcores {ncpus} -O 1 --loglevel DEBUG > censo.out
+/srv/scratch/${{USER}}/.censo/bin/censo -i crest_conformers.xyz --maxcores {ncpus} -O 1 > censo.out
+"""
+
+setonix_censo = """#!/usr/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task={ncpus}
+#SBATCH --mem={mem}G
+#SBATCH --time=24:00:00
+
+set -e
+
+yes | /software/projects/pawsey0265/mwang1/censo_screwed/bin/censo --cleanup_all > censo_cleanup.out
+/software/projects/pawsey0265/mwang1/censo_screwed/bin/censo -i crest_conformers.xyz --maxcores {ncpus} -O 1 > censo.out
 """
 
 katana_gpu_batch = """#!/usr/bin/bash
