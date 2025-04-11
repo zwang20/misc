@@ -667,6 +667,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "python",
                             "censo.py",
                             &format!("data/{}/{}", run.local_path, run.local_path),
+                            &format!("{:?}", run.remote_host),
                         ])?;
                     }
                     RunType::FrozenMinEquilCENSO => todo!(),
