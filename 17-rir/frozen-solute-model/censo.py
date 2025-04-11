@@ -37,3 +37,9 @@ if remote_host == "katana":
     assert mem <= 124
     with open(f"{sys.argv[1]}", "w") as f:
         f.write(katana_censo.format(ncpus=ncpus, mem=mem))
+elif remote_host == "setonix":
+    if ncpus > 32:
+        ncpus = 32
+    assert ncpus <= 32, ncpus
+    mem = ncpus * 4
+    assert mem <= 128
