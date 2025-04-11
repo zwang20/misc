@@ -318,6 +318,8 @@ setonix_censo = """#!/usr/bin/bash
 
 set -e
 
+module add python/3.11.6
+
 yes | /software/projects/pawsey0265/mwang1/censo_screwed/bin/censo --cleanup_all > censo_cleanup.out
 /software/projects/pawsey0265/mwang1/censo_screwed/bin/censo -i crest_conformers.xyz --maxcores {ncpus} -O 1 > censo.out
 """

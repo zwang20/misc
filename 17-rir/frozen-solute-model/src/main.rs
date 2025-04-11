@@ -144,16 +144,10 @@ struct GadiJob {
     job_state: char,
 }
 
-#[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-enum SetonixJobState {
-    PENDING,
-}
-
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct SetonixJob {
     name: String,
-    job_state: SetonixJobState,
+    job_state: String,
 }
 
 fn update_run_status(
@@ -338,20 +332,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana2.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u32>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u32>>(),
         );
 
         jobs.append(
             &mut serde_json::from_str::<Vec<KatanaJob>>(&std::fs::read_to_string(
                 "server/katana.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.Job_Name)
-            .collect::<Vec<u32>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.Job_Name)
+                .collect::<Vec<u32>>(),
         );
     }
 
@@ -410,10 +404,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &mut serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string(
                 "server/setonix.json",
             )?)
-            .unwrap_or_default()
-            .into_iter()
-            .map(|i| i.name.parse::<u32>().unwrap())
-            .collect::<Vec<u32>>(),
+                .unwrap_or_default()
+                .into_iter()
+                .map(|i| i.name.parse::<u32>().unwrap())
+                .collect::<Vec<u32>>(),
         );
     }
 
@@ -465,9 +459,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serde_json::from_str::<Vec<SetonixJob>>(&std::fs::read_to_string("server/setonix.json")?)
             .unwrap_or_default()
             .into_iter()
-            .fold(0, |acc, x| {
-                acc + (x.job_state == SetonixJobState::PENDING) as u8
-            });
+            .fold(0, |acc, x| acc + (x.job_state == "PENDING") as u8);
 
     println!("katana cpu queue length: {}", katana_cpu_queue_length);
     println!("katana2 cpu queue length: {}", katana2_cpu_queue_length);
@@ -494,14 +486,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 5)
-                        && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO)
-                            || (run.run_type == RunType::RelaxedMinEquilGAFF)))
+                    if ((katana_cpu_queue_length < 8)
+                        && ((run.run_type == RunType::FrozenForwardCENSO3)
+                        || (run.run_type == RunType::FrozenReversedCENSO3)
+                        || (run.run_type == RunType::RelaxedMinEquilGAFF)))
                         || ((katana_cpu_queue_length < 5)
-                            && ((run.run_type == RunType::CREST)
-                                || (run.run_type == RunType::CENSO)
-                                || (run.run_type == RunType::VacuumCREST)))
+                        && ((run.run_type == RunType::CREST)
+                        || (run.run_type == RunType::CENSO)
+                        || (run.run_type == RunType::VacuumCREST)))
                     {
                         let output = connection.execute(
                             &format!(
@@ -514,7 +506,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_cpu_queue_length += 1;
                     } else if (katana_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let output = connection.execute(
                             &format!(
@@ -527,7 +519,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         katana_gpu_queue_length += 1;
                     } else if (katana2_gpu_queue_length < 5)
                         && ((run.run_type == RunType::RelaxedForwardGAFF)
-                            || (run.run_type == RunType::RelaxedReversedGAFF))
+                        || (run.run_type == RunType::RelaxedReversedGAFF))
                     {
                         let query = format!(
                             "UPDATE runs SET remote_path = '/srv/scratch/z5382435/.automated/{}/', remote_host = 'katana2' WHERE local_path = {}",
@@ -537,10 +529,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         println!("pick remote host {:?}", query);
                         katana2_gpu_queue_length += 1;
                     } else if ((katana2_cpu_queue_length < 5)
-                        && ((run.run_type == RunType::FrozenForwardCENSO)
-                            || (run.run_type == RunType::FrozenReversedCENSO)))
+                        && ((run.run_type == RunType::FrozenForwardCENSO3)
+                        || (run.run_type == RunType::FrozenReversedCENSO3)))
                         || ((katana2_cpu_queue_length < 10)
-                            && (run.run_type == RunType::VacuumCREST))
+                        && (run.run_type == RunType::VacuumCREST))
                     {
                         let output = connection.execute(
                             &format!(
@@ -551,7 +543,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana2_cpu_queue_length += 1;
-                    } else if (setonix_queue_length < 1) && (run.run_type == RunType::CENSO) {
+                    } else if (setonix_queue_length < 10) && (run.run_type == RunType::CENSO) {
                         connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
@@ -669,9 +661,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         ])?;
                     }
                     RunType::FrozenMinEquilCENSO => todo!(),
-                    RunType::FrozenForwardCENSO | RunType::FrozenReversedCENSO => {
+                    RunType::FrozenForwardCENSO3 | RunType::FrozenReversedCENSO3 => {
                         let mut statement = connection.prepare(&format!(
-                            "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'FrozenMinEquilCENSO'",
+                            "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'FrozenMinEquilCENSO3'",
                             run.compound_id,
                         ))?;
                         let min_equil_path = serde_rusqlite::from_rows::<Run>(statement.query([])?)
@@ -692,13 +684,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                         // run prod script
                         match &run.run_type {
-                            RunType::FrozenForwardCENSO => run_program(vec![
+                            RunType::FrozenForwardCENSO3 => run_program(vec![
                                 "python",
                                 "prod.frozen.forward.py",
                                 &run.compound_id,
                                 &run.local_path.to_string(),
                             ])?,
-                            RunType::FrozenReversedCENSO => run_program(vec![
+                            RunType::FrozenReversedCENSO3 => run_program(vec![
                                 "python",
                                 "prod.frozen.reversed.py",
                                 &run.compound_id,
@@ -792,13 +784,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }*/
 
-        {
+        for _ in 0..40 {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
                     WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'CENSO') \
                     AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'CREST' AND status == 'Received') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'RelaxedForwardGAFF') \
                     ORDER BY rotatable_bonds ASC LIMIT 1\
                 ",
             )?;
@@ -822,12 +813,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(_) => {}
             }
         }
-        /*{
+        {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
-                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenMinEquilCENSO' AND status == 'Received') \
+                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO3') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenMinEquilCENSO3' AND status == 'Received') \
                     ORDER BY rotatable_bonds DESC LIMIT 1\
                 ",
             )?;
@@ -840,7 +831,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let query = format!(
                         "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
                         molecule?.compound_id,
-                        RunType::FrozenForwardCENSO,
+                        RunType::FrozenForwardCENSO3,
                         StatusType::Planned,
                         RemoteHostType::localhost,
                         "/dev/null/"
@@ -850,13 +841,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }*/
-        /* {
+        }
+        for _ in 0..2 {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
-                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenReversedCENSO') \
-                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO') \
+                    WHERE compound_id NOT IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenReversedCENSO3') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenForwardCENSO3') \
+                    AND compound_id IN (SELECT compound_id FROM runs WHERE run_type == 'FrozenMinEquilCENSO3' AND status == 'Received') \
                     ORDER BY rotatable_bonds DESC LIMIT 1\
                 ",
             )?;
@@ -869,7 +861,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let query = format!(
                         "INSERT INTO runs (compound_id, run_type, status, remote_host, remote_path) VALUES ('{}', '{:?}', '{:?}', '{:?}', '{}')",
                         molecule?.compound_id,
-                        RunType::FrozenReversedCENSO,
+                        RunType::FrozenReversedCENSO3,
                         StatusType::Planned,
                         RemoteHostType::localhost,
                         "/dev/null/"
@@ -879,7 +871,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }*/
+        }
     }
     for _ in 0..2 {
         // VacuumCREST
