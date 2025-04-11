@@ -3,8 +3,9 @@ import sys
 
 from common import katana_censo
 
-assert len(sys.argv) == 2, (sys.argv, len(sys.argv))
+assert len(sys.argv) == 3, (sys.argv, len(sys.argv))
 assert sys.argv[1].startswith("data/"), sys.argv[1]
+assert (remote_host := sys.argv[2]) in ("katana", "setonix")
 
 file_name = f"{'/'.join(sys.argv[1].split('/')[:-1])}/crest_conformers.xyz"
 
@@ -21,15 +22,18 @@ with open(file_name) as f:
 
 assert l % a == 0, (l, a)
 ncpus = l // a
-if ncpus > 16:
-    ncpus = 16
-
 ncpus = int(ncpus)
-assert ncpus <= 16, ncpus
 
 mem = math.ceil(ncpus * 4)
 mem = int(mem)
 assert mem <= 124
 
-with open(f"{sys.argv[1]}", "w") as f:
-    f.write(katana_censo.format(ncpus=ncpus, mem=mem))
+if remote_host == "katana":
+    if ncpus > 16:
+        ncpus = 16
+    assert ncpus <= 16, ncpus
+    mem = math.ceil(ncpus * 4)
+    mem = int(mem)
+    assert mem <= 124
+    with open(f"{sys.argv[1]}", "w") as f:
+        f.write(katana_censo.format(ncpus=ncpus, mem=mem))

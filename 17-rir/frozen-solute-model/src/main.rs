@@ -729,12 +729,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     update_run_status(run.local_path, StatusType::Running, &connection)
                 );
 
-                match run.remote_host {
-                    RemoteHostType::localhost => {}
-                    RemoteHostType::katana => katana_gpu_queue_length += 1,
-                    RemoteHostType::katana2 => katana2_gpu_queue_length += 1,
-                    RemoteHostType::gadi => gadi_queue_length += 1,
-                    RemoteHostType::setonix => setonix_queue_length += 1,
+                match run.run_type.get_resource_type() {
+                    RunResourceType::Cpu => match run.remote_host {
+                        RemoteHostType::localhost => {}
+                        RemoteHostType::katana => katana_cpu_queue_length += 1,
+                        RemoteHostType::katana2 => katana2_cpu_queue_length += 1,
+                        RemoteHostType::gadi => gadi_queue_length += 1,
+                        RemoteHostType::setonix => setonix_queue_length += 1,
+                    },
+                    RunResourceType::Gpu => match run.remote_host {
+                        RemoteHostType::localhost => {}
+                        RemoteHostType::katana => katana_gpu_queue_length += 1,
+                        RemoteHostType::katana2 => katana2_gpu_queue_length += 1,
+                        RemoteHostType::gadi => todo!("gadi using gpu!"),
+                        RemoteHostType::setonix => todo!("setonix using gpu!"),
+                    },
                 }
             }
             StatusType::Running => {
