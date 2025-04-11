@@ -234,7 +234,7 @@ setonix_prod = """#!/usr/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=2G
+#SBATCH --mem=1G
 #SBATCH --time=24:00:00
 
 set -e
