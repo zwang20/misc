@@ -71,6 +71,12 @@ impl RemoteHostType {
     }
 }
 
+#[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+enum RunResourceType {
+    Cpu,
+    Gpu,
+}
+
 #[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum RunType {
@@ -90,6 +96,28 @@ enum RunType {
     CENSO,
     VacuumCREST,
     VacuumCENSO,
+}
+
+impl RunType {
+    fn get_resource_type(&self) -> RunResourceType {
+        match self {
+            RunType::RelaxedMinEquilGAFF
+            | RunType::RelaxedBarGAFF
+            | RunType::FrozenMinEquilCENSO
+            | RunType::FrozenMinEquilCENSO3
+            | RunType::FrozenForwardCENSO
+            | RunType::FrozenForwardCENSO3
+            | RunType::FrozenReversedCENSO
+            | RunType::FrozenReversedCENSO3
+            | RunType::FrozenBarCENSO
+            | RunType::FrozenBarCENSO3
+            | RunType::CREST
+            | RunType::CENSO
+            | RunType::VacuumCREST
+            | RunType::VacuumCENSO => RunResourceType::Cpu,
+            RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => RunResourceType::Gpu,
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -456,24 +484,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let run = run?;
         match &run.status {
             StatusType::Planned => 'match_status: {
-                match &run.run_type {
-                    RunType::CREST
-                    | RunType::CENSO
-                    | RunType::RelaxedMinEquilGAFF
-                    | RunType::FrozenMinEquilCENSO
-                    | RunType::FrozenMinEquilCENSO3
-                    | RunType::FrozenForwardCENSO
-                    | RunType::FrozenForwardCENSO3
-                    | RunType::FrozenReversedCENSO
-                    | RunType::FrozenReversedCENSO3
-                    | RunType::RelaxedBarGAFF
-                    | RunType::FrozenBarCENSO
-                    | RunType::FrozenBarCENSO3
-                    | RunType::VacuumCREST
-                    | RunType::VacuumCENSO => {
+                match &run.run_type.get_resource_type() {
+                    RunResourceType::Cpu => {
                         planned_cpu += 1;
                     }
-                    RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
+                    RunResourceType::Gpu => {
                         planned_gpu += 1;
                     }
                 }
@@ -588,7 +603,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-                        katana_cpu_queue_length += 1;
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
                         let mut statement = connection.prepare(&format!(
@@ -645,14 +659,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-
-                        match run.remote_host {
-                            RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_gpu_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_gpu_queue_length += 1,
-                            RemoteHostType::gadi => gadi_queue_length += 1,
-                            RemoteHostType::setonix => setonix_queue_length += 1,
-                        }
                     }
                     RunType::RelaxedBarGAFF => todo!(),
                     RunType::CREST | RunType::VacuumCREST => {
@@ -697,14 +703,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-
-                        match run.remote_host {
-                            RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_cpu_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_cpu_queue_length += 1,
-                            RemoteHostType::gadi => gadi_queue_length += 1,
-                            RemoteHostType::setonix => setonix_queue_length += 1,
-                        }
                     }
                     RunType::CENSO => {
                         create_dir_if(&format!("data/{}", run.local_path))?;
@@ -743,14 +741,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-
-                        match run.remote_host {
-                            RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_cpu_queue_length += 1,
-                            RemoteHostType::katana2 => panic!(),
-                            RemoteHostType::gadi => gadi_queue_length += 1,
-                            RemoteHostType::setonix => setonix_queue_length += 1,
-                        }
                     }
                     RunType::FrozenMinEquilCENSO => todo!(),
                     RunType::FrozenForwardCENSO | RunType::FrozenReversedCENSO => {
@@ -808,18 +798,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "{:?}",
                             update_run_status(run.local_path, StatusType::Running, &connection)
                         );
-
-                        match run.remote_host {
-                            RemoteHostType::localhost => {}
-                            RemoteHostType::katana => katana_cpu_queue_length += 1,
-                            RemoteHostType::katana2 => katana2_cpu_queue_length += 1,
-                            RemoteHostType::gadi => gadi_queue_length += 1,
-                            RemoteHostType::setonix => setonix_queue_length += 1,
-                        }
                     }
                     RunType::FrozenBarCENSO => todo!(),
                     RunType::VacuumCENSO => todo!(),
                     _ => todo!(),
+                }
+
+                match run.remote_host {
+                    RemoteHostType::localhost => {}
+                    RemoteHostType::katana => katana_gpu_queue_length += 1,
+                    RemoteHostType::katana2 => katana2_gpu_queue_length += 1,
+                    RemoteHostType::gadi => gadi_queue_length += 1,
+                    RemoteHostType::setonix => setonix_queue_length += 1,
                 }
             }
             StatusType::Running => {
