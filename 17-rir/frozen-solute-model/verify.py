@@ -2,6 +2,7 @@
 
 # // DELETE FROM runs WHERE local_path=-1;
 
+import os
 import sqlite3
 import subprocess
 
@@ -12,12 +13,14 @@ cur = con.cursor()
 def main():
     # returns a path if invalid path is found, else None
 
-    vacuum_censo_paths = cur.execute("SELECT local_path FROM runs WHERE run_type = 'VacuumCENSO'").fetchall()
+    vacuum_censo_paths = cur.execute(
+        "SELECT local_path FROM runs WHERE run_type = 'VacuumCENSO'"
+    ).fetchall()
     for i in vacuum_censo_paths:
         vacuum_censo_path = i[0]
         vacuum_censo_conf = (
             subprocess.run(
-                [f"head -n 2 data/{vacuum_censo_path}/3_REFINEMENT.xyz | tail -n 1"],
+                [f"head -n 2 data/{vacuum_censo_path}/2_OPTIMIZATION.xyz | tail -n 1"],
                 check=True,
                 capture_output=True,
                 shell=True,
@@ -25,7 +28,7 @@ def main():
             .stdout.decode("utf-8")
             .strip()
         )
-        if not vacuum_censo_conf.startswith('CONF'):
+        if not vacuum_censo_conf.startswith("CONF"):
             return vacuum_censo_path
 
     relaxed_paths = cur.execute(
@@ -83,3 +86,15 @@ for i in cur.execute(
     f"SELECT * FROM runs WHERE {compound_id = }",
 ).fetchall():
     print(i)
+
+print("=" * 10, "running ls", "=" * 10)
+os.system(f"ls data/{local_path}")
+print("=" * 10, "=" * 10, "=" * 10)
+
+rm = f"rm -rf data/{local_path}"
+statement = f"DELETE FROM runs WHERE local_path={local_path};"
+assert input(f"Execute command `{rm}` AND statement `{statement}` ? (y/N): ") == "y"
+os.system(rm)
+cur.execute(statement)
+con.commit()
+con.close()

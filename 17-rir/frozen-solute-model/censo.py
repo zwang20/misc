@@ -27,7 +27,7 @@ if ncpus > 16:
 ncpus = int(ncpus)
 assert ncpus <= 16, ncpus
 
-mem = math.ceil(ncpus * 7.75)
+mem = math.ceil(ncpus * 4)
 mem = int(mem)
 assert mem <= 124
 

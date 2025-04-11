@@ -49,7 +49,6 @@ enum StatusType {
     Failed,
 }
 
-// temporarily suspend katana
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum RemoteHostType {
@@ -58,6 +57,18 @@ enum RemoteHostType {
     katana2,
     gadi,
     setonix,
+}
+
+impl RemoteHostType {
+    fn get_data_host(&self) -> &str {
+        match self {
+            RemoteHostType::localhost => "localhost",
+            RemoteHostType::katana => "kdm",
+            RemoteHostType::katana2 => "kdm2",
+            RemoteHostType::gadi => "gadi-dm",
+            RemoteHostType::setonix => "setonix-data",
+        }
+    }
 }
 
 #[allow(clippy::upper_case_acronyms)]
@@ -151,7 +162,7 @@ fn receive_files(
     run_program(vec![
         "rsync",
         "-rz",
-        &format!("{:?}:{}", remote_host, remote_path),
+        &format!("{}:{}", remote_host.get_data_host(), remote_path),
         &format!("data/{}", local_path),
     ])?;
     println!(
@@ -348,7 +359,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }*/
 
     // setonix
-    /*{
+    {
         println!("Updating setonix");
         let setonix_raw_json = std::fs::File::create("server/setonix_raw.json")?;
         let output = std::process::Command::new("ssh")
@@ -376,7 +387,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|i| i.name.parse::<u32>().unwrap())
             .collect::<Vec<u32>>(),
         );
-    }*/
+    }
 
     jobs.sort_unstable(); // they are supposed to be unique anyway
     println!("Jobs: {:?}", jobs);
@@ -472,7 +483,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         && ((run.run_type == RunType::FrozenForwardCENSO)
                             || (run.run_type == RunType::FrozenReversedCENSO)
                             || (run.run_type == RunType::RelaxedMinEquilGAFF)))
-                        || ((katana_cpu_queue_length < 10)
+                        || ((katana_cpu_queue_length < 5)
                             && ((run.run_type == RunType::CREST)
                                 || (run.run_type == RunType::CENSO)
                                 || (run.run_type == RunType::VacuumCREST)))
@@ -827,7 +838,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Generating Jobs");
 
-    if planned_cpu > 1 {
+    if planned_cpu < 5 {
         /*{
             // CREST
             let mut statement = connection.prepare(
@@ -858,7 +869,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }*/
 
-        /*{
+        {
             let mut statement = connection.prepare(
                 "\
                     SELECT * FROM molecules \
@@ -887,7 +898,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(_) => {}
             }
-        }*/
+        }
         /*{
             let mut statement = connection.prepare(
                 "\
