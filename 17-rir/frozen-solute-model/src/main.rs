@@ -551,8 +551,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana2_cpu_queue_length += 1;
-                    }
-                    /*else if setonix_queue_length < 0 {
+                    } else if (setonix_queue_length < 1) && (run.run_type == RunType::CENSO) {
                         connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
@@ -561,8 +560,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         )?;
                         setonix_queue_length += 1;
-                    } */
-                    else {
+                        panic!();
+                    } else {
                         println!("all queues busy, skipping");
                     }
                     break 'match_status;
