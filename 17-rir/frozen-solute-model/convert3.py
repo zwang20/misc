@@ -16,4 +16,30 @@ censo_paths = cur.execute(
 ).fetchall()
 
 for i in censo_paths:
-    censo_paths = i[0]
+    censo_path = i[0]
+
+    step_2_conf = (
+        subprocess.run(
+            [f"head -n 2 data/{vacuum_censo_path}/2_OPTIMIZATION.xyz | tail -n 1"],
+            check=True,
+            capture_output=True,
+            shell=True,
+        )
+        .stdout.decode("utf-8")
+        .strip()
+    )
+    assert step_2_conf.startswith("CONF"), step_2_conf
+
+    step_3_conf = (
+        subprocess.run(
+            [f"head -n 2 data/{vacuum_censo_path}/3_REFINEMENT.xyz | tail -n 1"],
+            check=True,
+            capture_output=True,
+            shell=True,
+        )
+        .stdout.decode("utf-8")
+        .strip()
+    )
+    assert step_3_conf.startswith("CONF"), step_3_conf
+
+    assert step_2_conf == step_3_conf, (step_2_conf, step_3_conf)
