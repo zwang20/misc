@@ -12,15 +12,17 @@ con = sqlite3.connect("frozen_solute_model_new.db")
 cur = con.cursor()
 
 censo_paths = cur.execute(
-    "SELECT local_path FROM runs WHERE run_type = 'CENSO'"
+    "SELECT compound_id, local_path FROM runs WHERE run_type = 'CENSO' AND status = 'Received'"
 ).fetchall()
 
 for i in censo_paths:
-    censo_path = i[0]
+    compound_id, censo_path = i
+    print(f"{compound_id = }")
+    print(f"{censo_path = }")
 
     step_2_conf = (
         subprocess.run(
-            [f"head -n 2 data/{vacuum_censo_path}/2_OPTIMIZATION.xyz | tail -n 1"],
+            [f"head -n 2 data/{censo_path}/2_OPTIMIZATION.xyz | tail -n 1"],
             check=True,
             capture_output=True,
             shell=True,
@@ -32,7 +34,7 @@ for i in censo_paths:
 
     step_3_conf = (
         subprocess.run(
-            [f"head -n 2 data/{vacuum_censo_path}/3_REFINEMENT.xyz | tail -n 1"],
+            [f"head -n 2 data/{censo_path}/3_REFINEMENT.xyz | tail -n 1"],
             check=True,
             capture_output=True,
             shell=True,
@@ -40,6 +42,23 @@ for i in censo_paths:
         .stdout.decode("utf-8")
         .strip()
     )
-    assert step_3_conf.startswith("CONF"), step_3_conf
+    if not step_3_conf.startswith("CONF"):
+        print("Step 3 conf does not exist, skipping")
+        continue
 
-    assert step_2_conf == step_3_conf, (step_2_conf, step_3_conf)
+    if step_2_conf == step_3_conf:
+        cur.execute(
+            f"UPDATE runs SET run_type = 'FrozenMinEquilCENSO3' WHERE compound_id = '{compound_id}' AND run_type = 'FrozenMinEquilCENSO'"
+        )
+        cur.execute(
+            f"UPDATE runs SET run_type = 'FrozenForwardCENSO3' WHERE compound_id = '{compound_id}' AND run_type = 'FrozenForwardCENSO'"
+        )
+        cur.execute(
+            f"UPDATE runs SET run_type = 'FrozenReversedCENSO3' WHERE compound_id = '{compound_id}' AND run_type = 'FrozenReversedCENSO'"
+        )
+        cur.execute(
+            f"UPDATE runs SET run_type = 'FrozenBarCENSO3' WHERE compound_id = '{compound_id}' AND run_type = 'FrozenBarCENSO'"
+        )
+        con.commit()
+
+con.close()
