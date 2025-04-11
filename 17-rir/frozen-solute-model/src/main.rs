@@ -568,6 +568,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     break 'match_status;
                 }
 
+                // create dir
+                create_dir_if(&format!("data/{}", run.local_path))?;
+
                 match &run.run_type {
                     RunType::RelaxedMinEquilGAFF => {
                         let output = std::process::Command::new("python")
@@ -579,30 +582,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if !output.status.success() {
                             break 'match_status;
                         }
-
-                        let output = std::process::Command::new("rsync")
-                            .arg("-rv")
-                            .arg(format!("data/{}/", run.local_path))
-                            .arg(format!("{:?}:{}", run.remote_host, run.remote_path))
-                            .output()?;
-                        println!("rsync copy to server {:?}", output);
-                        if !output.status.success() {
-                            break 'match_status;
-                        }
-
-                        let output = std::process::Command::new("ssh")
-                            .arg(format!("{:?}", run.remote_host))
-                            .arg(format!("cd {}; qsub {}", run.remote_path, run.local_path))
-                            .output()?;
-                        println!("ssh start remote job {:?}", output);
-                        if !output.status.success() {
-                            break 'match_status;
-                        }
-
-                        println!(
-                            "{:?}",
-                            update_run_status(run.local_path, StatusType::Running, &connection)
-                        );
                     }
                     RunType::RelaxedForwardGAFF | RunType::RelaxedReversedGAFF => {
                         let mut statement = connection.prepare(&format!(
@@ -613,8 +592,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .next()
                             .ok_or("No prep found")??
                             .local_path;
-
-                        create_dir_if(&format!("data/{}", run.local_path))?;
 
                         for suffix in [".prmtop", ".pdb", "_equil.coor", "_equil.vel", "_equil.xsc"]
                         {
@@ -643,27 +620,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             ])?,
                             _ => panic!(),
                         }
-
-                        // copy to server
-                        run_program(vec![
-                            "rsync",
-                            "-rv",
-                            &format!("data/{}/", run.local_path),
-                            &format!("{:?}:{}", run.remote_host, run.remote_path),
-                        ])?;
-
-                        // start remote job
-                        submit_job(&run)?;
-
-                        println!(
-                            "{:?}",
-                            update_run_status(run.local_path, StatusType::Running, &connection)
-                        );
                     }
                     RunType::RelaxedBarGAFF => todo!(),
                     RunType::CREST | RunType::VacuumCREST => {
-                        create_dir_if(&format!("data/{}", run.local_path))?;
-
                         run_program(vec![
                             "python",
                             "mol2-to-xyz.py",
@@ -688,25 +647,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         } else {
                             panic!()
                         }
-
-                        run_program(vec![
-                            "rsync",
-                            "-rv",
-                            &format!("data/{}/", run.local_path),
-                            &format!("{:?}:{}", run.remote_host, run.remote_path),
-                        ])?;
-
-                        // start remote job
-                        submit_job(&run)?;
-
-                        println!(
-                            "{:?}",
-                            update_run_status(run.local_path, StatusType::Running, &connection)
-                        );
                     }
                     RunType::CENSO => {
-                        create_dir_if(&format!("data/{}", run.local_path))?;
-
                         let mut statement = connection.prepare(&format!(
                             "SELECT * FROM runs WHERE compound_id == '{}' AND run_type = 'CREST'",
                             run.compound_id,
@@ -726,21 +668,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             "censo.py",
                             &format!("data/{}/{}", run.local_path, run.local_path),
                         ])?;
-
-                        run_program(vec![
-                            "rsync",
-                            "-rv",
-                            &format!("data/{}/", run.local_path),
-                            &format!("{:?}:{}", run.remote_host, run.remote_path),
-                        ])?;
-
-                        // start remote job
-                        submit_job(&run)?;
-
-                        println!(
-                            "{:?}",
-                            update_run_status(run.local_path, StatusType::Running, &connection)
-                        );
                     }
                     RunType::FrozenMinEquilCENSO => todo!(),
                     RunType::FrozenForwardCENSO | RunType::FrozenReversedCENSO => {
@@ -752,8 +679,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .next()
                             .ok_or("No prep found")??
                             .local_path;
-
-                        create_dir_if(&format!("data/{}", run.local_path))?;
 
                         for suffix in [".prmtop", ".pdb", "_equil.coor", "_equil.vel", "_equil.xsc"]
                         {
@@ -782,27 +707,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             ])?,
                             _ => panic!(),
                         }
-
-                        // copy to server
-                        run_program(vec![
-                            "rsync",
-                            "-rv",
-                            &format!("data/{}/", run.local_path),
-                            &format!("{:?}:{}", run.remote_host, run.remote_path),
-                        ])?;
-
-                        // start remote job
-                        submit_job(&run)?;
-
-                        println!(
-                            "{:?}",
-                            update_run_status(run.local_path, StatusType::Running, &connection)
-                        );
                     }
                     RunType::FrozenBarCENSO => todo!(),
                     RunType::VacuumCENSO => todo!(),
                     _ => todo!(),
                 }
+
+                // copy to server
+                run_program(vec![
+                    "rsync",
+                    "-rv",
+                    &format!("data/{}/", run.local_path),
+                    &format!("{}:{}", run.remote_host.get_data_host(), run.remote_path),
+                ])?;
+
+                // start remote job
+                submit_job(&run)?;
+
+                println!(
+                    "{:?}",
+                    update_run_status(run.local_path, StatusType::Running, &connection)
+                );
 
                 match run.remote_host {
                     RemoteHostType::localhost => {}
