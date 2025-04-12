@@ -13,6 +13,28 @@ cur = con.cursor()
 def main():
     # returns a path if invalid path is found, else None
 
+    censo_paths = cur.execute(
+        "SELECT local_path FROM runs WHERE run_type = 'CENSO'"
+    ).fetchall()
+    for i in censo_paths:
+        censo_path = i[0]
+        censo_conf = (
+            subprocess.run(
+                [f"head -n 2 data/{censo_path}/2_OPTIMIZATION.xyz | tail -n 1"],
+                check=True,
+                capture_output=True,
+                shell=True,
+            )
+            .stdout.decode("utf-8")
+            .strip()
+        )
+        if not censo_conf.startswith("CONF"):
+            return censo_conf
+
+    relaxed_paths = cur.execute(
+        "SELECT local_path FROM runs WHERE run_type = 'RelaxedBarGAFF'"
+    ).fetchall()
+
     vacuum_censo_paths = cur.execute(
         "SELECT local_path FROM runs WHERE run_type = 'VacuumCENSO'"
     ).fetchall()
@@ -83,7 +105,7 @@ print(f"{compound_id = }")
 print(f"{run_type = }")
 
 for i in cur.execute(
-    f"SELECT * FROM runs WHERE {compound_id = }",
+        f"SELECT * FROM runs WHERE {compound_id = }",
 ).fetchall():
     print(i)
 
