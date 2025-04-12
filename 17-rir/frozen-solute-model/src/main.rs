@@ -486,11 +486,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 if run.remote_host == RemoteHostType::localhost {
-                    if ((katana_cpu_queue_length < 8)
+                    if ((katana_cpu_queue_length < 5)
                         && ((run.run_type == RunType::FrozenForwardCENSO3)
                         || (run.run_type == RunType::FrozenReversedCENSO3)
                         || (run.run_type == RunType::RelaxedMinEquilGAFF)))
-                        || ((katana_cpu_queue_length < 5)
+                        || ((katana_cpu_queue_length < 3)
                         && ((run.run_type == RunType::CREST)
                         || (run.run_type == RunType::CENSO)
                         || (run.run_type == RunType::VacuumCREST)))
@@ -543,7 +543,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
                         println!("pick remote host {:?}", output);
                         katana2_cpu_queue_length += 1;
-                    } else if (setonix_queue_length < 10) && (run.run_type == RunType::CENSO) {
+                    } else if (setonix_queue_length < 0) && ((run.run_type == RunType::CENSO) || (run.run_type == RunType::FrozenForwardCENSO3) || (run.run_type == RunType::FrozenReversedCENSO3)) {
                         connection.execute(
                             &format!(
                                 "UPDATE runs SET remote_path = '/scratch/pawsey0265/mwang1/.automated/{}/', remote_host = 'setonix' WHERE local_path = {}",
@@ -552,6 +552,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             [],
                         )?;
                         setonix_queue_length += 1;
+                        println!("pick remote host setonix");
                     } else {
                         println!("all queues busy, skipping");
                     }
@@ -689,12 +690,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 "prod.frozen.forward.py",
                                 &run.compound_id,
                                 &run.local_path.to_string(),
+                                &format!("{:?}", run.remote_host),
                             ])?,
                             RunType::FrozenReversedCENSO3 => run_program(vec![
                                 "python",
                                 "prod.frozen.reversed.py",
                                 &run.compound_id,
                                 &run.local_path.to_string(),
+                                &format!("{:?}", run.remote_host),
                             ])?,
                             _ => panic!(),
                         }
@@ -742,10 +745,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     receive_files(run, &connection)?;
                 }
             }
-            StatusType::Received => match &run.run_type {
-                RunType::RelaxedMinEquilGAFF => {}
-                _ => {}
-            },
+            StatusType::Received => {}
             StatusType::Finished => {}
             StatusType::Failed => {}
         }
